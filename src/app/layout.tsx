@@ -44,6 +44,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Toaster
           theme="dark"
           position="bottom-right"
+          offset="24px"
+          mobileOffset="calc(88px + env(safe-area-inset-bottom))"
           toastOptions={{
             style: {
               background: "var(--surface-2)",

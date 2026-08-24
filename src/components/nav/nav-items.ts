@@ -7,6 +7,7 @@ import {
   ScanSearch,
   Settings,
   LifeBuoy,
+  MoreHorizontal,
   type LucideIcon,
 } from "lucide-react";
 
@@ -27,11 +28,15 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/settings", label: "Configuración", icon: Settings },
 ];
 
-// Bottom nav mobile: subset priorizado
+// Bottom nav mobile: subset priorizado. El resto de las secciones
+// (Renovaciones, Documentos, Auditorías, Configuración) vive en /mas
+// para no saturar la barra — mismo patrón que el portal del cliente.
 export const BOTTOM_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Inicio", icon: LayoutDashboard },
   { href: "/clients", label: "Clientes", icon: Users },
   { href: "/projects", label: "Proyectos", icon: FolderKanban },
   { href: "/support", label: "Tickets", icon: LifeBuoy },
-  { href: "/settings", label: "Ajustes", icon: Settings },
+  { href: "/mas", label: "Más", icon: MoreHorizontal },
 ];
+
+export const MAS_ROUTES = ["/mas", "/renewals", "/documents", "/audits", "/settings"];

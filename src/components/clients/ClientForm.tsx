@@ -38,7 +38,7 @@ export function ClientForm({
           </Field>
           <Field>
             <Label>Teléfono / WhatsApp</Label>
-            <Input name="whatsapp" defaultValue={client?.whatsapp ?? ""} />
+            <Input type="tel" name="whatsapp" defaultValue={client?.whatsapp ?? ""} />
           </Field>
           <Field>
             <Label>Email</Label>
@@ -56,7 +56,7 @@ export function ClientForm({
           <div className="grid gap-4 sm:grid-cols-2">
             <Field>
               <Label>Teléfono (si es distinto del WhatsApp)</Label>
-              <Input name="phone" defaultValue={client?.phone ?? ""} />
+              <Input type="tel" name="phone" defaultValue={client?.phone ?? ""} />
             </Field>
             <Field>
               <Label>Sitio web</Label>

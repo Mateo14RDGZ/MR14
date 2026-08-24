@@ -16,7 +16,7 @@ const sizes: Record<Size, string> = {
   sm: "h-8 px-3 text-xs gap-1.5",
   md: "h-9 px-3.5 text-sm gap-2",
   lg: "h-11 px-5 text-sm gap-2",
-  icon: "h-9 w-9",
+  icon: "h-10 w-10",
 };
 
 export const Button = forwardRef<
@@ -27,7 +27,7 @@ export const Button = forwardRef<
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center rounded-lg font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none whitespace-nowrap",
+        "inline-flex items-center justify-center rounded-lg font-medium transition-[color,background-color,border-color,transform,opacity] duration-150 active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none disabled:active:scale-100 whitespace-nowrap",
         variants[variant],
         sizes[size],
         className

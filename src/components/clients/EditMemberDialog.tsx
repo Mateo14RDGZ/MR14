@@ -37,7 +37,7 @@ export function EditMemberDialog({ clientId, member }: { clientId: string; membe
           </Field>
           <Field className="mb-0">
             <Label>Teléfono / WhatsApp</Label>
-            <Input name="phone" defaultValue={member.phone ?? ""} placeholder="09XXXXXXXX" />
+            <Input type="tel" name="phone" defaultValue={member.phone ?? ""} placeholder="09XXXXXXXX" />
           </Field>
           <Field className="mb-0">
             <Label>Rol dentro del cliente</Label>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BOTTOM_NAV_ITEMS } from "./nav-items";
+import { BOTTOM_NAV_ITEMS, MAS_ROUTES } from "./nav-items";
 import { cn } from "@/lib/utils";
 
 export function BottomNav() {
@@ -10,7 +10,8 @@ export function BottomNav() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-surface/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] lg:hidden">
       {BOTTOM_NAV_ITEMS.map((item) => {
-        const active = pathname.startsWith(item.href);
+        const active =
+          item.href === "/mas" ? MAS_ROUTES.some((r) => pathname.startsWith(r)) : pathname.startsWith(item.href);
         const Icon = item.icon;
         return (
           <Link

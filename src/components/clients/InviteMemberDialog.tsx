@@ -72,7 +72,7 @@ export function InviteMemberDialog({
 
             <Field className="mb-0">
               <Label>WhatsApp del cliente</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="09XXXXXXXX" />
+              <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="09XXXXXXXX" />
             </Field>
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">

@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useId, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 export function Dialog({
@@ -17,6 +17,9 @@ export function Dialog({
   children: React.ReactNode;
   className?: string;
 }) {
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -24,6 +27,10 @@ export function Dialog({
     if (open) document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  useEffect(() => {
+    if (open) panelRef.current?.focus();
+  }, [open]);
 
   if (!open) return null;
 
@@ -33,17 +40,25 @@ export function Dialog({
       onClick={onClose}
     >
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
         className={cn(
-          "w-full max-w-lg animate-scale-in rounded-t-xl border border-border bg-surface shadow-2xl sm:rounded-xl",
+          "w-full max-w-lg animate-scale-in rounded-t-xl border border-border bg-surface shadow-2xl outline-none sm:rounded-xl",
           className
         )}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <h2 className="text-card-title">{title}</h2>
+          <h2 id={titleId} className="text-card-title">
+            {title}
+          </h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-foreground"
+            aria-label="Cerrar"
+            className="-mr-2 flex h-10 w-10 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-foreground active:scale-[0.95] transition-transform"
           >
             <X size={18} />
           </button>
