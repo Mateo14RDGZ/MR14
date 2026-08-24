@@ -63,12 +63,12 @@ export default async function PortalDashboardPage() {
           <div className="flex items-center gap-3">
             <LifeBuoy size={16} className="shrink-0 text-muted" />
             <p className="text-sm text-muted">
-              ¿Necesitás un cambio o tenés un problema? Gestionalo con un ticket de soporte.
+              Tu proyecto está entregado. Desde ahora podés gestionar cambios, consultas técnicas y nuevas funcionalidades mediante Tickets.
             </p>
           </div>
           <Link href="/portal/solicitudes/nueva">
-            <Button variant="secondary" size="sm" className="w-full sm:w-auto shrink-0">
-              Crear ticket
+            <Button size="sm" className="w-full sm:w-auto shrink-0">
+              Solicitar soporte
             </Button>
           </Link>
         </div>
@@ -141,12 +141,12 @@ export default async function PortalDashboardPage() {
         </div>
         <p className="mt-2 text-sm text-muted">
           {isDelivered
-            ? "Para mantener un seguimiento ordenado, los cambios y solicitudes se gestionan mediante tickets."
+            ? "Tu proyecto está entregado. Desde ahora podés gestionar cambios, consultas técnicas y nuevas funcionalidades mediante Tickets."
             : "Escribinos por WhatsApp o enviá una solicitud desde el portal."}
         </p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           <Link href="/portal/solicitudes/nueva" className="flex-1">
-            <Button className="w-full">Crear ticket</Button>
+            <Button className="w-full">{isDelivered ? "Solicitar soporte" : "Crear ticket"}</Button>
           </Link>
           <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
             <Button variant="secondary" className="w-full">Contacto general</Button>

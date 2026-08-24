@@ -64,20 +64,28 @@ async function uploadAttachments(
 }
 
 // ---------------- CREATE ----------------
+// Rol-agnóstico a propósito: lo usa tanto el cliente (desde el portal, con
+// su client_id fijo) como el admin (desde Soporte o la ficha de un cliente,
+// eligiendo cliente/proyecto/prioridad a mano). El origen queda determinado
+// por created_by + el rol de ese usuario — no hace falta una columna nueva.
 export async function createTicketAction(clientId: string, formData: FormData) {
-  const { supabase, user } = await getCurrentUserAndRole();
+  const { supabase, user, role } = await getCurrentUserAndRole();
   if (!user) return { error: "No autenticado." };
 
   const projectId = String(formData.get("project_id") || "");
   const category = (String(formData.get("category") || "other")) as TicketCategory;
   const subject = String(formData.get("subject") || "").trim();
   const description = String(formData.get("description") || "").trim();
+  const requestedPriority = String(formData.get("priority") || "") as TicketPriority | "";
 
   if (!projectId || !subject || !description) {
     return { error: "Completá proyecto, asunto y descripción." };
   }
 
-  const priority: TicketPriority = category === "site_down" ? "high" : "normal";
+  // El cliente no puede fijar prioridad (se infiere de la categoría); el
+  // admin sí puede, si el form la mandó.
+  const priority: TicketPriority =
+    role === "admin" && requestedPriority ? requestedPriority : category === "site_down" ? "high" : "normal";
 
   const { data: ticket, error } = await supabase
     .from("tickets")
@@ -117,19 +125,23 @@ export async function createTicketAction(clientId: string, formData: FormData) {
     visibility: "internal",
   });
 
-  const adminIds = await getAdminUserIds();
-  await notifyUsers({
-    userIds: adminIds,
-    type: "ticket_created",
-    title: `Nuevo ticket ${ticket.number}`,
-    body: subject,
-    ticketId: ticket.id,
-    url: `/support/${ticket.id}`,
-  });
+  // Si lo creó el cliente, avisar a MR14. Si lo creó MR14 mismo, no hay a
+  // quién avisar internamente — evita notificarse a sí mismo sin motivo.
+  if (role === "client") {
+    const adminIds = await getAdminUserIds();
+    await notifyUsers({
+      userIds: adminIds,
+      type: "ticket_created",
+      title: `Nuevo ticket ${ticket.number}`,
+      body: subject,
+      ticketId: ticket.id,
+      url: `/support/${ticket.id}`,
+    });
+  }
 
   revalidatePath("/portal/solicitudes");
   revalidatePath("/support");
-  redirect(`/portal/solicitudes/${ticket.id}`);
+  redirect(role === "admin" ? `/support/${ticket.id}` : `/portal/solicitudes/${ticket.id}`);
 }
 
 // ---------------- MESSAGES ----------------
@@ -234,16 +246,21 @@ export async function updateTicketStatusAction(ticketId: string, status: TicketS
     visibility: "client",
   });
 
-  const clientMemberIds = await getClientMemberUserIds(ticket.client_id);
-  const notifType = status === "waiting_client" ? "ticket_needs_client_reply" : status === "resolved" ? "ticket_resolved" : "ticket_status_changed";
-  await notifyUsers({
-    userIds: clientMemberIds,
-    type: notifType,
-    title: `Ticket ${ticket.number} actualizado`,
-    body: `Nuevo estado: ${status}`,
-    ticketId,
-    url: `/portal/solicitudes/${ticketId}`,
-  });
+  // Solo se avisa al cliente en los dos momentos que le importan: cuando
+  // necesitamos algo de él, o cuando su ticket queda resuelto. El resto de
+  // los estados (reviewing, in_progress, approved, closed...) son gestión
+  // interna y no ameritan una notificación.
+  if (status === "waiting_client" || status === "resolved") {
+    const clientMemberIds = await getClientMemberUserIds(ticket.client_id);
+    await notifyUsers({
+      userIds: clientMemberIds,
+      type: status === "waiting_client" ? "ticket_needs_client_reply" : "ticket_resolved",
+      title: status === "waiting_client" ? `Necesitamos info tuya en ${ticket.number}` : `Ticket ${ticket.number} resuelto`,
+      body: status === "waiting_client" ? "MR14 te pidió más información sobre tu solicitud." : "Tu solicitud fue marcada como resuelta.",
+      ticketId,
+      url: `/portal/solicitudes/${ticketId}`,
+    });
+  }
 
   revalidatePath(`/support/${ticketId}`);
   revalidatePath("/support");

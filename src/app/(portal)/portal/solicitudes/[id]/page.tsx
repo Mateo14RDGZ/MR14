@@ -11,7 +11,7 @@ export default async function PortalTicketDetailPage({ params }: { params: Promi
   const data = await getTicketDetail(id);
   if (!data) notFound();
 
-  const { ticket, messages, attachments, events, quotes } = data;
+  const { ticket, messages, attachments, events, quotes, creator } = data;
 
   return (
     <div className="mx-auto max-w-4xl animate-fade-in">
@@ -27,6 +27,7 @@ export default async function PortalTicketDetailPage({ params }: { params: Promi
         attachments={attachments}
         events={events}
         quotes={quotes}
+        creator={creator}
       />
     </div>
   );

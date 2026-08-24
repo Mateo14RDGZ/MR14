@@ -37,7 +37,7 @@ const QUICK_ACTIONS = [
   { icon: UserPlus, label: "Nuevo cliente", href: "/clients" },
   { icon: FolderKanban, label: "Nuevo proyecto", href: "/projects" },
   { icon: Wallet, label: "Registrar pago", href: "/clients" },
-  { icon: LifeBuoy, label: "Tickets", href: "/support" },
+  { icon: LifeBuoy, label: "Nuevo ticket", href: "/support?new=ticket" },
 ];
 
 export function CommandPalette() {

@@ -9,7 +9,7 @@ export default async function SupportTicketPage({ params }: { params: Promise<{ 
   const [data, quickReplies] = await Promise.all([getTicketDetail(id), getQuickReplies()]);
   if (!data) notFound();
 
-  const { ticket, messages, attachments, events, quotes } = data;
+  const { ticket, messages, attachments, events, quotes, creator } = data;
   const clientName = (ticket.clients as { business_name?: string } | null)?.business_name ?? "";
   const projectName = (ticket.projects as { name?: string } | null)?.name ?? "";
 
@@ -28,6 +28,7 @@ export default async function SupportTicketPage({ params }: { params: Promise<{ 
         events={events}
         quotes={quotes}
         quickReplies={quickReplies}
+        creator={creator}
       />
     </div>
   );

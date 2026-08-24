@@ -12,9 +12,13 @@ import { Plus } from "lucide-react";
 export function NewProjectDialog({
   clientId,
   clients,
+  triggerLabel = "Nuevo proyecto",
+  dialogTitle = "Nuevo proyecto",
 }: {
   clientId?: string;
   clients?: { id: string; business_name: string }[];
+  triggerLabel?: string;
+  dialogTitle?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -35,9 +39,9 @@ export function NewProjectDialog({
   return (
     <>
       <Button size="sm" onClick={() => setOpen(true)}>
-        <Plus size={14} /> Nuevo proyecto
+        <Plus size={14} /> {triggerLabel}
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Nuevo proyecto">
+      <Dialog open={open} onClose={() => setOpen(false)} title={dialogTitle}>
         <form action={onSubmit} className="space-y-4">
           {!clientId && (
             <Field className="mb-0">

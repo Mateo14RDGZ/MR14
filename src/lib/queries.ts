@@ -219,24 +219,42 @@ export async function getClientHealthMap(): Promise<Map<string, ClientHealth>> {
   return health;
 }
 
+/**
+ * internal_notes.created_by referencia auth.users, no profiles — Postgres/
+ * PostgREST no puede embeber "profiles(...)" directamente ahí (no hay FK
+ * entre esas dos tablas), así que el nombre del autor se resuelve acá con
+ * una segunda consulta en batch en vez de un join que fallaría.
+ */
+async function attachAuthorNames<T extends { created_by: string | null }>(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  notes: T[]
+): Promise<(T & { author_name: string | null })[]> {
+  const ids = [...new Set(notes.map((n) => n.created_by).filter((id): id is string => Boolean(id)))];
+  if (ids.length === 0) return notes.map((n) => ({ ...n, author_name: null }));
+
+  const { data: profiles } = await supabase.from("profiles").select("id,full_name").in("id", ids);
+  const nameById = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
+  return notes.map((n) => ({ ...n, author_name: (n.created_by && nameById.get(n.created_by)) || null }));
+}
+
 export async function getClientInternalNotes(clientId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("internal_notes")
-    .select("*,profiles(full_name)")
+    .select("*")
     .eq("client_id", clientId)
     .order("created_at", { ascending: false });
-  return data ?? [];
+  return attachAuthorNames(supabase, data ?? []);
 }
 
 export async function getProjectInternalNotes(projectId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("internal_notes")
-    .select("*,profiles(full_name)")
+    .select("*")
     .eq("project_id", projectId)
     .order("created_at", { ascending: false });
-  return data ?? [];
+  return attachAuthorNames(supabase, data ?? []);
 }
 
 export async function getQuickReplies() {
@@ -524,13 +542,14 @@ export async function getPortalDocuments(clientId: string) {
   return data ?? [];
 }
 
+/** Credenciales que el cliente puede ver (RLS ya las filtra), para /portal/credenciales. */
 export async function getPortalCredentials(clientId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("credentials")
-    .select("*")
+    .select("id,service,service_label,username,access_url,delivered_at,last_updated")
     .eq("client_id", clientId)
-    .order("last_updated", { ascending: false });
+    .order("delivered_at", { ascending: false });
   return data ?? [];
 }
 
@@ -654,11 +673,16 @@ export async function getTicketDetail(id: string) {
     .single();
   if (!ticket) return null;
 
-  const [messages, attachments, events, quotes] = await Promise.all([
+  const [messages, attachments, events, quotes, creator] = await Promise.all([
     supabase.from("ticket_messages").select("*").eq("ticket_id", id).order("created_at", { ascending: true }),
     supabase.from("ticket_attachments").select("*").eq("ticket_id", id).order("created_at", { ascending: true }),
     supabase.from("ticket_events").select("*").eq("ticket_id", id).order("created_at", { ascending: false }),
     supabase.from("ticket_quotes").select("*, ticket_quote_versions(*)").eq("ticket_id", id),
+    // created_by referencia auth.users (no profiles), no se puede embeber con
+    // un join: se resuelve el nombre/rol de quien originó el ticket aparte.
+    ticket.created_by
+      ? supabase.from("profiles").select("full_name,role").eq("id", ticket.created_by).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   return {
@@ -667,6 +691,7 @@ export async function getTicketDetail(id: string) {
     attachments: attachments.data ?? [],
     events: events.data ?? [],
     quotes: quotes.data ?? [],
+    creator: creator.data,
   };
 }
 

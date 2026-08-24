@@ -66,7 +66,7 @@ export default async function PortalMiWebPage() {
               </Link>
             </div>
             <p className="text-xs text-muted-2">
-              Tu proyecto quedó entregado. Desde ahora, cualquier cambio o solicitud de soporte podés gestionarlo desde Tickets.
+              Tu proyecto está entregado. Desde ahora podés gestionar cambios, consultas técnicas y nuevas funcionalidades mediante Tickets.
             </p>
           </CardBody>
         </Card>
@@ -146,13 +146,16 @@ export default async function PortalMiWebPage() {
 
 function ChecklistItem({ done, label }: { done: boolean; label: string }) {
   return (
-    <li className="flex items-center gap-2">
-      {done ? (
-        <CheckCircle2 size={16} className="shrink-0 text-success" />
-      ) : (
-        <Circle size={16} className="shrink-0 text-muted-2" />
-      )}
-      <span className={done ? "text-foreground" : "text-muted-2"}>{label}</span>
+    <li className="flex items-center justify-between gap-2">
+      <span className="flex items-center gap-2">
+        {done ? (
+          <CheckCircle2 size={16} className="shrink-0 text-success" />
+        ) : (
+          <Circle size={16} className="shrink-0 text-muted-2" />
+        )}
+        <span className={done ? "text-foreground" : "text-muted-2"}>{label}</span>
+      </span>
+      {!done && <span className="shrink-0 text-xs text-muted-2">Pendiente</span>}
     </li>
   );
 }

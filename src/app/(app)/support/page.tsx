@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { getAllTickets, getSupportDashboardData, getClientsForSelect } from "@/lib/queries";
+import { getAllTickets, getSupportDashboardData, getClientsForSelect, getAllProjects } from "@/lib/queries";
 import { StatCard, Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/Empty";
+import { NewTicketDialog } from "@/components/shared/NewTicketDialog";
 import { TICKET_STATUSES, TICKET_CATEGORIES, TICKET_PRIORITIES } from "@/lib/types";
 import { formatDate, timeAgo } from "@/lib/utils";
 import { LifeBuoy, Search, Clock } from "lucide-react";
@@ -33,10 +34,10 @@ const PRIORITY_TONE: Record<string, "muted" | "warning" | "danger" | "accent"> =
 export default async function SupportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ client?: string; status?: string; category?: string; priority?: string; q?: string }>;
+  searchParams: Promise<{ client?: string; status?: string; category?: string; priority?: string; q?: string; new?: string }>;
 }) {
   const params = await searchParams;
-  const [tickets, metrics, clients] = await Promise.all([
+  const [tickets, metrics, clients, projects] = await Promise.all([
     getAllTickets({
       clientId: params.client,
       status: params.status,
@@ -46,11 +47,17 @@ export default async function SupportPage({
     }),
     getSupportDashboardData(),
     getClientsForSelect(),
+    getAllProjects(),
   ]);
+  const projectOptions = projects.map((p) => ({ id: p.id, name: p.name, client_id: p.client_id }));
 
   return (
     <div className="animate-fade-in space-y-6">
-      <PageHeader title="Tickets" description="Bandeja de tickets de todos los clientes." />
+      <PageHeader
+        title="Tickets"
+        description="Bandeja de tickets de todos los clientes."
+        action={<NewTicketDialog clients={clients} projects={projectOptions} autoOpen={params.new === "ticket"} />}
+      />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Abiertos" value={metrics.open} />

@@ -52,7 +52,10 @@ export function TicketList({ tickets, basePath }: { tickets: TicketListItem[]; b
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon={LifeBuoy} title="Sin solicitudes en esta categoría" />
+        <EmptyState
+          icon={LifeBuoy}
+          title={tab === "open" ? "No tenés solicitudes abiertas." : "Sin solicitudes en esta categoría."}
+        />
       ) : (
         <div className="space-y-2">
           {filtered.map((t) => (

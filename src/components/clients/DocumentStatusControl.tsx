@@ -35,6 +35,7 @@ export function DocumentStatusControl({
     startTransition(async () => {
       try {
         await updateDocumentStatusAction(documentId, clientId, next);
+        toast.success("Documento actualizado.");
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "No se pudo actualizar el estado.");
       }
@@ -45,6 +46,7 @@ export function DocumentStatusControl({
     startTransition(async () => {
       try {
         await toggleDocumentSignatureAction(documentId, clientId, field, value);
+        toast.success("Documento actualizado.");
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "No se pudo actualizar la firma.");
       }

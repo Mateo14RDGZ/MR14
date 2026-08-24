@@ -16,6 +16,7 @@ import { HistoryTab } from "@/components/clients/HistoryTab";
 import { AuditsTab } from "@/components/clients/AuditsTab";
 import { DeleteClientButton } from "@/components/clients/DeleteClientButton";
 import { InviteMemberDialog } from "@/components/clients/InviteMemberDialog";
+import { NewTicketDialog } from "@/components/shared/NewTicketDialog";
 import { Avatar } from "@/components/ui/Avatar";
 import { CLIENT_STATUSES } from "@/lib/types";
 import { ArrowLeft } from "lucide-react";
@@ -93,6 +94,12 @@ export default async function ClientDetailPage({
             count: supportSummary.total,
             content: (
               <div className="space-y-4">
+                <div className="flex justify-end">
+                  <NewTicketDialog
+                    clients={[{ id: client.id, business_name: client.business_name }]}
+                    projects={projects.map((p) => ({ id: p.id, name: p.name, client_id: client.id }))}
+                  />
+                </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="rounded-lg border border-border p-3 text-center">
                     <p className="text-lg font-semibold">{supportSummary.total}</p>

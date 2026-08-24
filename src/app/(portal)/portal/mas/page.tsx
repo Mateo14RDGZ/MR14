@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { signOut } from "@/actions/auth";
-import { Wallet, RefreshCw, User, LogOut, ChevronRight } from "lucide-react";
+import { Wallet, RefreshCw, User, LogOut, ChevronRight, KeyRound } from "lucide-react";
 
 const LINKS = [
   { href: "/portal/pagos", label: "Pagos", icon: Wallet },
   { href: "/portal/renovaciones", label: "Renovaciones", icon: RefreshCw },
+  { href: "/portal/credenciales", label: "Accesos", icon: KeyRound },
   { href: "/portal/perfil", label: "Mi perfil y notificaciones", icon: User },
 ];
 

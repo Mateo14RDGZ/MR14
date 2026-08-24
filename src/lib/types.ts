@@ -264,7 +264,7 @@ export type NotificationType =
   | "ticket_created" | "ticket_message" | "ticket_status_changed"
   | "ticket_needs_client_reply" | "quote_received" | "quote_accepted"
   | "quote_rejected" | "ticket_resolved" | "member_pending_approval"
-  | "project_updated" | "document_uploaded";
+  | "project_updated" | "document_uploaded" | "credential_delivered";
 
 export const TICKET_STATUSES: { value: TicketStatus; label: string }[] = [
   { value: "received", label: "Recibido" },
@@ -379,6 +379,7 @@ export interface AppNotification {
   title: string;
   body: string | null;
   ticket_id: string | null;
+  url: string | null;
   read_at: string | null;
   created_at: string;
 }

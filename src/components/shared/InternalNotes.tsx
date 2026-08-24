@@ -15,7 +15,7 @@ interface NoteRow {
   content: string;
   created_at: string;
   updated_at: string;
-  profiles?: { full_name: string | null } | null;
+  author_name: string | null;
 }
 
 export function InternalNotes({
@@ -97,7 +97,7 @@ export function InternalNotes({
                   <p className="whitespace-pre-line break-words">{n.content}</p>
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-2">
                     <span className="min-w-0">
-                      {n.profiles?.full_name || "MR14"} · {formatDateTime(n.updated_at || n.created_at)}
+                      {n.author_name || "MR14"} · {formatDateTime(n.updated_at || n.created_at)}
                       {n.updated_at !== n.created_at ? " (editada)" : ""}
                     </span>
                     <div className="flex shrink-0 items-center gap-1">

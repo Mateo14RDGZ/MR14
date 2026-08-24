@@ -23,6 +23,7 @@ export async function notifyUsers(params: {
       title: params.title,
       body: params.body ?? null,
       ticket_id: params.ticketId ?? null,
+      url: params.url ?? null,
     }))
   );
 

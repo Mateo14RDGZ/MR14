@@ -203,6 +203,7 @@ export async function completeInvitationAction(token: string, formData: FormData
         type: "member_pending_approval",
         title: notifTitle,
         body: notifBody,
+        url: `/clients/${clientId}`,
       }))
     );
     await sendPushToUsers(adminIds, { title: notifTitle, body: notifBody, url: `/clients/${clientId}` });

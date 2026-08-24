@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { encryptSecret, decryptSecret } from "@/lib/crypto";
 import { logHistory } from "@/lib/history";
+import { notifyUsers, getClientMemberUserIds } from "@/lib/notifications";
 import type { CredentialService, CredentialVisibility } from "@/lib/types";
 
 function str(fd: FormData, key: string): string | null {
@@ -123,11 +124,22 @@ export async function deliverCredentialAction(id: string, clientId: string) {
     .single();
   if (error) return { error: error.message };
 
+  const label = data?.service_label || data?.service || "un acceso";
   await logHistory({
     clientId,
     projectId: data?.project_id ?? null,
-    event: `Acceso de ${data?.service_label || data?.service} entregado al cliente`,
+    event: `Acceso de ${label} entregado al cliente`,
   });
+
+  const clientMemberIds = await getClientMemberUserIds(clientId);
+  await notifyUsers({
+    userIds: clientMemberIds,
+    type: "credential_delivered",
+    title: "Nuevo acceso disponible",
+    body: `MR14 te entregó el acceso: ${label}`,
+    url: "/portal/credenciales",
+  });
+
   revalidatePath(`/clients/${clientId}`);
 }
 

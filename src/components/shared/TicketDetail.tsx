@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Select } from "@/components/ui/Input";
 import { ConfirmButton } from "@/components/ui/ConfirmButton";
+import { NewProjectDialog } from "@/components/clients/NewProjectDialog";
 import {
   addTicketMessageAction,
   updateTicketStatusAction,
@@ -30,7 +31,7 @@ import {
   type QuickReply,
 } from "@/lib/types";
 import { formatCurrency, formatDateTime, daysUntil } from "@/lib/utils";
-import { Paperclip, Send, FileDown, Clock } from "lucide-react";
+import { Paperclip, Send, FileDown, Clock, Sparkles } from "lucide-react";
 
 const STATUS_TONE: Record<string, "muted" | "warning" | "accent" | "success" | "danger"> = {
   received: "muted",
@@ -62,6 +63,7 @@ export function TicketDetail({
   events,
   quotes,
   quickReplies = [],
+  creator = null,
 }: {
   role: "admin" | "client";
   ticket: Ticket;
@@ -72,6 +74,7 @@ export function TicketDetail({
   events: TicketEvent[];
   quotes: QuoteWithVersions[];
   quickReplies?: QuickReply[];
+  creator?: { full_name: string | null; role: string } | null;
 }) {
   const attachmentsByMessage = new Map<string, TicketAttachment[]>();
   const generalAttachments: TicketAttachment[] = [];
@@ -123,7 +126,7 @@ export function TicketDetail({
         </Card>
 
         {latestVersion && (
-          <QuoteCard ticketId={ticket.id} role={role} quote={latestQuote} version={latestVersion} />
+          <QuoteCard ticketId={ticket.id} clientId={ticket.client_id} role={role} quote={latestQuote} version={latestVersion} />
         )}
 
         <Card>
@@ -158,6 +161,13 @@ export function TicketDetail({
       </div>
 
       <div className="space-y-6">
+        {role === "admin" && ticket.category === "new_feature" && (
+          <div className="flex items-center gap-2 rounded-lg border border-accent/25 bg-accent-soft px-3 py-2 text-xs text-accent">
+            <Sparkles size={14} className="shrink-0" />
+            Posible trabajo adicional
+          </div>
+        )}
+
         {role === "admin" && (
           <Card>
             <CardHeader>
@@ -196,7 +206,7 @@ export function TicketDetail({
               {events.map((e) => (
                 <li key={e.id} className="relative text-xs">
                   <div className="absolute -left-[19px] top-1 h-1.5 w-1.5 rounded-full bg-muted-2" />
-                  <p className="text-foreground">{eventLabel(e)}</p>
+                  <p className="text-foreground">{eventLabel(e, creator)}</p>
                   <p className="text-muted-2">{formatDateTime(e.created_at)}</p>
                 </li>
               ))}
@@ -208,9 +218,12 @@ export function TicketDetail({
   );
 }
 
-function eventLabel(e: TicketEvent) {
+function eventLabel(e: TicketEvent, creator?: { full_name: string | null; role: string } | null) {
+  if (e.event_type === "created") {
+    if (creator?.role === "admin") return "MR14 creó esta solicitud.";
+    return `${creator?.full_name || "El cliente"} creó esta solicitud.`;
+  }
   const map: Record<string, string> = {
-    created: "Ticket creado",
     status_changed: `Estado: ${(e.meta as { status?: string })?.status ?? ""}`,
     priority_changed: `Prioridad: ${(e.meta as { priority?: string })?.priority ?? ""}`,
     message: "Nuevo mensaje",
@@ -257,7 +270,10 @@ function ReplyForm({ ticketId, quickReplies = [] }: { ticketId: string; quickRep
     startTransition(async () => {
       const result = await addTicketMessageAction(ticketId, formData);
       if (result?.error) toast.error(result.error);
-      else setBody("");
+      else {
+        setBody("");
+        toast.success("Respuesta enviada.");
+      }
     });
   }
 
@@ -414,11 +430,13 @@ function CreateQuoteDialog({ ticketId }: { ticketId: string }) {
 
 function QuoteCard({
   ticketId,
+  clientId,
   role,
   quote,
   version,
 }: {
   ticketId: string;
+  clientId: string;
   role: "admin" | "client";
   quote: QuoteWithVersions;
   version: TicketQuoteVersion;
@@ -479,6 +497,15 @@ function QuoteCard({
           <p className="pt-1 text-xs text-muted-2">
             {version.decision === "accepted" ? "Aceptado" : "Rechazado"} el {formatDateTime(version.decided_at)}
           </p>
+        )}
+        {role === "admin" && quote.status === "accepted" && (
+          <div className="pt-2">
+            <NewProjectDialog
+              clientId={clientId}
+              triggerLabel="Crear trabajo adicional"
+              dialogTitle="Trabajo adicional"
+            />
+          </div>
         )}
         {quote.ticket_quote_versions.length > 1 && (
           <details className="pt-2">
