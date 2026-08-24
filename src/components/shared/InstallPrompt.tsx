@@ -24,7 +24,7 @@ export function InstallPrompt() {
   if (!deferred || dismissed) return null;
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-40 flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-2xl animate-fade-in lg:bottom-4 lg:left-auto lg:right-4 lg:w-80">
+    <div className="fixed inset-x-4 z-40 flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-2xl animate-fade-in bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:inset-x-auto lg:bottom-4 lg:right-4 lg:w-80">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground font-bold text-sm">
         M
       </div>
