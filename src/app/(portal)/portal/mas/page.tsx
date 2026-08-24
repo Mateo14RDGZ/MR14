@@ -1,21 +1,28 @@
 import Link from "next/link";
+import { getPortalContext } from "@/lib/portal";
+import { getPortalDeliveryChecklist } from "@/lib/queries";
 import { signOut } from "@/actions/auth";
 import { Wallet, RefreshCw, User, LogOut, ChevronRight, KeyRound } from "lucide-react";
 
-const LINKS = [
-  { href: "/portal/pagos", label: "Pagos", icon: Wallet },
-  { href: "/portal/renovaciones", label: "Renovaciones", icon: RefreshCw },
-  { href: "/portal/credenciales", label: "Accesos", icon: KeyRound },
-  { href: "/portal/perfil", label: "Mi perfil y notificaciones", icon: User },
-];
+export default async function PortalMasPage() {
+  const { activeClientId } = await getPortalContext();
+  // "Accesos" solo aparece si hay algo que mostrar — no tiene sentido un
+  // link a una pantalla vacía.
+  const { hasDeliveredCredentials } = await getPortalDeliveryChecklist(activeClientId);
 
-export default function PortalMasPage() {
+  const links = [
+    { href: "/portal/pagos", label: "Pagos", icon: Wallet },
+    { href: "/portal/renovaciones", label: "Renovaciones", icon: RefreshCw },
+    ...(hasDeliveredCredentials ? [{ href: "/portal/credenciales", label: "Accesos", icon: KeyRound }] : []),
+    { href: "/portal/perfil", label: "Mi perfil y notificaciones", icon: User },
+  ];
+
   return (
     <div className="animate-fade-in space-y-6">
       <h1 className="text-page-title">Más</h1>
 
       <div className="divide-y divide-border rounded-lg border border-border bg-surface">
-        {LINKS.map((l) => (
+        {links.map((l) => (
           <Link
             key={l.href}
             href={l.href}

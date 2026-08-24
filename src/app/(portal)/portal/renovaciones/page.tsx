@@ -3,17 +3,8 @@ import { getPortalRenewals } from "@/lib/queries";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
-import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
-import { RENEWAL_WORKFLOW_STATUSES } from "@/lib/types";
+import { formatDate, daysUntil } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
-
-const WORKFLOW_TONE: Record<string, "muted" | "warning" | "accent" | "success" | "danger"> = {
-  pending: "muted",
-  client_notified: "warning",
-  confirmed: "accent",
-  renewed: "success",
-  not_renewed: "danger",
-};
 
 export default async function PortalRenewalsPage() {
   const { activeClientId } = await getPortalContext();
@@ -23,51 +14,26 @@ export default async function PortalRenewalsPage() {
     <div className="animate-fade-in space-y-6">
       <div>
         <h1 className="text-page-title">Renovaciones</h1>
-        <p className="mt-1 text-sm text-muted">Dominio, hosting y otros servicios asociados a tu proyecto.</p>
+        <p className="mt-1 text-sm text-muted">Dominio y servicios asociados a tu proyecto.</p>
       </div>
 
       {renewals.length === 0 ? (
-        <EmptyState icon={RefreshCw} title="No hay renovaciones registradas" />
+        <EmptyState icon={RefreshCw} title="No tenés renovaciones próximas." />
       ) : (
         <div className="space-y-3">
           {renewals.map((r) => {
             const days = daysUntil(r.due_date);
             const urgent = days !== null && days <= 30 && days >= 0 && r.status !== "renovado";
+            const renewed = r.status === "renovado";
             return (
-              <Card key={r.id} className="p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="font-medium">{r.service_name}</p>
-                    <p className="text-xs text-muted-2 capitalize">{r.kind.replace(/_/g, " ")}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <Badge tone={urgent ? "warning" : r.status === "vencido" ? "danger" : "success"}>
-                      {r.status.replace(/_/g, " ")}
-                    </Badge>
-                    {r.workflow_status !== "pending" && (
-                      <Badge tone={WORKFLOW_TONE[r.workflow_status] ?? "muted"}>
-                        {RENEWAL_WORKFLOW_STATUSES.find((w) => w.value === r.workflow_status)?.label ?? r.workflow_status}
-                      </Badge>
-                    )}
-                  </div>
+              <Card key={r.id} className="flex items-center justify-between gap-3 p-4">
+                <div>
+                  <p className="font-medium">{r.service_name}</p>
+                  <p className="text-sm text-muted">
+                    {renewed ? "Renovado." : `Vence el ${formatDate(r.due_date)}${days !== null && days >= 0 ? ` (en ${days} día${days === 1 ? "" : "s"})` : ""}.`}
+                  </p>
                 </div>
-                <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
-                  <div>
-                    <p className="text-xs text-muted-2">Vence</p>
-                    <p className="font-medium">{formatDate(r.due_date)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-2">Faltan</p>
-                    <p className="font-medium">{days !== null ? `${days} días` : "-"}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-2">Costo estimado</p>
-                    <p className="font-medium">{r.price ? formatCurrency(r.price) : "-"}</p>
-                  </div>
-                </div>
-                {r.auto_renew && (
-                  <p className="mt-2 text-xs text-success">Renovación automática activada</p>
-                )}
+                {urgent && <Badge tone="warning">Vence pronto</Badge>}
               </Card>
             );
           })}

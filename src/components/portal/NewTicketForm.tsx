@@ -29,18 +29,22 @@ export function NewTicketForm({
     <Card>
       <CardBody>
         <form action={onSubmit} className="space-y-4">
+          {projects.length > 1 ? (
+            <Field className="mb-0">
+              <Label>Proyecto</Label>
+              <Select name="project_id" required defaultValue={projects[0]?.id ?? ""}>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          ) : (
+            <input type="hidden" name="project_id" value={projects[0]?.id ?? ""} />
+          )}
           <Field className="mb-0">
-            <Label>Proyecto</Label>
-            <Select name="project_id" required defaultValue={projects[0]?.id ?? ""}>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field className="mb-0">
-            <Label>Categoría</Label>
+            <Label>¿Qué necesitás?</Label>
             <Select name="category" defaultValue="other">
               {TICKET_CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>
@@ -54,8 +58,8 @@ export function NewTicketForm({
             <Input name="subject" required placeholder="Ej: Cambiar horario del sábado" />
           </Field>
           <Field className="mb-0">
-            <Label>Descripción</Label>
-            <Textarea name="description" required rows={5} placeholder="Contanos con el mayor detalle posible qué necesitás" />
+            <Label>Contanos qué necesitás</Label>
+            <Textarea name="description" required rows={5} placeholder="Con el mayor detalle posible" />
           </Field>
           <Field className="mb-0">
             <Label className="flex items-center gap-1">

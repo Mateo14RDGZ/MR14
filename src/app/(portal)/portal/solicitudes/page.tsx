@@ -23,7 +23,7 @@ export default async function PortalRequestsPage() {
         </Link>
       </div>
 
-      <TicketList tickets={tickets} basePath="/portal/solicitudes" />
+      <TicketList tickets={tickets} basePath="/portal/solicitudes" clientView />
     </div>
   );
 }

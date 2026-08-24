@@ -23,8 +23,12 @@ export default async function PortalPagosPage() {
       <PageHeader title="Pagos" description="Cuánto pagaste y cuánto te falta para tu proyecto." />
 
       <Card className="p-6 text-center sm:p-8">
-        <p className="text-caption">Saldo pendiente</p>
-        <p className="mt-1.5 text-display text-warning">{formatCurrency(project.balance, project.currency)}</p>
+        <p className="text-caption">{project.balance > 0 ? "Pendiente" : "Estado"}</p>
+        {project.balance > 0 ? (
+          <p className="mt-1.5 text-display text-warning">{formatCurrency(project.balance, project.currency)}</p>
+        ) : (
+          <p className="mt-1.5 text-display text-success">Todo pago</p>
+        )}
         <div className="mx-auto mt-4 flex max-w-xs items-center justify-between text-sm">
           <div>
             <p className="text-metric text-success">{formatCurrency(project.amount_paid, project.currency)}</p>

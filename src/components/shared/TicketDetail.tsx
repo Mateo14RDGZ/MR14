@@ -22,6 +22,7 @@ import {
   TICKET_STATUSES,
   TICKET_CATEGORIES,
   TICKET_PRIORITIES,
+  CLIENT_TICKET_STATUS_LABEL,
   type Ticket,
   type TicketMessage,
   type TicketAttachment,
@@ -102,11 +103,13 @@ export function TicketDetail({
               <h1 className="text-card-title">{ticket.subject}</h1>
             </div>
             <div className="flex items-center gap-2">
-              <Badge tone={PRIORITY_TONE[ticket.priority]}>
-                {TICKET_PRIORITIES.find((p) => p.value === ticket.priority)?.label}
-              </Badge>
+              {role === "admin" && (
+                <Badge tone={PRIORITY_TONE[ticket.priority]}>
+                  {TICKET_PRIORITIES.find((p) => p.value === ticket.priority)?.label}
+                </Badge>
+              )}
               <Badge tone={STATUS_TONE[ticket.status]}>
-                {TICKET_STATUSES.find((s) => s.value === ticket.status)?.label}
+                {role === "client" ? CLIENT_TICKET_STATUS_LABEL[ticket.status] : TICKET_STATUSES.find((s) => s.value === ticket.status)?.label}
               </Badge>
             </div>
           </CardHeader>

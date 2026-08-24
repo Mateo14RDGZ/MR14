@@ -27,7 +27,6 @@ export default async function PortalMiWebPage() {
   const score = (lastAudit?.score ?? {}) as { seo?: number; accessibility?: number; performance?: number };
   const domainDays = daysUntil(domain?.expiry_date);
   const domainExpiringSoon = domainDays !== null && domainDays >= 0 && domainDays <= 30;
-  const sslActive = Boolean(hosting?.production_url?.startsWith("https"));
   const paymentDone = project.balance <= 0;
 
   return (
@@ -46,9 +45,8 @@ export default async function PortalMiWebPage() {
             <ul className="space-y-2 text-sm">
               <ChecklistItem done={Boolean(hosting?.production_url)} label="Web publicada" />
               <ChecklistItem done={Boolean(domain?.domain)} label="Dominio configurado" />
-              <ChecklistItem done={sslActive} label="SSL activo" />
-              <ChecklistItem done={checklist.hasDocuments} label="Documentación disponible" />
-              <ChecklistItem done={checklist.hasDeliveredCredentials} label="Credenciales entregadas" />
+              <ChecklistItem done={checklist.hasDocuments} label="Documentos disponibles" />
+              <ChecklistItem done={checklist.hasDeliveredCredentials} label="Accesos entregados" />
               <ChecklistItem done={paymentDone} label="Pago completado" />
             </ul>
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -66,7 +64,7 @@ export default async function PortalMiWebPage() {
               </Link>
             </div>
             <p className="text-xs text-muted-2">
-              Tu proyecto está entregado. Desde ahora podés gestionar cambios, consultas técnicas y nuevas funcionalidades mediante Tickets.
+              Tu proyecto está entregado. Desde ahora podés gestionar cambios, consultas técnicas y nuevas funcionalidades mediante Solicitudes.
             </p>
           </CardBody>
         </Card>
@@ -81,65 +79,62 @@ export default async function PortalMiWebPage() {
         </div>
       )}
 
-      <Card className="p-6 text-center sm:p-8">
-        <p className="text-caption">URL principal</p>
-        <p className="mt-1.5 truncate text-page-title">{hosting?.production_url ?? domain?.domain ?? "Sin publicar"}</p>
+      <Card className="p-6 sm:p-8">
+        <div className="space-y-3 text-sm">
+          <Row label="Estado" value={STAGE_META[project.stage as ProjectStage]?.clientLabel ?? project.status.replace(/_/g, " ")} />
+          <Row label="Dirección" value={hosting?.production_url ?? domain?.domain} />
+          <Row label="Última actualización" value={formatDate(project.updated_at)} />
+          <Row label="Próxima renovación" value={formatDate(domain?.expiry_date)} />
+        </div>
         {hosting?.production_url && (
           <a href={hosting.production_url} target="_blank" rel="noopener noreferrer">
-            <Button size="lg" className="mt-4">
-              <ExternalLink size={16} /> Abrir sitio
+            <Button size="lg" className="mt-5 w-full">
+              <ExternalLink size={16} /> Abrir mi web
             </Button>
           </a>
         )}
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <h2 className="text-card-title">Detalles técnicos</h2>
-          </CardHeader>
-          <CardBody className="space-y-3 text-sm">
-            <Row label="Dominio" value={domain?.domain} />
-            <Row label="SSL / HTTPS" value={hosting?.production_url?.startsWith("https") ? "Activo" : "No disponible"} />
-            <Row label="Hosting" value={hosting?.platform} />
-            <Row label="Fecha de publicación" value={formatDate(project.actual_delivery_date)} />
-            <Row label="Última actualización" value={formatDate(project.updated_at)} />
-            <Row label="Próxima renovación" value={formatDate(domain?.expiry_date)} />
-            <Row label="Estado" value={STAGE_META[project.stage as ProjectStage]?.clientLabel ?? project.status.replace(/_/g, " ")} />
-          </CardBody>
-        </Card>
+      <details className="group rounded-lg border border-border">
+        <summary className="cursor-pointer list-none px-5 py-3.5 text-sm font-medium text-muted marker:content-none group-open:border-b group-open:border-border">
+          Detalles técnicos
+        </summary>
+        <div className="space-y-3 p-5 text-sm">
+          <Row label="Dominio" value={domain?.domain} />
+          <Row label="SSL / HTTPS" value={hosting?.production_url?.startsWith("https") ? "Activo" : "No disponible"} />
+          <Row label="Hosting" value={hosting?.platform} />
+          <Row label="Fecha de publicación" value={formatDate(project.actual_delivery_date)} />
+        </div>
+      </details>
 
+      {lastAudit && (
         <Card>
           <CardHeader>
             <h2 className="text-card-title">Última auditoría</h2>
           </CardHeader>
           <CardBody>
-            {!lastAudit ? (
-              <p className="text-sm text-muted-2">Información no disponible.</p>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted">SEO</span>
-                  <Badge tone={((score.seo ?? 0) >= 70 ? "success" : "warning")}>{score.seo ?? "-"}/100</Badge>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted">Accesibilidad</span>
-                  <Badge tone={((score.accessibility ?? 0) >= 70 ? "success" : "warning")}>
-                    {score.accessibility ?? "-"}/100
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted">Performance estimada</span>
-                  <Badge tone={((score.performance ?? 0) >= 70 ? "success" : "warning")}>
-                    {score.performance ?? "-"}/100
-                  </Badge>
-                </div>
-                <p className="pt-2 text-xs text-muted-2">Analizado el {formatDate(lastAudit.created_at)}</p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted">SEO</span>
+                <Badge tone={((score.seo ?? 0) >= 70 ? "success" : "warning")}>{score.seo ?? "-"}/100</Badge>
               </div>
-            )}
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted">Accesibilidad</span>
+                <Badge tone={((score.accessibility ?? 0) >= 70 ? "success" : "warning")}>
+                  {score.accessibility ?? "-"}/100
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted">Performance estimada</span>
+                <Badge tone={((score.performance ?? 0) >= 70 ? "success" : "warning")}>
+                  {score.performance ?? "-"}/100
+                </Badge>
+              </div>
+              <p className="pt-2 text-xs text-muted-2">Analizado el {formatDate(lastAudit.created_at)}</p>
+            </div>
           </CardBody>
         </Card>
-      </div>
+      )}
     </div>
   );
 }

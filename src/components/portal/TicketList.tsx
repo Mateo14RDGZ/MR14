@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
-import { TICKET_CATEGORIES, TICKET_STATUSES, type Ticket } from "@/lib/types";
+import { TICKET_CATEGORIES, TICKET_STATUSES, CLIENT_TICKET_STATUS_LABEL, type Ticket } from "@/lib/types";
 
 type TicketListItem = Pick<Ticket, "id" | "number" | "subject" | "category" | "status" | "created_at">;
 import { formatDate } from "@/lib/utils";
@@ -25,7 +25,15 @@ const STATUS_TONE: Record<string, "muted" | "warning" | "accent" | "success" | "
 
 const OPEN_STATUSES = ["received", "reviewing", "in_progress", "waiting_client", "requires_quote", "approved"];
 
-export function TicketList({ tickets, basePath }: { tickets: TicketListItem[]; basePath: string }) {
+export function TicketList({
+  tickets,
+  basePath,
+  clientView = false,
+}: {
+  tickets: TicketListItem[];
+  basePath: string;
+  clientView?: boolean;
+}) {
   const [tab, setTab] = useState<"open" | "resolved" | "all">("open");
 
   const filtered = tickets.filter((t) => {
@@ -70,7 +78,7 @@ export function TicketList({ tickets, basePath }: { tickets: TicketListItem[]; b
                     </p>
                   </div>
                   <Badge tone={STATUS_TONE[t.status]}>
-                    {TICKET_STATUSES.find((s) => s.value === t.status)?.label}
+                    {clientView ? CLIENT_TICKET_STATUS_LABEL[t.status] : TICKET_STATUSES.find((s) => s.value === t.status)?.label}
                   </Badge>
                 </div>
               </Card>

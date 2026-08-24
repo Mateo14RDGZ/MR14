@@ -31,9 +31,11 @@ export default async function PortalDashboardPage() {
     ? "Tu proyecto está por comenzar."
     : isOnline
       ? "Tu web está online."
-      : isDelivered
-        ? "Tu proyecto fue entregado."
-        : "Tu proyecto está en desarrollo.";
+      : project.stage === "material"
+        ? "Necesitamos información tuya para continuar."
+        : project.stage === "primera_version"
+          ? "Tu web está pronta para revisar."
+          : "Tu web está en desarrollo.";
 
   const nextActions = computeNextActions({
     project,
@@ -44,7 +46,8 @@ export default async function PortalDashboardPage() {
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <p className="text-display">Hola, {activeClient?.business_name}</p>
+        <p className="text-display">Hola, {activeClient?.contact_name || activeClient?.business_name}</p>
+        <p className="text-sm text-muted-2">{activeClient?.business_name}</p>
         <p className="mt-1.5 text-sm text-muted">{statusLine}</p>
       </div>
 
@@ -63,7 +66,7 @@ export default async function PortalDashboardPage() {
           <div className="flex items-center gap-3">
             <LifeBuoy size={16} className="shrink-0 text-muted" />
             <p className="text-sm text-muted">
-              Tu proyecto está entregado. Desde ahora podés gestionar cambios, consultas técnicas y nuevas funcionalidades mediante Tickets.
+              Tu proyecto está entregado. Desde ahora podés gestionar cambios, consultas técnicas y nuevas funcionalidades mediante Solicitudes.
             </p>
           </div>
           <Link href="/portal/solicitudes/nueva">
@@ -109,7 +112,7 @@ export default async function PortalDashboardPage() {
               </div>
               <p className="mt-2 text-metric text-warning">{formatCurrency(project.balance, project.currency)}</p>
               <p className="text-caption mt-0.5">
-                {project.balance > 0 ? "saldo pendiente" : "sin saldo pendiente"}
+                {project.balance > 0 ? "saldo pendiente" : "todo pago"}
               </p>
             </Card>
           </Link>
@@ -118,11 +121,11 @@ export default async function PortalDashboardPage() {
             <Card className="h-full p-4 transition-colors hover:border-muted-2">
               <div className="flex items-center gap-2 text-muted">
                 <LifeBuoy size={15} />
-                <p className="text-label">Tickets</p>
+                <p className="text-label">Solicitudes</p>
               </div>
               <p className="mt-2 text-metric">{ticketSummary.open}</p>
               <p className="text-caption mt-0.5">
-                {ticketSummary.waitingReply > 0 ? `${ticketSummary.waitingReply} esperan tu respuesta` : "tickets abiertos"}
+                {ticketSummary.waitingReply > 0 ? `${ticketSummary.waitingReply} esperan tu respuesta` : "solicitudes abiertas"}
               </p>
             </Card>
           </Link>
@@ -141,12 +144,12 @@ export default async function PortalDashboardPage() {
         </div>
         <p className="mt-2 text-sm text-muted">
           {isDelivered
-            ? "Tu proyecto está entregado. Desde ahora podés gestionar cambios, consultas técnicas y nuevas funcionalidades mediante Tickets."
+            ? "Tu proyecto está entregado. Desde ahora podés gestionar cambios, consultas técnicas y nuevas funcionalidades mediante Solicitudes."
             : "Escribinos por WhatsApp o enviá una solicitud desde el portal."}
         </p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           <Link href="/portal/solicitudes/nueva" className="flex-1">
-            <Button className="w-full">{isDelivered ? "Solicitar soporte" : "Crear ticket"}</Button>
+            <Button className="w-full">{isDelivered ? "Solicitar soporte" : "Crear solicitud"}</Button>
           </Link>
           <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
             <Button variant="secondary" className="w-full">Contacto general</Button>

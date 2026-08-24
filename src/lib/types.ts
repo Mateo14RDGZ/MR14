@@ -266,6 +266,22 @@ export type NotificationType =
   | "quote_rejected" | "ticket_resolved" | "member_pending_approval"
   | "project_updated" | "document_uploaded" | "credential_delivered";
 
+/**
+ * Los mismos 8 estados internos existen siempre — esto es solo cómo se le
+ * muestran al cliente, que no necesita distinguir "en revisión" de "en
+ * proceso" ni saber qué es "aprobado" a nivel interno.
+ */
+export const CLIENT_TICKET_STATUS_LABEL: Record<TicketStatus, string> = {
+  received: "Recibido",
+  reviewing: "En proceso",
+  in_progress: "En proceso",
+  waiting_client: "Necesitamos tu respuesta",
+  requires_quote: "Presupuesto pendiente",
+  approved: "En proceso",
+  resolved: "Resuelto",
+  closed: "Cerrado",
+};
+
 export const TICKET_STATUSES: { value: TicketStatus; label: string }[] = [
   { value: "received", label: "Recibido" },
   { value: "reviewing", label: "En revisión" },

@@ -18,8 +18,10 @@ import { DeleteClientButton } from "@/components/clients/DeleteClientButton";
 import { InviteMemberDialog } from "@/components/clients/InviteMemberDialog";
 import { NewTicketDialog } from "@/components/shared/NewTicketDialog";
 import { Avatar } from "@/components/ui/Avatar";
-import { CLIENT_STATUSES } from "@/lib/types";
-import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { PROJECT_STATUSES, CLIENT_STATUSES } from "@/lib/types";
+import { formatCurrency, formatDateTime } from "@/lib/utils";
+import { ArrowLeft, FolderKanban, Wallet } from "lucide-react";
 
 export default async function ClientDetailPage({
   params,
@@ -36,6 +38,8 @@ export default async function ClientDetailPage({
   const { client, projects, credentials, documents, history, members, payments, requests } = data;
   const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }));
   const hasPendingApproval = members.some((m) => m.status === "invited");
+  const mainProject = projects[0];
+  const lastActivity = history[0]?.created_at;
   const [tickets, supportSummary, audits, internalNotes] = await Promise.all([
     getAllTickets({ clientId: client.id }),
     getClientSupportSummary(client.id),
@@ -49,12 +53,13 @@ export default async function ClientDetailPage({
         <ArrowLeft size={14} /> Clientes
       </Link>
 
-      <div className="mb-6 flex items-start justify-between gap-4">
+      <div className="mb-4 flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <Avatar name={client.business_name} size="lg" />
           <div>
             <h1 className="text-page-title">{client.business_name}</h1>
-            <div className="mt-1.5 flex items-center gap-2">
+            <div className="mt-1 flex items-center gap-2">
+              {client.contact_name && <p className="text-sm text-muted">{client.contact_name}</p>}
               <Badge tone={statusTone(client.status, "client")}>
                 {CLIENT_STATUSES.find((s) => s.value === client.status)?.label}
               </Badge>
@@ -67,8 +72,52 @@ export default async function ClientDetailPage({
         </div>
       </div>
 
+      {mainProject && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-surface p-4">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            <div>
+              <p className="text-caption">Proyecto</p>
+              <p className="font-medium">{mainProject.name}</p>
+            </div>
+            <div>
+              <p className="text-caption">Estado</p>
+              <p className="font-medium">{PROJECT_STATUSES.find((s) => s.value === mainProject.status)?.label}</p>
+            </div>
+            <div>
+              <p className="text-caption">Saldo</p>
+              <p className={`font-medium ${mainProject.balance > 0 ? "text-warning" : "text-success"}`}>
+                {mainProject.balance > 0 ? formatCurrency(mainProject.balance, mainProject.currency) : "Al día"}
+              </p>
+            </div>
+            {lastActivity && (
+              <div>
+                <p className="text-caption">Última actividad</p>
+                <p className="font-medium">{formatDateTime(lastActivity)}</p>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href={`/projects/${mainProject.id}`}>
+              <Button size="sm" variant="secondary">
+                <FolderKanban size={14} /> Ver proyecto
+              </Button>
+            </Link>
+            <Link href={`/clients/${client.id}?tab=payments`}>
+              <Button size="sm" variant="secondary">
+                <Wallet size={14} /> Registrar pago
+              </Button>
+            </Link>
+            <NewTicketDialog
+              clients={[{ id: client.id, business_name: client.business_name }]}
+              projects={projects.map((p) => ({ id: p.id, name: p.name, client_id: client.id }))}
+              triggerLabel="Crear solicitud"
+            />
+          </div>
+        </div>
+      )}
+
       <Tabs
-        defaultTab={tab === "members" || hasPendingApproval ? "members" : undefined}
+        defaultTab={tab ?? (hasPendingApproval ? "members" : undefined)}
         tabs={[
           { id: "overview", label: "Información", content: <OverviewTab client={client} /> },
           { id: "projects", label: "Proyectos", count: projects.length, content: <ProjectsTab clientId={client.id} projects={projects} /> },
