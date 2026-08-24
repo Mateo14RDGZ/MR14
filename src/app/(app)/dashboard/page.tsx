@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { getDashboardData } from "@/lib/queries";
+import { getDashboardData, getSupportDashboardData } from "@/lib/queries";
 import { StatCard, Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/Empty";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
-import { Activity, Clock3, AlertTriangle } from "lucide-react";
+import { Activity, Clock3, AlertTriangle, LifeBuoy } from "lucide-react";
 
 export default async function DashboardPage() {
-  const data = await getDashboardData();
+  const [data, support] = await Promise.all([getDashboardData(), getSupportDashboardData()]);
 
   return (
     <div className="animate-fade-in space-y-8">
@@ -32,7 +32,22 @@ export default async function DashboardPage() {
           value={data.clientsWithPendingPayments}
           tone="danger"
         />
+        <StatCard label="Tickets abiertos" value={support.open} />
+        <StatCard label="Tickets nuevos" value={support.received} tone="warning" />
+        <StatCard label="Esperando MR14" value={support.reviewing + support.received} tone="warning" />
+        <StatCard label="Resueltos hoy" value={support.resolvedToday} tone="success" />
       </div>
+
+      {support.needsAttention > 0 && (
+        <Link href="/support">
+          <Card className="flex items-center gap-3 border-warning/30 bg-warning/10 p-4">
+            <LifeBuoy size={18} className="text-warning" />
+            <p className="text-sm text-warning">
+              {support.needsAttention} ticket{support.needsAttention === 1 ? "" : "s"} requieren atención en Soporte.
+            </p>
+          </Card>
+        </Link>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>

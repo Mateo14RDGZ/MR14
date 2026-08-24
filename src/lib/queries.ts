@@ -276,6 +276,174 @@ export async function getPortalRequests(clientId: string) {
   return data ?? [];
 }
 
+export async function getPortalProjectsForSelect(clientId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("projects")
+    .select("id,name,status")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+// ---------------- TICKETS / SOPORTE ----------------
+
+export async function getSupportDashboardData() {
+  const supabase = await createClient();
+  const { data: tickets } = await supabase
+    .from("tickets")
+    .select("id,status,priority,created_at,resolved_at,closed_at");
+
+  const list = tickets ?? [];
+  const open = list.filter((t) => !["resolved", "closed"].includes(t.status));
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const resolvedToday = list.filter(
+    (t) => t.resolved_at && new Date(t.resolved_at) >= startOfToday
+  ).length;
+
+  const resolvedWithDuration = list.filter((t) => t.resolved_at);
+  const avgResolutionHours =
+    resolvedWithDuration.length > 0
+      ? resolvedWithDuration.reduce((sum, t) => {
+          const created = new Date(t.created_at).getTime();
+          const resolved = new Date(t.resolved_at!).getTime();
+          return sum + (resolved - created) / 36e5;
+        }, 0) / resolvedWithDuration.length
+      : null;
+
+  return {
+    open: open.length,
+    received: list.filter((t) => t.status === "received").length,
+    reviewing: list.filter((t) => t.status === "reviewing").length,
+    inProgress: list.filter((t) => t.status === "in_progress").length,
+    waitingClient: list.filter((t) => t.status === "waiting_client").length,
+    requiresQuote: list.filter((t) => t.status === "requires_quote").length,
+    resolvedToday,
+    avgResolutionHours,
+    needsAttention: list.filter((t) =>
+      ["received", "reviewing", "requires_quote"].includes(t.status)
+    ).length,
+  };
+}
+
+export async function getAllTickets(filters?: {
+  clientId?: string;
+  projectId?: string;
+  status?: string;
+  category?: string;
+  priority?: string;
+  query?: string;
+}) {
+  const supabase = await createClient();
+  let q = supabase
+    .from("tickets")
+    .select("*,clients(id,business_name),projects(id,name)")
+    .order("created_at", { ascending: false });
+
+  if (filters?.clientId) q = q.eq("client_id", filters.clientId);
+  if (filters?.projectId) q = q.eq("project_id", filters.projectId);
+  if (filters?.status) q = q.eq("status", filters.status);
+  if (filters?.category) q = q.eq("category", filters.category);
+  if (filters?.priority) q = q.eq("priority", filters.priority);
+  if (filters?.query) q = q.or(`subject.ilike.%${filters.query}%,number.ilike.%${filters.query}%`);
+
+  const { data } = await q;
+  return data ?? [];
+}
+
+export async function getTicketDetail(id: string) {
+  const supabase = await createClient();
+  const { data: ticket } = await supabase
+    .from("tickets")
+    .select("*,clients(id,business_name),projects(id,name)")
+    .eq("id", id)
+    .single();
+  if (!ticket) return null;
+
+  const [messages, attachments, events, quotes] = await Promise.all([
+    supabase.from("ticket_messages").select("*").eq("ticket_id", id).order("created_at", { ascending: true }),
+    supabase.from("ticket_attachments").select("*").eq("ticket_id", id).order("created_at", { ascending: true }),
+    supabase.from("ticket_events").select("*").eq("ticket_id", id).order("created_at", { ascending: false }),
+    supabase.from("ticket_quotes").select("*, ticket_quote_versions(*)").eq("ticket_id", id),
+  ]);
+
+  return {
+    ticket,
+    messages: messages.data ?? [],
+    attachments: attachments.data ?? [],
+    events: events.data ?? [],
+    quotes: quotes.data ?? [],
+  };
+}
+
+export async function getPortalTickets(clientId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("tickets")
+    .select("*,projects(id,name)")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+export async function getPortalTicketSummary(clientId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("tickets")
+    .select("id,status,number,created_at")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false });
+  const list = data ?? [];
+  return {
+    open: list.filter((t) => !["resolved", "closed"].includes(t.status)).length,
+    waitingReply: list.filter((t) => t.status === "waiting_client").length,
+    lastTicketNumber: list[0]?.number ?? null,
+  };
+}
+
+export async function getClientSupportSummary(clientId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase.from("tickets").select("id,status,created_at").eq("client_id", clientId);
+  const list = data ?? [];
+  return {
+    total: list.length,
+    resolved: list.filter((t) => ["resolved", "closed"].includes(t.status)).length,
+    open: list.filter((t) => !["resolved", "closed"].includes(t.status)).length,
+    lastRequestDate: list.sort((a, b) => b.created_at.localeCompare(a.created_at))[0]?.created_at ?? null,
+  };
+}
+
+export async function getProjectSupportSummary(projectId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase.from("tickets").select("id,status").eq("project_id", projectId);
+  const list = data ?? [];
+  return {
+    total: list.length,
+    open: list.filter((t) => !["resolved", "closed"].includes(t.status)).length,
+    resolved: list.filter((t) => ["resolved", "closed"].includes(t.status)).length,
+  };
+}
+
+export async function getMyNotifications(limit = 30) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { notifications: [], unreadCount: 0 };
+
+  const { data } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  const list = data ?? [];
+  return { notifications: list, unreadCount: list.filter((n) => !n.read_at).length };
+}
+
 export async function getClientsForSelect() {
   const supabase = await createClient();
   const { data } = await supabase

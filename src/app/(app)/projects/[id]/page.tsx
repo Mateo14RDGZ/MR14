@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProjectDetail } from "@/lib/queries";
+import { getProjectDetail, getAllTickets, getProjectSupportSummary } from "@/lib/queries";
+import { TicketList } from "@/components/portal/TicketList";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge, statusTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -26,6 +27,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   if (!data || !data.client) notFound();
 
   const { project, client, domains, hosting, repositories, databases, tasks, history } = data;
+  const [tickets, supportSummary] = await Promise.all([
+    getAllTickets({ projectId: project.id }),
+    getProjectSupportSummary(project.id),
+  ]);
 
   return (
     <div className="mx-auto max-w-5xl animate-fade-in space-y-6">
@@ -123,6 +128,18 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <PdfLink type="ficha-tecnica" clientId={client.id} projectId={project.id} label="Ficha técnica" />
           <PdfLink type="entrega" clientId={client.id} projectId={project.id} label="Entrega del proyecto" />
           <PdfLink type="infraestructura" clientId={client.id} projectId={project.id} label="Infraestructura" />
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Soporte</h2>
+          <span className="text-xs text-muted-2">
+            {supportSummary.total} tickets totales · {supportSummary.open} abiertos · {supportSummary.resolved} resueltos
+          </span>
+        </CardHeader>
+        <CardBody>
+          <TicketList tickets={tickets} basePath="/support" />
         </CardBody>
       </Card>
 

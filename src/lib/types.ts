@@ -193,6 +193,145 @@ export interface Request {
   created_at: string;
 }
 
+export type TicketStatus =
+  | "received" | "reviewing" | "in_progress" | "waiting_client"
+  | "requires_quote" | "approved" | "resolved" | "closed";
+
+export type TicketCategory =
+  | "bug" | "content_change" | "new_feature" | "domain"
+  | "hosting" | "email" | "site_down" | "other";
+
+export type TicketPriority = "low" | "normal" | "high" | "critical";
+
+export type TicketEventType =
+  | "created" | "status_changed" | "priority_changed" | "message"
+  | "attachment_added" | "quote_created" | "quote_accepted"
+  | "quote_rejected" | "assigned" | "closed" | "reopened";
+
+export type QuoteStatus = "pending" | "accepted" | "rejected" | "superseded";
+
+export type NotificationType =
+  | "ticket_created" | "ticket_message" | "ticket_status_changed"
+  | "ticket_needs_client_reply" | "quote_received" | "quote_accepted"
+  | "quote_rejected" | "ticket_resolved";
+
+export const TICKET_STATUSES: { value: TicketStatus; label: string }[] = [
+  { value: "received", label: "Recibido" },
+  { value: "reviewing", label: "En revisión" },
+  { value: "in_progress", label: "En proceso" },
+  { value: "waiting_client", label: "Esperando respuesta" },
+  { value: "requires_quote", label: "Requiere presupuesto" },
+  { value: "approved", label: "Aprobado" },
+  { value: "resolved", label: "Resuelto" },
+  { value: "closed", label: "Cerrado" },
+];
+
+export const TICKET_CATEGORIES: { value: TicketCategory; label: string }[] = [
+  { value: "bug", label: "Error en la web" },
+  { value: "content_change", label: "Cambio de contenido" },
+  { value: "new_feature", label: "Nueva funcionalidad" },
+  { value: "domain", label: "Dominio" },
+  { value: "hosting", label: "Hosting" },
+  { value: "email", label: "Correo" },
+  { value: "site_down", label: "Mi sitio no está disponible" },
+  { value: "other", label: "Otro" },
+];
+
+export const TICKET_PRIORITIES: { value: TicketPriority; label: string }[] = [
+  { value: "low", label: "Baja" },
+  { value: "normal", label: "Normal" },
+  { value: "high", label: "Alta" },
+  { value: "critical", label: "Crítica" },
+];
+
+export interface Ticket {
+  id: string;
+  number: string;
+  client_id: string;
+  project_id: string;
+  created_by: string | null;
+  assigned_to: string | null;
+  category: TicketCategory;
+  subject: string;
+  description: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  resolved_at: string | null;
+  closed_at: string | null;
+  reopen_deadline: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TicketMessage {
+  id: string;
+  ticket_id: string;
+  author_id: string | null;
+  author_role: UserRole;
+  body: string;
+  edited_at: string | null;
+  created_at: string;
+}
+
+export interface TicketAttachment {
+  id: string;
+  ticket_id: string;
+  message_id: string | null;
+  uploaded_by: string | null;
+  name: string;
+  storage_path: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  created_at: string;
+}
+
+export interface TicketEvent {
+  id: string;
+  ticket_id: string;
+  actor_id: string | null;
+  event_type: TicketEventType;
+  meta: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface TicketQuote {
+  id: string;
+  ticket_id: string;
+  status: QuoteStatus;
+  current_version: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TicketQuoteVersion {
+  id: string;
+  quote_id: string;
+  version: number;
+  description: string;
+  amount: number;
+  currency: string;
+  estimated_days: number | null;
+  notes: string | null;
+  valid_until: string | null;
+  created_by: string | null;
+  created_at: string;
+  decided_by: string | null;
+  decided_at: string | null;
+  decision: "accepted" | "rejected" | null;
+}
+
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  ticket_id: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
 export interface Client {
   id: string;
   business_name: string;

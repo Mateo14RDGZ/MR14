@@ -98,6 +98,21 @@ insert into renewals (client_id, project_id, kind, service_name, due_date, price
 select client_id, project_id, 'dominio', 'Dominio motocenter.com.uy', current_date + interval '335 days', 900, 'vigente', true
 from proj;
 
+-- Ticket de soporte de ejemplo (MR14-0001)
+with proj as (
+  select p.id as project_id, p.client_id from projects p join clients c on c.id = p.client_id
+  where c.business_name = 'Motocenter' limit 1
+),
+new_ticket as (
+  insert into tickets (client_id, project_id, category, subject, description, status, priority)
+  select client_id, project_id, 'content_change', 'Cambiar horario del sábado',
+    'Ahora abrimos de 9:00 a 13:00.', 'received', 'normal'
+  from proj
+  returning id, client_id, project_id
+)
+insert into ticket_events (ticket_id, event_type, meta)
+select id, 'created', jsonb_build_object('subject', 'Cambiar horario del sábado') from new_ticket;
+
 -- Documento visible para el cliente (metadata de ejemplo; sin archivo real en Storage)
 with proj as (
   select p.id as project_id, p.client_id from projects p join clients c on c.id = p.client_id

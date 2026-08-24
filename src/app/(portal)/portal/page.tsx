@@ -1,18 +1,24 @@
 import Link from "next/link";
 import { getPortalContext } from "@/lib/portal";
-import { getPortalDashboardData } from "@/lib/queries";
+import { getPortalDashboardData, getPortalTicketSummary } from "@/lib/queries";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { StageProgress } from "@/components/portal/StageProgress";
 import { EmptyState } from "@/components/ui/Empty";
 import { formatCurrency, formatDate, formatDateTime, daysUntil } from "@/lib/utils";
-import { Globe, ExternalLink, ShieldCheck, Wallet, FolderKanban, Activity, MessageCircle } from "lucide-react";
+import { Globe, ExternalLink, ShieldCheck, Wallet, FolderKanban, Activity, MessageCircle, LifeBuoy } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+
+const DELIVERED_STATUSES = ["entregado", "publicado", "mantenimiento"];
 
 export default async function PortalDashboardPage() {
   const { activeClientId, activeClient } = await getPortalContext();
-  const data = await getPortalDashboardData(activeClientId);
+  const [data, ticketSummary] = await Promise.all([
+    getPortalDashboardData(activeClientId),
+    getPortalTicketSummary(activeClientId),
+  ]);
   const { project } = data;
+  const isDelivered = project ? DELIVERED_STATUSES.includes(project.status) : false;
 
   const whatsappHref = "https://wa.me/59899000000?text=" + encodeURIComponent(`Hola MR14, soy ${activeClient?.business_name}, necesito ayuda con mi proyecto.`);
 
@@ -22,6 +28,25 @@ export default async function PortalDashboardPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Hola, {activeClient?.business_name}</h1>
         <p className="mt-1 text-sm text-muted">Este es el estado actual de tu proyecto con MR14.</p>
       </div>
+
+      {isDelivered && (
+        <div className="flex flex-col gap-3 rounded-xl border border-accent/30 bg-accent/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
+              <LifeBuoy size={18} />
+            </div>
+            <p className="text-sm text-foreground">
+              Para mantener un seguimiento ordenado, las solicitudes de soporte, cambios o nuevas funcionalidades se
+              gestionan mediante tickets.
+            </p>
+          </div>
+          <Link href="/portal/solicitudes/nueva">
+            <Button size="sm" className="w-full sm:w-auto">
+              Crear solicitud
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {!project ? (
         <EmptyState icon={FolderKanban} title="Todavía no hay un proyecto activo" description="MR14 lo verá cargado en breve." />
@@ -113,6 +138,32 @@ export default async function PortalDashboardPage() {
               <StageProgress stage={project.stage} progress={project.progress_percent} nextStep={project.next_step} />
             </CardBody>
           </Card>
+
+          <Card>
+            <CardHeader className="flex items-center gap-2">
+              <LifeBuoy size={16} className="text-accent" />
+              <h2 className="text-sm font-semibold">Soporte</h2>
+            </CardHeader>
+            <CardBody className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted">Tickets abiertos</span>
+                <span className="text-sm font-medium">{ticketSummary.open}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted">Esperando tu respuesta</span>
+                <span className="text-sm font-medium text-warning">{ticketSummary.waitingReply}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted">Último ticket</span>
+                <span className="text-sm font-medium">{ticketSummary.lastTicketNumber ?? "-"}</span>
+              </div>
+              <Link href="/portal/solicitudes/nueva">
+                <Button variant="secondary" size="sm" className="w-full">
+                  Solicitar soporte
+                </Button>
+              </Link>
+            </CardBody>
+          </Card>
         </div>
       )}
 
@@ -154,7 +205,7 @@ export default async function PortalDashboardPage() {
               <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
                 <Button className="w-full">Contactar a MR14</Button>
               </a>
-              <Link href="/portal/solicitudes" className="flex-1">
+              <Link href="/portal/solicitudes/nueva" className="flex-1">
                 <Button variant="secondary" className="w-full">
                   Enviar solicitud
                 </Button>

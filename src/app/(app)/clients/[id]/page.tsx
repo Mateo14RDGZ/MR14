@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getClientDetail } from "@/lib/queries";
+import { getClientDetail, getAllTickets, getClientSupportSummary } from "@/lib/queries";
+import { TicketList } from "@/components/portal/TicketList";
 import { Tabs } from "@/components/ui/Tabs";
 import { Badge, statusTone } from "@/components/ui/Badge";
 import { OverviewTab } from "@/components/clients/OverviewTab";
@@ -23,6 +24,10 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
   const { client, projects, credentials, documents, history, members, payments, requests } = data;
   const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }));
+  const [tickets, supportSummary] = await Promise.all([
+    getAllTickets({ clientId: client.id }),
+    getClientSupportSummary(client.id),
+  ]);
 
   return (
     <div className="mx-auto max-w-5xl animate-fade-in">
@@ -55,6 +60,30 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           { id: "credentials", label: "Credenciales", count: credentials.length, content: <CredentialsTab clientId={client.id} credentials={credentials} projects={projectOptions} /> },
           { id: "documents", label: "Documentos", count: documents.length, content: <DocumentsTab clientId={client.id} documents={documents} projects={projectOptions} /> },
           { id: "members", label: "Usuarios", count: members.length, content: <MembersTab clientId={client.id} members={members} /> },
+          {
+            id: "support",
+            label: "Soporte",
+            count: supportSummary.total,
+            content: (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-lg border border-border p-3 text-center">
+                    <p className="text-lg font-semibold">{supportSummary.total}</p>
+                    <p className="text-xs text-muted-2">Tickets</p>
+                  </div>
+                  <div className="rounded-lg border border-border p-3 text-center">
+                    <p className="text-lg font-semibold text-warning">{supportSummary.open}</p>
+                    <p className="text-xs text-muted-2">Abiertos</p>
+                  </div>
+                  <div className="rounded-lg border border-border p-3 text-center">
+                    <p className="text-lg font-semibold text-success">{supportSummary.resolved}</p>
+                    <p className="text-xs text-muted-2">Resueltos</p>
+                  </div>
+                </div>
+                <TicketList tickets={tickets} basePath="/support" />
+              </div>
+            ),
+          },
           { id: "requests", label: "Solicitudes", count: requests.length, content: <RequestsTab clientId={client.id} requests={requests} /> },
           { id: "history", label: "Historial", content: <HistoryTab history={history} /> },
         ]}

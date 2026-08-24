@@ -6,6 +6,7 @@ import {
   FileText,
   ScanSearch,
   Settings,
+  LifeBuoy,
   type LucideIcon,
 } from "lucide-react";
 
@@ -19,6 +20,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/clients", label: "Clientes", icon: Users },
   { href: "/projects", label: "Proyectos", icon: FolderKanban },
+  { href: "/support", label: "Soporte", icon: LifeBuoy },
   { href: "/renewals", label: "Renovaciones", icon: RefreshCw },
   { href: "/documents", label: "Documentos", icon: FileText },
   { href: "/audits", label: "Auditorías", icon: ScanSearch },
@@ -30,6 +32,6 @@ export const BOTTOM_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Inicio", icon: LayoutDashboard },
   { href: "/clients", label: "Clientes", icon: Users },
   { href: "/projects", label: "Proyectos", icon: FolderKanban },
-  { href: "/renewals", label: "Renov.", icon: RefreshCw },
+  { href: "/support", label: "Soporte", icon: LifeBuoy },
   { href: "/settings", label: "Ajustes", icon: Settings },
 ];

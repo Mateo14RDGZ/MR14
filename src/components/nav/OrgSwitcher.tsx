@@ -2,19 +2,23 @@ import { setActiveOrganizationAction } from "@/actions/members";
 import { Building2 } from "lucide-react";
 import { signOut } from "@/actions/auth";
 import { LogOut } from "lucide-react";
+import { NotificationBell } from "@/components/shared/NotificationBell";
+import { getMyNotifications } from "@/lib/queries";
 
 interface Membership {
   client_id: string;
   clients: { business_name: string } | null;
 }
 
-export function OrgSwitcher({
+export async function OrgSwitcher({
   memberships,
   activeClientId,
 }: {
   memberships: Membership[];
   activeClientId: string;
 }) {
+  const { notifications, unreadCount } = await getMyNotifications();
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur lg:px-8">
       {memberships.length > 1 ? (
@@ -37,6 +41,7 @@ export function OrgSwitcher({
         <p className="text-sm font-medium">{memberships[0]?.clients?.business_name}</p>
       )}
       <div className="flex-1" />
+      <NotificationBell notifications={notifications} unreadCount={unreadCount} ticketBasePath="/portal/solicitudes" />
       <form action={signOut} className="lg:hidden">
         <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-surface-2">
           <LogOut size={18} />
