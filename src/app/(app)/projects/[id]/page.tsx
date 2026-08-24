@@ -7,7 +7,6 @@ import { Badge, statusTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Checklist } from "@/components/projects/Checklist";
 import { StageEditor } from "@/components/projects/StageEditor";
-import { ProjectStatusSelect } from "@/components/clients/StatusSelect";
 import {
   DomainsSection,
   HostingSection,
@@ -59,14 +58,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               <Badge tone={statusTone(project.status, "project")}>
                 {PROJECT_STATUSES.find((s) => s.value === project.status)?.label}
               </Badge>
-              <div className="w-52">
-                <ProjectStatusSelect
-                  projectId={project.id}
-                  clientId={client.id}
-                  currentStatus={project.status}
-                  options={PROJECT_STATUSES}
-                />
-              </div>
+              <span className="text-caption">Se actualiza desde &quot;Etapa del proyecto&quot; →</span>
             </div>
             {project.description && <p className="text-sm text-muted">{project.description}</p>}
             <div className="grid grid-cols-2 gap-4 border-t border-border pt-4 sm:grid-cols-4">
@@ -97,7 +89,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               projectId={project.id}
               clientId={client.id}
               stage={project.stage}
-              progress={project.progress_percent}
+              status={project.status}
               nextStep={project.next_step}
             />
           </CardBody>

@@ -1,4 +1,4 @@
-import { PROJECT_STAGES, type ProjectStage } from "@/lib/types";
+import { STAGE_META, type ProjectStage } from "@/lib/types";
 
 export function StageProgress({
   stage,
@@ -9,7 +9,7 @@ export function StageProgress({
   progress: number;
   nextStep: string | null;
 }) {
-  const currentLabel = PROJECT_STAGES.find((s) => s.value === stage)?.label ?? stage;
+  const currentLabel = STAGE_META[stage]?.clientLabel ?? stage;
   return (
     <div>
       <div className="mb-2 flex items-end justify-between">

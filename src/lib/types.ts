@@ -133,6 +133,28 @@ export const PROJECT_STAGES: { value: ProjectStage; label: string }[] = [
   { value: "entregado", label: "Entregado" },
 ];
 
+/**
+ * Un solo lugar que define, para cada etapa del proyecto, todo lo derivado:
+ * el % de progreso, el status interno, y cómo se le explica al cliente. Así
+ * el admin solo elige UNA etapa y todo lo demás se actualiza solo, en vez de
+ * tener que tocar 3 campos separados (estado, etapa, progreso) a mano.
+ */
+export const STAGE_META: Record<
+  ProjectStage,
+  { adminLabel: string; clientLabel: string; progress: number; status: ProjectStatus }
+> = {
+  contrato: { adminLabel: "Contrato firmado", clientLabel: "Iniciando tu proyecto", progress: 5, status: "planificacion" },
+  anticipo: { adminLabel: "Anticipo recibido", clientLabel: "Iniciando tu proyecto", progress: 10, status: "planificacion" },
+  material: { adminLabel: "Reuniendo material", clientLabel: "Preparando todo", progress: 20, status: "en_desarrollo" },
+  desarrollo: { adminLabel: "En desarrollo", clientLabel: "Construyendo tu web", progress: 45, status: "en_desarrollo" },
+  primera_version: { adminLabel: "Primera versión lista", clientLabel: "Primera versión lista", progress: 65, status: "en_revision" },
+  revision: { adminLabel: "En revisión del cliente", clientLabel: "En revisión", progress: 75, status: "en_revision" },
+  ajustes: { adminLabel: "Ajustes finales", clientLabel: "Últimos ajustes", progress: 85, status: "esperando_aprobacion" },
+  pago_final: { adminLabel: "Esperando pago final", clientLabel: "Últimos detalles", progress: 92, status: "esperando_saldo" },
+  publicado: { adminLabel: "Publicado", clientLabel: "¡Tu web está online!", progress: 100, status: "publicado" },
+  entregado: { adminLabel: "Entregado", clientLabel: "Proyecto entregado", progress: 100, status: "entregado" },
+};
+
 export const REQUEST_TYPES: { value: RequestType; label: string }[] = [
   { value: "cambio_contenido", label: "Cambio de contenido" },
   { value: "problema_web", label: "Problema con la web" },

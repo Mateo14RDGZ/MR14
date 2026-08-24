@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/Empty";
 import { formatDate } from "@/lib/utils";
+import { STAGE_META, type ProjectStage } from "@/lib/types";
 import { Globe, ExternalLink } from "lucide-react";
 
 export default async function PortalMiWebPage() {
@@ -48,7 +49,7 @@ export default async function PortalMiWebPage() {
             <Row label="Hosting" value={hosting?.platform} />
             <Row label="Fecha de publicación" value={formatDate(project.actual_delivery_date)} />
             <Row label="Última actualización" value={formatDate(project.updated_at)} />
-            <Row label="Estado" value={project.status.replace(/_/g, " ")} />
+            <Row label="Estado" value={STAGE_META[project.stage as ProjectStage]?.clientLabel ?? project.status.replace(/_/g, " ")} />
           </CardBody>
         </Card>
 
