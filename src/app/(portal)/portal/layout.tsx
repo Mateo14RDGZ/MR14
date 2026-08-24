@@ -1,11 +1,15 @@
-import { getPortalContext } from "@/lib/portal";
+import { getPortalContext, checkPendingApproval } from "@/lib/portal";
 import { PortalSidebar } from "@/components/nav/PortalSidebar";
 import { PortalBottomNav } from "@/components/nav/PortalBottomNav";
 import { OrgSwitcher } from "@/components/nav/OrgSwitcher";
 import { InactivityGuard } from "@/components/nav/InactivityGuard";
 import { InstallPrompt } from "@/components/shared/InstallPrompt";
+import { PendingApprovalScreen } from "@/components/portal/PendingApprovalScreen";
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
+  const pending = await checkPendingApproval();
+  if (pending) return <PendingApprovalScreen />;
+
   const { memberships, activeClient, activeClientId } = await getPortalContext();
 
   return (

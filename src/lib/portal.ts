@@ -5,6 +5,23 @@ import { createClient } from "@/lib/supabase/server";
 
 export const ACTIVE_CLIENT_COOKIE = "mr14_active_client";
 
+/** true si el usuario logueado todavía no tiene ninguna membresía activa (espera aprobación del admin). */
+export async function checkPendingApproval(): Promise<boolean> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  if (profile?.role === "admin") return false;
+
+  const { data: memberships } = await supabase.from("client_members").select("status").eq("user_id", user.id);
+  if (!memberships || memberships.length === 0) return false;
+
+  return memberships.every((m) => m.status !== "active") && memberships.some((m) => m.status === "invited");
+}
+
 export async function getPortalContext() {
   const supabase = await createClient();
   const {

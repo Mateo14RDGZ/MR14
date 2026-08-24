@@ -18,13 +18,21 @@ import { Avatar } from "@/components/ui/Avatar";
 import { CLIENT_STATUSES } from "@/lib/types";
 import { ArrowLeft } from "lucide-react";
 
-export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ClientDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const { id } = await params;
+  const { tab } = await searchParams;
   const data = await getClientDetail(id);
   if (!data.client) notFound();
 
   const { client, projects, credentials, documents, history, members, payments, requests } = data;
   const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }));
+  const hasPendingApproval = members.some((m) => m.status === "invited");
   const [tickets, supportSummary] = await Promise.all([
     getAllTickets({ clientId: client.id }),
     getClientSupportSummary(client.id),
@@ -55,6 +63,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       </div>
 
       <Tabs
+        defaultTab={tab === "members" || hasPendingApproval ? "members" : undefined}
         tabs={[
           { id: "overview", label: "Información", content: <OverviewTab client={client} /> },
           { id: "projects", label: "Proyectos", count: projects.length, content: <ProjectsTab clientId={client.id} projects={projects} /> },

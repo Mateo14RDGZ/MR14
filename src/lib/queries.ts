@@ -66,6 +66,13 @@ export async function getClients() {
   return data ?? [];
 }
 
+/** Ids de clientes con al menos una solicitud de acceso pendiente de aprobación. */
+export async function getClientIdsWithPendingApproval(): Promise<Set<string>> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("client_members").select("client_id").eq("status", "invited");
+  return new Set((data ?? []).map((m) => m.client_id));
+}
+
 export async function getClientDetail(id: string) {
   const supabase = await createClient();
   const [client, projects, credentials, documents, history, renewals, members, payments, requests] =

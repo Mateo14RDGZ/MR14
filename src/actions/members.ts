@@ -70,15 +70,13 @@ export async function createClientRegistrationLinkAction() {
   return { link: `${appUrl}/invitacion/${token}` };
 }
 
-/** Lee una invitación válida (no usada, no vencida) para renderizar el formulario público. */
+/** Lee una invitación (usada o no) para que la página pública decida qué mostrar. */
 export async function getInvitationByToken(token: string) {
   const admin = createAdminClient();
   const { data } = await admin
     .from("client_invitations")
     .select("*, clients(business_name)")
     .eq("token", token)
-    .is("used_at", null)
-    .gt("expires_at", new Date().toISOString())
     .single();
   return data;
 }
@@ -96,11 +94,24 @@ export async function completeInvitationAction(token: string, formData: FormData
     .from("client_invitations")
     .select("*, clients(business_name)")
     .eq("token", token)
-    .is("used_at", null)
-    .gt("expires_at", new Date().toISOString())
     .single();
 
-  if (!invite) return { error: "Este link de invitación ya no es válido." };
+  if (!invite) return { error: "Este link de invitación no existe." };
+
+  // Doble envío / re-apertura del mismo link: ya se registró, no es un error.
+  if (invite.used_at) {
+    const email = String(formData.get("email") || "").trim().toLowerCase();
+    const password = String(formData.get("password") || "");
+    if (email && password) {
+      const supabase = await createClient();
+      await supabase.auth.signInWithPassword({ email, password });
+    }
+    redirect("/portal");
+  }
+
+  if (new Date(invite.expires_at) < new Date()) {
+    return { error: "Este link de invitación venció. Pedile a MR14 que te genere uno nuevo." };
+  }
 
   const name = String(formData.get("name") || "").trim();
   const email = String(formData.get("email") || "").trim().toLowerCase();
@@ -194,7 +205,10 @@ export async function completeInvitationAction(token: string, formData: FormData
 
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/clients");
-  redirect(`/invitacion/${token}/enviado`);
+
+  const supabase = await createClient();
+  await supabase.auth.signInWithPassword({ email, password });
+  redirect("/portal");
 }
 
 /** Llamada por el propio usuario cliente tras activar su cuenta vía un link genérico de Supabase (ej. recuperación). */
