@@ -6,11 +6,8 @@ import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, Field } from "@/components/ui/Input";
 import { createClientRegistrationLinkAction } from "@/actions/members";
+import { toWhatsAppNumber, isValidWhatsAppNumber } from "@/lib/utils";
 import { UserPlus, MessageCircle, Mail, Copy, Check } from "lucide-react";
-
-function onlyDigits(value: string) {
-  return value.replace(/\D/g, "");
-}
 
 export function NewClientInviteDialog() {
   const [open, setOpen] = useState(false);
@@ -63,10 +60,10 @@ export function NewClientInviteDialog() {
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <a
-                href={`https://wa.me/${onlyDigits(phone)}?text=${encodeURIComponent(message)}`}
+                href={`https://wa.me/${toWhatsAppNumber(phone)}?text=${encodeURIComponent(message)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={onlyDigits(phone).length < 8 ? "pointer-events-none opacity-40" : ""}
+                className={!isValidWhatsAppNumber(phone) ? "pointer-events-none opacity-40" : ""}
               >
                 <Button type="button" variant="secondary" className="w-full">
                   <MessageCircle size={14} /> WhatsApp

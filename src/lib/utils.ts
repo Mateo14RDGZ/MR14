@@ -49,6 +49,22 @@ export function daysUntil(dateStr: string | null | undefined): number | null {
   return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+/**
+ * Normaliza un teléfono uruguayo al formato que necesita wa.me (código de
+ * país 598 + número sin el 0 inicial). Si ya viene con 598 lo deja igual.
+ */
+export function toWhatsAppNumber(raw: string): string {
+  let digits = raw.replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("598")) return digits;
+  if (digits.startsWith("0")) digits = digits.slice(1);
+  return `598${digits}`;
+}
+
+export function isValidWhatsAppNumber(raw: string): boolean {
+  return toWhatsAppNumber(raw).length >= 10;
+}
+
 export function initials(name: string) {
   return name
     .split(" ")
