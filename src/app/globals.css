@@ -61,11 +61,23 @@ html {
 /* Protección final: la causa real de cualquier overflow horizontal debe
    resolverse en el componente que la genera (min-w-0, wrap, truncate). Esto
    es solo un backstop para que un desborde puntual nunca abra scroll
-   horizontal en toda la página/PWA. */
+   horizontal en toda la página/PWA. Ojo: clipea, así que un bloque que
+   desborde queda cortado en vez de generar scroll — no alcanza con mirar
+   scrollWidth para detectar problemas, hay que medir los rects. */
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
+}
+
+/* Los items de grid tienen min-width:auto por defecto: NO se achican por
+   debajo del ancho mínimo de su contenido. Un texto con `truncate`
+   (white-space:nowrap) mide todo su largo, así que una card con una línea
+   truncada adentro estira su columna y desborda el viewport en mobile —
+   y en una grilla de una sola columna arrastra también a las cards
+   vecinas, que quedan cortadas sin tener nada ancho. */
+.grid > * {
+  min-width: 0;
 }
 
 body {
