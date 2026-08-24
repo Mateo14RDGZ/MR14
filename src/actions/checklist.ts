@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logHistory } from "@/lib/history";
+import { notifyUsers, getClientMemberUserIds } from "@/lib/notifications";
+import { PROJECT_STAGES } from "@/lib/types";
 
 export async function toggleChecklistItemAction(
   taskId: string,
@@ -50,13 +52,26 @@ export async function updateProjectStageAction(
   const progress_percent = Number(formData.get("progress_percent") || 0);
   const next_step = String(formData.get("next_step") || "").trim() || null;
 
-  const { error } = await supabase
+  const { data: project, error } = await supabase
     .from("projects")
     .update({ stage, progress_percent, next_step })
-    .eq("id", projectId);
+    .eq("id", projectId)
+    .select("name")
+    .single();
   if (error) return { error: error.message };
 
   await logHistory({ clientId, projectId, event: `Etapa actualizada: "${stage}" (${progress_percent}%)`, visibility: "client" });
+
+  const stageLabel = PROJECT_STAGES.find((s) => s.value === stage)?.label ?? stage;
+  const clientMemberIds = await getClientMemberUserIds(clientId);
+  await notifyUsers({
+    userIds: clientMemberIds,
+    type: "project_updated",
+    title: `Tu proyecto avanzó: ${stageLabel}`,
+    body: project?.name ? `${project.name} · ${progress_percent}% completado` : `${progress_percent}% completado`,
+    url: "/portal",
+  });
+
   revalidatePath(`/projects/${projectId}`);
   revalidatePath("/portal");
 }
@@ -64,12 +79,24 @@ export async function updateProjectStageAction(
 export async function markProjectDeliveredAction(projectId: string, clientId: string) {
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
-  const { error } = await supabase
+  const { data: project, error } = await supabase
     .from("projects")
     .update({ status: "entregado", actual_delivery_date: today })
-    .eq("id", projectId);
+    .eq("id", projectId)
+    .select("name")
+    .single();
   if (error) throw new Error(error.message);
   await logHistory({ clientId, projectId, event: "Proyecto marcado como entregado" });
+
+  const clientMemberIds = await getClientMemberUserIds(clientId);
+  await notifyUsers({
+    userIds: clientMemberIds,
+    type: "project_updated",
+    title: "¡Tu proyecto fue entregado!",
+    body: project?.name ?? undefined,
+    url: "/portal",
+  });
+
   revalidatePath(`/projects/${projectId}`);
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/dashboard");

@@ -33,21 +33,10 @@ export default async function InvitationPage({
   if (!invite) {
     return (
       <InfoScreen
-        icon={ShieldAlert}
-        tone="text-muted-2"
-        title="Este link no existe"
-        description="Puede que esté mal copiado. Pedile a MR14 que te genere uno nuevo."
-      />
-    );
-  }
-
-  if (invite.used_at) {
-    return (
-      <InfoScreen
         icon={CheckCircle2}
         tone="text-success"
-        title="Ya te registraste"
-        description="Tu cuenta ya fue creada con este link. Iniciá sesión normalmente con tu email y contraseña."
+        title="Este link ya no está disponible"
+        description="Si ya te registraste con él, tu cuenta está creada — iniciá sesión normalmente con tu email y contraseña. Si necesitás uno nuevo, pedíselo a MR14."
       />
     );
   }

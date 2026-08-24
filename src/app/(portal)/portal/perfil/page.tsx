@@ -2,6 +2,7 @@ import { getPortalContext } from "@/lib/portal";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { ProfileForm } from "@/components/portal/ProfileForm";
 import { PasswordForm } from "@/components/portal/PasswordForm";
+import { NotificationsToggle } from "@/components/shared/NotificationsToggle";
 
 export default async function PortalProfilePage() {
   const { user, profile } = await getPortalContext();
@@ -19,6 +20,15 @@ export default async function PortalProfilePage() {
         </CardHeader>
         <CardBody>
           <ProfileForm defaultName={profile?.full_name ?? ""} defaultPhone={profile?.phone ?? ""} />
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <h2 className="text-card-title">Notificaciones</h2>
+        </CardHeader>
+        <CardBody>
+          <NotificationsToggle />
         </CardBody>
       </Card>
 

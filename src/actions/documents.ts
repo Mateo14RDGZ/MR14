@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logHistory } from "@/lib/history";
+import { notifyUsers, getClientMemberUserIds } from "@/lib/notifications";
 import { slugify } from "@/lib/utils";
 
 const BUCKET = "documents";
@@ -53,6 +54,18 @@ export async function uploadDocumentAction(
   if (error) return { error: error.message };
 
   await logHistory({ clientId, projectId, event: `Documento "${file.name}" subido` });
+
+  if (visibility === "client") {
+    const clientMemberIds = await getClientMemberUserIds(clientId);
+    await notifyUsers({
+      userIds: clientMemberIds,
+      type: "document_uploaded",
+      title: "Nuevo documento disponible",
+      body: file.name,
+      url: "/portal/documentos",
+    });
+  }
+
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/documents");
 }

@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logHistory } from "@/lib/history";
-import type { ProjectStatus, ProjectType, PaymentStatus } from "@/lib/types";
+import { notifyUsers, getClientMemberUserIds } from "@/lib/notifications";
+import { PROJECT_STATUSES, type ProjectStatus, type ProjectType, type PaymentStatus } from "@/lib/types";
 
 const DEFAULT_CHECKLIST = [
   "Revisar mobile","Revisar desktop","Revisar enlaces","Revisar WhatsApp","Revisar ubicación",
@@ -113,9 +114,25 @@ export async function updateProjectStatusAction(
   status: ProjectStatus
 ) {
   const supabase = await createClient();
-  const { error } = await supabase.from("projects").update({ status }).eq("id", projectId);
+  const { data: project, error } = await supabase
+    .from("projects")
+    .update({ status })
+    .eq("id", projectId)
+    .select("name")
+    .single();
   if (error) throw new Error(error.message);
   await logHistory({ clientId, projectId, event: `Estado del proyecto: "${status}"` });
+
+  const statusLabel = PROJECT_STATUSES.find((s) => s.value === status)?.label ?? status;
+  const clientMemberIds = await getClientMemberUserIds(clientId);
+  await notifyUsers({
+    userIds: clientMemberIds,
+    type: "project_updated",
+    title: `Tu proyecto cambió de estado: ${statusLabel}`,
+    body: project?.name ?? undefined,
+    url: "/portal",
+  });
+
   revalidatePath(`/projects/${projectId}`);
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/dashboard");

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Badge } from "@/components/ui/Badge";
+import { NotificationsToggle } from "@/components/shared/NotificationsToggle";
 
 const ENV_CHECKS = [
   "NEXT_PUBLIC_SUPABASE_URL",
@@ -9,6 +10,8 @@ const ENV_CHECKS = [
   "SUPABASE_SERVICE_ROLE_KEY",
   "CREDENTIALS_ENCRYPTION_KEY",
   "NEXT_PUBLIC_APP_URL",
+  "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
+  "VAPID_PRIVATE_KEY",
 ];
 
 export default async function SettingsPage() {
@@ -35,6 +38,15 @@ export default async function SettingsPage() {
             <span className="text-muted">Rol</span>
             <Badge tone="accent">{profile?.role === "admin" ? "Administrador MR14" : "Cliente"}</Badge>
           </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <h2 className="text-card-title">Notificaciones</h2>
+        </CardHeader>
+        <CardBody>
+          <NotificationsToggle />
         </CardBody>
       </Card>
 

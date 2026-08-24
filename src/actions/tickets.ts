@@ -124,6 +124,7 @@ export async function createTicketAction(clientId: string, formData: FormData) {
     title: `Nuevo ticket ${ticket.number}`,
     body: subject,
     ticketId: ticket.id,
+    url: `/support/${ticket.id}`,
   });
 
   revalidatePath("/portal/solicitudes");
@@ -179,6 +180,7 @@ export async function addTicketMessageAction(ticketId: string, formData: FormDat
       title: `MR14 respondió tu ticket ${ticket.number}`,
       body,
       ticketId,
+      url: `/portal/solicitudes/${ticketId}`,
     });
   } else {
     const adminIds = await getAdminUserIds();
@@ -188,6 +190,7 @@ export async function addTicketMessageAction(ticketId: string, formData: FormDat
       title: `${ticket.number}: nueva respuesta del cliente`,
       body,
       ticketId,
+      url: `/support/${ticketId}`,
     });
   }
 
@@ -239,6 +242,7 @@ export async function updateTicketStatusAction(ticketId: string, status: TicketS
     title: `Ticket ${ticket.number} actualizado`,
     body: `Nuevo estado: ${status}`,
     ticketId,
+    url: `/portal/solicitudes/${ticketId}`,
   });
 
   revalidatePath(`/support/${ticketId}`);
@@ -280,6 +284,7 @@ export async function reopenTicketAction(ticketId: string) {
       type: "ticket_status_changed",
       title: `Ticket ${ticket.number} reabierto`,
       ticketId,
+      url: `/support/${ticketId}`,
     });
   }
 
@@ -351,6 +356,7 @@ export async function createQuoteAction(ticketId: string, formData: FormData) {
     title: `Nuevo presupuesto para ${ticket.number}`,
     body: description,
     ticketId,
+    url: `/portal/solicitudes/${ticketId}`,
   });
 
   revalidatePath(`/support/${ticketId}`);
@@ -407,6 +413,7 @@ export async function decideQuoteAction(
       type: decision === "accepted" ? "quote_accepted" : "quote_rejected",
       title: `Presupuesto ${decision === "accepted" ? "aceptado" : "rechazado"}: ${ticket.number}`,
       ticketId,
+      url: `/support/${ticketId}`,
     });
   }
 

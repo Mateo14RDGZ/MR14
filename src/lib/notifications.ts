@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { sendPushToUsers } from "@/lib/push";
 import type { NotificationType } from "@/lib/types";
 
 export async function notifyUsers(params: {
@@ -8,6 +9,8 @@ export async function notifyUsers(params: {
   title: string;
   body?: string;
   ticketId?: string;
+  /** A dónde debe llevar la notificación push al tocarla. Ej: "/support/abc123". */
+  url?: string;
 }) {
   const uniqueIds = Array.from(new Set(params.userIds)).filter(Boolean);
   if (uniqueIds.length === 0) return;
@@ -22,6 +25,8 @@ export async function notifyUsers(params: {
       ticket_id: params.ticketId ?? null,
     }))
   );
+
+  await sendPushToUsers(uniqueIds, { title: params.title, body: params.body, url: params.url });
 }
 
 export async function getAdminUserIds(): Promise<string[]> {

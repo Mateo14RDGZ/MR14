@@ -7,6 +7,7 @@ import crypto from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logHistory } from "@/lib/history";
+import { sendPushToUsers } from "@/lib/push";
 import { ACTIVE_CLIENT_COOKIE } from "@/lib/portal";
 
 async function assertAdmin() {
@@ -183,7 +184,7 @@ export async function completeInvitationAction(token: string, formData: FormData
     return { error: memberError.message };
   }
 
-  await admin.from("client_invitations").update({ used_at: new Date().toISOString() }).eq("id", invite.id);
+  await admin.from("client_invitations").delete().eq("id", invite.id);
 
   await admin.from("project_history").insert({
     client_id: clientId,
@@ -193,14 +194,18 @@ export async function completeInvitationAction(token: string, formData: FormData
 
   const { data: admins } = await admin.from("profiles").select("id").eq("role", "admin");
   if (admins && admins.length > 0) {
+    const adminIds = admins.map((a) => a.id);
+    const notifTitle = "Nuevo cliente registrado";
+    const notifBody = `${name} (${businessName || "cliente nuevo"}) completó su registro y ya tiene acceso a su portal.`;
     await admin.from("notifications").insert(
-      admins.map((a) => ({
-        user_id: a.id,
+      adminIds.map((user_id) => ({
+        user_id,
         type: "member_pending_approval",
-        title: "Nuevo cliente registrado",
-        body: `${name} (${businessName || "cliente nuevo"}) completó su registro y ya tiene acceso a su portal.`,
+        title: notifTitle,
+        body: notifBody,
       }))
     );
+    await sendPushToUsers(adminIds, { title: notifTitle, body: notifBody, url: `/clients/${clientId}` });
   }
 
   revalidatePath(`/clients/${clientId}`);
