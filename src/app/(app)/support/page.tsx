@@ -7,8 +7,10 @@ import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/Empty";
 import { TICKET_STATUSES, TICKET_CATEGORIES, TICKET_PRIORITIES } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
-import { LifeBuoy, Search } from "lucide-react";
+import { formatDate, timeAgo } from "@/lib/utils";
+import { LifeBuoy, Search, Clock } from "lucide-react";
+
+const NEEDS_REPLY_STATUSES = new Set(["received", "reviewing", "requires_quote"]);
 
 const STATUS_TONE: Record<string, "muted" | "warning" | "accent" | "success" | "danger"> = {
   received: "muted",
@@ -112,30 +114,40 @@ export default async function SupportPage({
         <EmptyState icon={LifeBuoy} title="Sin tickets" description="No hay solicitudes que coincidan con estos filtros." />
       ) : (
         <div className="space-y-2">
-          {tickets.map((t) => (
-            <Link key={t.id} href={`/support/${t.id}`}>
-              <Card className="p-4 transition-colors hover:border-muted-2">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-mono text-xs text-muted-2">#{t.number}</p>
-                    <p className="truncate font-medium">{t.subject}</p>
-                    <p className="text-xs text-muted-2">
-                      {(t.clients as { business_name?: string } | null)?.business_name} ·{" "}
-                      {(t.projects as { name?: string } | null)?.name} · {formatDate(t.created_at)}
-                    </p>
+          {tickets.map((t) => {
+            const needsReply = NEEDS_REPLY_STATUSES.has(t.status);
+            const hoursSince = (Date.now() - new Date(t.updated_at).getTime()) / 36e5;
+            const isStale = needsReply && hoursSince >= 24;
+            return (
+              <Link key={t.id} href={`/support/${t.id}`}>
+                <Card className={`p-4 transition-colors hover:border-muted-2 ${isStale ? "border-danger/30" : ""}`}>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-mono text-xs text-muted-2">#{t.number}</p>
+                      <p className="truncate font-medium">{t.subject}</p>
+                      <p className="text-xs text-muted-2">
+                        {(t.clients as { business_name?: string } | null)?.business_name} ·{" "}
+                        {(t.projects as { name?: string } | null)?.name} · {formatDate(t.created_at)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {needsReply && (
+                        <span className={`flex items-center gap-1 text-xs ${isStale ? "font-medium text-danger" : "text-muted-2"}`}>
+                          <Clock size={12} /> Sin responder hace {timeAgo(t.updated_at)}
+                        </span>
+                      )}
+                      <Badge tone={PRIORITY_TONE[t.priority]}>
+                        {TICKET_PRIORITIES.find((p) => p.value === t.priority)?.label}
+                      </Badge>
+                      <Badge tone={STATUS_TONE[t.status]}>
+                        {TICKET_STATUSES.find((s) => s.value === t.status)?.label}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge tone={PRIORITY_TONE[t.priority]}>
-                      {TICKET_PRIORITIES.find((p) => p.value === t.priority)?.label}
-                    </Badge>
-                    <Badge tone={STATUS_TONE[t.status]}>
-                      {TICKET_STATUSES.find((s) => s.value === t.status)?.label}
-                    </Badge>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          ))}
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

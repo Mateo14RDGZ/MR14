@@ -65,6 +65,20 @@ export function isValidWhatsAppNumber(raw: string): boolean {
   return toWhatsAppNumber(raw).length >= 10;
 }
 
+/** Tiempo transcurrido corto ("12 min", "4 h", "3 días") para métricas internas, no SLA. */
+export function timeAgo(dateStr: string | null | undefined): string {
+  if (!dateStr) return "-";
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return "-";
+  const minutes = Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
+  if (minutes < 1) return "recién";
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} h`;
+  const days = Math.round(hours / 24);
+  return `${days} día${days === 1 ? "" : "s"}`;
+}
+
 export function initials(name: string) {
   return name
     .split(" ")

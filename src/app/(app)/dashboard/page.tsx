@@ -1,14 +1,20 @@
 import Link from "next/link";
-import { getDashboardData, getSupportDashboardData } from "@/lib/queries";
+import { getDashboardData, getSupportDashboardData, getAttentionItems } from "@/lib/queries";
 import { StatCard, Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/Empty";
-import { formatCurrency, formatDateTime } from "@/lib/utils";
-import { Activity, Clock3, AlertTriangle, LifeBuoy, ChevronRight } from "lucide-react";
+import { formatCurrency, formatDateTime, timeAgo } from "@/lib/utils";
+import { Activity, Clock3, AlertTriangle, LifeBuoy, ChevronRight, Wallet, RefreshCw, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const ATTENTION_ICON = { ticket: LifeBuoy, payment: Wallet, renewal: RefreshCw };
+
 export default async function DashboardPage() {
-  const [data, support] = await Promise.all([getDashboardData(), getSupportDashboardData()]);
+  const [data, support, attention] = await Promise.all([
+    getDashboardData(),
+    getSupportDashboardData(),
+    getAttentionItems(),
+  ]);
 
   const secondaryStats: { label: string; value: string | number; tone?: "warning" | "success" | "danger" }[] = [
     { label: "Pendientes", value: data.pending, tone: "warning" },
@@ -22,6 +28,52 @@ export default async function DashboardPage() {
   return (
     <div className="animate-fade-in space-y-8">
       <PageHeader title="Dashboard" description="Resumen general de MR14" />
+
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 rounded-lg border border-border bg-surface px-4 py-3 text-sm">
+        <span className="text-label">Hoy</span>
+        <span>{attention.today.newTickets} ticket{attention.today.newTickets === 1 ? "" : "s"} nuevo{attention.today.newTickets === 1 ? "" : "s"}</span>
+        <span className="text-muted-2">·</span>
+        <span>{attention.today.pendingReview} sin revisar</span>
+        <span className="text-muted-2">·</span>
+        <span>{attention.today.pendingPayments} pago{attention.today.pendingPayments === 1 ? "" : "s"} pendiente{attention.today.pendingPayments === 1 ? "" : "s"}</span>
+        <span className="text-muted-2">·</span>
+        <span>{attention.today.renewalsThisWeek} dominio{attention.today.renewalsThisWeek === 1 ? "" : "s"} vence{attention.today.renewalsThisWeek === 1 ? "" : "n"} esta semana</span>
+      </div>
+
+      <Card className="overflow-hidden">
+        <CardHeader className="flex items-center gap-2">
+          <AlertTriangle size={16} className="text-warning" />
+          <h2 className="text-card-title">Requieren atención</h2>
+        </CardHeader>
+        {attention.items.length === 0 ? (
+          <CardBody>
+            <div className="flex items-center gap-2 text-sm text-success">
+              <CheckCircle2 size={16} /> Nada pendiente por ahora.
+            </div>
+          </CardBody>
+        ) : (
+          <div className="divide-y divide-border">
+            {attention.items.slice(0, 8).map((item, i) => {
+              const Icon = ATTENTION_ICON[item.type];
+              return (
+                <Link
+                  key={i}
+                  href={item.href}
+                  className="flex items-center gap-3 px-5 py-3 text-sm transition-colors hover:bg-surface-2"
+                >
+                  <Icon size={15} className="shrink-0 text-muted-2" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{item.client}</p>
+                    <p className="truncate text-xs text-muted-2">{item.motivo}</p>
+                  </div>
+                  {item.timestamp && <span className="shrink-0 text-xs text-muted-2">hace {timeAgo(item.timestamp)}</span>}
+                  <ChevronRight size={15} className="shrink-0 text-muted-2" />
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </Card>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Clientes activos" value={data.activeClients} hint={`${data.totalClients} en total`} />

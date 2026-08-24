@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getClients, getClientIdsWithPendingApproval } from "@/lib/queries";
+import { getClients, getClientIdsWithPendingApproval, getClientHealthMap, type ClientHealth } from "@/lib/queries";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -11,8 +11,32 @@ import { CLIENT_STATUSES } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { Plus, Users, ChevronRight, UserCheck } from "lucide-react";
 
+const HEALTH_DOT: Record<ClientHealth, string> = {
+  bien: "bg-success",
+  atencion: "bg-warning",
+  riesgo: "bg-danger",
+};
+const HEALTH_LABEL: Record<ClientHealth, string> = {
+  bien: "Bien",
+  atencion: "Atención",
+  riesgo: "Riesgo",
+};
+
+function HealthDot({ health }: { health: ClientHealth }) {
+  return (
+    <span
+      className={`inline-block h-2 w-2 shrink-0 rounded-full ${HEALTH_DOT[health]}`}
+      title={`Estado interno: ${HEALTH_LABEL[health]}`}
+    />
+  );
+}
+
 export default async function ClientsPage() {
-  const [clients, pendingApprovalIds] = await Promise.all([getClients(), getClientIdsWithPendingApproval()]);
+  const [clients, pendingApprovalIds, healthMap] = await Promise.all([
+    getClients(),
+    getClientIdsWithPendingApproval(),
+    getClientHealthMap(),
+  ]);
   const sortedClients = [...clients].sort((a, b) => {
     const aPending = pendingApprovalIds.has(a.id) ? 1 : 0;
     const bPending = pendingApprovalIds.has(b.id) ? 1 : 0;
@@ -72,6 +96,7 @@ export default async function ClientsPage() {
                       <td className="p-0">
                         <Link href={href} className="flex items-center gap-3 px-5 py-3.5">
                           <Avatar name={c.business_name} size="sm" />
+                          <HealthDot health={healthMap.get(c.id) ?? "bien"} />
                           <span className="truncate font-medium">{c.business_name}</span>
                         </Link>
                       </td>
@@ -110,7 +135,10 @@ export default async function ClientsPage() {
                   <Card className="flex items-center gap-3 p-4">
                     <Avatar name={c.business_name} size="sm" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{c.business_name}</p>
+                      <p className="flex items-center gap-1.5 truncate font-medium">
+                        <HealthDot health={healthMap.get(c.id) ?? "bien"} />
+                        {c.business_name}
+                      </p>
                       <p className="truncate text-xs text-muted-2">{c.contact_name ?? "Sin contacto"}</p>
                     </div>
                     {pending ? (

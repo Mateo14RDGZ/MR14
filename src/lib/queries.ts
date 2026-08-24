@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import { daysUntil } from "@/lib/utils";
+import { daysUntil, formatCurrency } from "@/lib/utils";
 
 export async function getDashboardData() {
   const supabase = await createClient();
@@ -58,6 +58,150 @@ export async function getDashboardData() {
     clientsWithPendingPayments,
     recentActivity: history.data ?? [],
   };
+}
+
+export interface AttentionItem {
+  type: "ticket" | "payment" | "renewal";
+  client: string;
+  motivo: string;
+  timestamp: string;
+  href: string;
+}
+
+/**
+ * Reúne, desde datos que ya existen (sin tablas nuevas), todo lo que
+ * requiere una acción real del admin: tickets sin atender, saldos
+ * pendientes y dominios por vencer. Cada item lleva a la pantalla que
+ * resuelve la acción.
+ */
+export async function getAttentionItems(): Promise<{ items: AttentionItem[]; today: { newTickets: number; pendingReview: number; pendingPayments: number; renewalsThisWeek: number } }> {
+  const supabase = await createClient();
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const [ticketsRes, projectsRes, renewalsRes] = await Promise.all([
+    supabase
+      .from("tickets")
+      .select("id,number,subject,status,created_at,client_id,clients(business_name)")
+      .in("status", ["received", "reviewing", "requires_quote"])
+      .order("created_at", { ascending: true })
+      .limit(10),
+    supabase
+      .from("projects")
+      .select("id,name,balance,client_id,clients(business_name)")
+      .in("payment_status", ["pendiente", "parcial"])
+      .gt("balance", 0)
+      .order("balance", { ascending: false })
+      .limit(10),
+    supabase
+      .from("renewals")
+      .select("id,service_name,due_date,status,client_id,clients(business_name)")
+      .neq("status", "renovado")
+      .order("due_date", { ascending: true })
+      .limit(15),
+  ]);
+
+  const tickets = ticketsRes.data ?? [];
+  const projects = projectsRes.data ?? [];
+  const renewalsUpcoming = (renewalsRes.data ?? [])
+    .map((r) => ({ ...r, days: daysUntil(r.due_date) }))
+    .filter((r) => r.days !== null && r.days <= 30 && r.days >= 0);
+
+  const items: AttentionItem[] = [
+    ...tickets.map((t) => ({
+      type: "ticket" as const,
+      client: (t.clients as { business_name?: string } | null)?.business_name ?? "-",
+      motivo: `Ticket ${t.number}: ${t.subject}`,
+      timestamp: t.created_at,
+      href: `/support/${t.id}`,
+    })),
+    ...projects.map((p) => ({
+      type: "payment" as const,
+      client: (p.clients as { business_name?: string } | null)?.business_name ?? "-",
+      motivo: `Saldo pendiente: ${formatCurrency(p.balance)}`,
+      timestamp: "",
+      href: `/projects/${p.id}`,
+    })),
+    ...renewalsUpcoming.map((r) => ({
+      type: "renewal" as const,
+      client: (r.clients as { business_name?: string } | null)?.business_name ?? "-",
+      motivo: `${r.service_name} vence en ${r.days} día${r.days === 1 ? "" : "s"}`,
+      timestamp: "",
+      href: `/renewals`,
+    })),
+  ];
+
+  return {
+    items,
+    today: {
+      newTickets: tickets.filter((t) => new Date(t.created_at) >= startOfToday).length,
+      pendingReview: tickets.length,
+      pendingPayments: projects.length,
+      renewalsThisWeek: renewalsUpcoming.filter((r) => (r.days ?? 99) <= 7).length,
+    },
+  };
+}
+
+export type ClientHealth = "bien" | "atencion" | "riesgo";
+
+/**
+ * Estado interno simple por cliente (no visible para el cliente), a partir
+ * de señales que ya existen: pago vencido, proyecto atrasado, dominio por
+ * vencer y tickets sin atender. Tres queries en bloque (sin N+1) y un
+ * puntaje básico, nada de algoritmo complejo.
+ */
+export async function getClientHealthMap(): Promise<Map<string, ClientHealth>> {
+  const supabase = await createClient();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [projectsRes, ticketsRes, renewalsRes] = await Promise.all([
+    supabase
+      .from("projects")
+      .select("client_id,payment_status,balance,estimated_delivery_date,status"),
+    supabase.from("tickets").select("client_id,status"),
+    supabase.from("renewals").select("client_id,due_date,status"),
+  ]);
+
+  const scores = new Map<string, number>();
+  const bump = (clientId: string) => scores.set(clientId, (scores.get(clientId) ?? 0) + 1);
+
+  for (const p of projectsRes.data ?? []) {
+    if ((p.payment_status === "pendiente" || p.payment_status === "parcial") && Number(p.balance) > 0) {
+      bump(p.client_id);
+    }
+    if (
+      p.estimated_delivery_date &&
+      new Date(p.estimated_delivery_date) < today &&
+      !["entregado", "publicado", "mantenimiento", "cancelado"].includes(p.status)
+    ) {
+      bump(p.client_id);
+    }
+  }
+
+  const openTicketStatuses = new Set(["received", "reviewing", "requires_quote"]);
+  const seenTicketClients = new Set<string>();
+  for (const t of ticketsRes.data ?? []) {
+    if (openTicketStatuses.has(t.status) && !seenTicketClients.has(t.client_id)) {
+      bump(t.client_id);
+      seenTicketClients.add(t.client_id);
+    }
+  }
+
+  const seenRenewalClients = new Set<string>();
+  for (const r of renewalsRes.data ?? []) {
+    const days = daysUntil(r.due_date);
+    if (r.status !== "renovado" && days !== null && days <= 14 && days >= 0 && !seenRenewalClients.has(r.client_id)) {
+      bump(r.client_id);
+      seenRenewalClients.add(r.client_id);
+    }
+  }
+
+  const health = new Map<string, ClientHealth>();
+  for (const [clientId, score] of scores) {
+    health.set(clientId, score >= 2 ? "riesgo" : "atencion");
+  }
+  return health;
 }
 
 export async function getClients() {

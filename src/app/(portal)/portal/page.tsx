@@ -4,9 +4,10 @@ import { getPortalDashboardData, getPortalTicketSummary } from "@/lib/queries";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { StageProgress } from "@/components/portal/StageProgress";
+import { NextActionsPanel, computeNextActions } from "@/components/portal/NextActions";
 import { EmptyState } from "@/components/ui/Empty";
 import { formatCurrency, formatDateTime, daysUntil } from "@/lib/utils";
-import { Globe, ExternalLink, ShieldCheck, Wallet, FolderKanban, Activity, MessageCircle, LifeBuoy } from "lucide-react";
+import { Globe, ExternalLink, Wallet, FolderKanban, Activity, MessageCircle, LifeBuoy, FileText, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 const DELIVERED_STATUSES = ["entregado", "publicado", "mantenimiento"];
@@ -36,8 +37,14 @@ export default async function PortalDashboardPage() {
     return d !== null && d <= 30 && d >= 0 && r.status !== "renovado";
   });
 
+  const nextActions = computeNextActions({
+    project,
+    domainExpiryDate: data.domain?.expiry_date,
+    ticketsWaitingReply: ticketSummary.waitingReply,
+  });
+
   return (
-    <div className="animate-fade-in space-y-8">
+    <div className="animate-fade-in space-y-6">
       <div>
         <p className="text-display">Hola, {activeClient?.business_name}</p>
         <p className="mt-1.5 text-sm text-muted">{statusLine}</p>
@@ -51,36 +58,28 @@ export default async function PortalDashboardPage() {
         </a>
       )}
 
+      <NextActionsPanel actions={nextActions} />
+
       {isDelivered && (
         <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <LifeBuoy size={16} className="shrink-0 text-muted" />
             <p className="text-sm text-muted">
-              ¿Necesitás un cambio o tenés un problema? Gestionalo con una solicitud de soporte.
+              ¿Necesitás un cambio o tenés un problema? Gestionalo con un ticket de soporte.
             </p>
           </div>
           <Link href="/portal/solicitudes/nueva">
             <Button variant="secondary" size="sm" className="w-full sm:w-auto shrink-0">
-              Crear solicitud
+              Crear ticket
             </Button>
           </Link>
         </div>
       )}
 
-      {hasUpcomingRenewal && (
-        <Link
-          href="/portal/renovaciones"
-          className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning-soft px-4 py-3 text-sm text-warning"
-        >
-          <span className="flex-1">Tenés renovaciones próximas a vencer.</span>
-          <span className="shrink-0 underline">Ver renovaciones</span>
-        </Link>
-      )}
-
       {!project ? (
         <EmptyState icon={FolderKanban} title="Todavía no hay un proyecto activo" description="MR14 lo verá cargado en breve." />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Link href="/portal/mi-web">
             <Card className="h-full p-4 transition-colors hover:border-muted-2">
               <div className="flex items-center gap-2 text-muted">
@@ -129,30 +128,27 @@ export default async function PortalDashboardPage() {
               </p>
             </Card>
           </Link>
-
-          <Link href="/portal/documentos">
-            <Card className="h-full p-4 transition-colors hover:border-muted-2">
-              <div className="flex items-center gap-2 text-muted">
-                <ShieldCheck size={15} />
-                <p className="text-label">Documentos</p>
-              </div>
-              <p className="mt-2 text-sm text-muted">Ver documentación entregada</p>
-            </Card>
-          </Link>
-
-          <Link href="/portal/renovaciones">
-            <Card className="h-full p-4 transition-colors hover:border-muted-2">
-              <div className="flex items-center gap-2 text-muted">
-                <Activity size={15} />
-                <p className="text-label">Renovaciones</p>
-              </div>
-              <p className="mt-2 text-sm text-muted">
-                {hasUpcomingRenewal ? "Hay vencimientos próximos" : "Todo al día"}
-              </p>
-            </Card>
-          </Link>
         </div>
       )}
+
+      {/* Sección secundaria: menos peso visual que las cards principales de arriba. */}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Link
+          href="/portal/documentos"
+          className="flex items-center gap-3 rounded-lg border border-border px-4 py-3 text-sm text-muted transition-colors hover:border-muted-2 hover:text-foreground"
+        >
+          <FileText size={15} className="shrink-0" />
+          <span className="flex-1">Documentos</span>
+        </Link>
+        <Link
+          href="/portal/renovaciones"
+          className="flex items-center gap-3 rounded-lg border border-border px-4 py-3 text-sm text-muted transition-colors hover:border-muted-2 hover:text-foreground"
+        >
+          <RefreshCw size={15} className="shrink-0" />
+          <span className="flex-1">Renovaciones</span>
+          {hasUpcomingRenewal && <Badge tone="warning">Próxima a vencer</Badge>}
+        </Link>
+      </div>
 
       <Card>
         <CardHeader className="flex items-center gap-2">
@@ -183,14 +179,18 @@ export default async function PortalDashboardPage() {
           <MessageCircle size={15} className="text-muted" />
           <p className="text-card-title">¿Necesitás ayuda?</p>
         </div>
-        <p className="mt-2 text-sm text-muted">Escribinos por WhatsApp o enviá una solicitud desde el portal.</p>
+        <p className="mt-2 text-sm text-muted">
+          {isDelivered
+            ? "Para mantener un seguimiento ordenado, los cambios y solicitudes se gestionan mediante tickets."
+            : "Escribinos por WhatsApp o enviá una solicitud desde el portal."}
+        </p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-          <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
-            <Button variant="secondary" className="w-full">Contactar a MR14</Button>
-          </a>
           <Link href="/portal/solicitudes/nueva" className="flex-1">
-            <Button variant="secondary" className="w-full">Enviar solicitud</Button>
+            <Button className="w-full">Crear ticket</Button>
           </Link>
+          <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
+            <Button variant="secondary" className="w-full">Contacto general</Button>
+          </a>
         </div>
       </div>
     </div>

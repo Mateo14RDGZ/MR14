@@ -4,9 +4,9 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/Empty";
-import { formatDate } from "@/lib/utils";
+import { formatDate, daysUntil } from "@/lib/utils";
 import { STAGE_META, type ProjectStage } from "@/lib/types";
-import { Globe, ExternalLink } from "lucide-react";
+import { Globe, ExternalLink, AlertTriangle } from "lucide-react";
 
 export default async function PortalMiWebPage() {
   const { activeClientId } = await getPortalContext();
@@ -18,6 +18,8 @@ export default async function PortalMiWebPage() {
 
   const { domain, hosting, lastAudit } = await getPortalWebsiteInfo(project.id, activeClientId);
   const score = (lastAudit?.score ?? {}) as { seo?: number; accessibility?: number; performance?: number };
+  const domainDays = daysUntil(domain?.expiry_date);
+  const domainExpiringSoon = domainDays !== null && domainDays >= 0 && domainDays <= 30;
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -25,6 +27,15 @@ export default async function PortalMiWebPage() {
         <h1 className="text-page-title">Mi web</h1>
         <p className="mt-1 text-sm text-muted">Información pública de tu sitio, sin detalles técnicos internos.</p>
       </div>
+
+      {domainExpiringSoon && (
+        <div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning-soft px-4 py-3 text-sm text-warning">
+          <AlertTriangle size={16} className="shrink-0" />
+          <p className="flex-1">
+            Dominio próximo a vencer: {domainDays} día{domainDays === 1 ? "" : "s"}.
+          </p>
+        </div>
+      )}
 
       <Card className="p-6 text-center sm:p-8">
         <p className="text-caption">URL principal</p>
@@ -49,6 +60,7 @@ export default async function PortalMiWebPage() {
             <Row label="Hosting" value={hosting?.platform} />
             <Row label="Fecha de publicación" value={formatDate(project.actual_delivery_date)} />
             <Row label="Última actualización" value={formatDate(project.updated_at)} />
+            <Row label="Próxima renovación" value={formatDate(domain?.expiry_date)} />
             <Row label="Estado" value={STAGE_META[project.stage as ProjectStage]?.clientLabel ?? project.status.replace(/_/g, " ")} />
           </CardBody>
         </Card>
