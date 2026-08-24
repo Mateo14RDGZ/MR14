@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import crypto from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logHistory } from "@/lib/history";
@@ -19,44 +20,114 @@ async function assertAdmin() {
   return { supabase, user };
 }
 
-export async function inviteClientMemberAction(clientId: string, formData: FormData) {
+/**
+ * Genera un link único de invitación (sin crear todavía ninguna cuenta). El
+ * cliente lo abre, completa sus propios datos + contraseña en /invitacion/[token]
+ * y ahí recién se crea el usuario automáticamente.
+ */
+export async function createInvitationLinkAction(clientId: string, formData: FormData) {
   const { user } = await assertAdmin();
   const admin = createAdminClient();
 
-  const email = String(formData.get("email") || "").trim().toLowerCase();
-  const name = String(formData.get("name") || "").trim();
   const roleInClient = String(formData.get("role_in_client") || "colaborador");
+  const token = crypto.randomBytes(24).toString("base64url");
 
-  if (!email) return { error: "El email es obligatorio." };
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
-  const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${appUrl}/auth/set-password`,
-    data: { full_name: name },
+  const { error } = await admin.from("client_invitations").insert({
+    client_id: clientId,
+    token,
+    role_in_client: roleInClient,
+    created_by: user.id,
   });
 
-  if (inviteError || !invited?.user) {
-    return { error: inviteError?.message ?? "No se pudo enviar la invitación." };
+  if (error) return { error: error.message };
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  return { link: `${appUrl}/invitacion/${token}` };
+}
+
+/** Lee una invitación válida (no usada, no vencida) para renderizar el formulario público. */
+export async function getInvitationByToken(token: string) {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("client_invitations")
+    .select("*, clients(business_name)")
+    .eq("token", token)
+    .is("used_at", null)
+    .gt("expires_at", new Date().toISOString())
+    .single();
+  return data;
+}
+
+/**
+ * Llamada desde el formulario público de invitación. Crea la cuenta del
+ * cliente con los datos que él mismo completó, la vincula al cliente y lo
+ * deja logueado directo en su portal.
+ */
+export async function completeInvitationAction(token: string, formData: FormData) {
+  const admin = createAdminClient();
+
+  const { data: invite } = await admin
+    .from("client_invitations")
+    .select("*")
+    .eq("token", token)
+    .is("used_at", null)
+    .gt("expires_at", new Date().toISOString())
+    .single();
+
+  if (!invite) return { error: "Este link de invitación ya no es válido." };
+
+  const name = String(formData.get("name") || "").trim();
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const phone = String(formData.get("phone") || "").trim();
+  const password = String(formData.get("password") || "");
+  const confirmPassword = String(formData.get("confirm_password") || "");
+
+  if (!name || !email || !password) return { error: "Completá nombre, email y contraseña." };
+  if (password.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres." };
+  if (password !== confirmPassword) return { error: "Las contraseñas no coinciden." };
+
+  const { data: created, error: createError } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { full_name: name },
+  });
+
+  if (createError || !created?.user) {
+    const msg = /already been registered|already exists/i.test(createError?.message ?? "")
+      ? "Ya existe una cuenta con ese email. Iniciá sesión normalmente o pedile a MR14 que la revise."
+      : (createError?.message ?? "No se pudo crear la cuenta.");
+    return { error: msg };
   }
 
   const { error: memberError } = await admin.from("client_members").insert({
-    client_id: clientId,
-    user_id: invited.user.id,
+    client_id: invite.client_id,
+    user_id: created.user.id,
     email,
     name,
-    role_in_client: roleInClient,
-    status: "invited",
-    invited_by: user.id,
+    phone: phone || null,
+    role_in_client: invite.role_in_client,
+    status: "active",
+    invited_by: invite.created_by,
   });
 
-  if (memberError) return { error: memberError.message };
+  if (memberError) {
+    await admin.auth.admin.deleteUser(created.user.id);
+    return { error: memberError.message };
+  }
 
-  await logHistory({ clientId, event: `Usuario invitado: ${email}` });
-  revalidatePath(`/clients/${clientId}`);
+  await admin.from("client_invitations").update({ used_at: new Date().toISOString() }).eq("id", invite.id);
+  await logHistory({ clientId: invite.client_id, event: `Cliente completó su registro: ${email}` });
+  revalidatePath(`/clients/${invite.client_id}`);
+
+  const supabase = await createClient();
+  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+  if (signInError) return { error: "Cuenta creada. Iniciá sesión con tu email y contraseña.", createdOk: true };
+
+  redirect("/portal");
 }
 
-/** Llamada por el propio usuario cliente tras activar su cuenta (definir contraseña). */
+/** Llamada por el propio usuario cliente tras activar su cuenta vía un link genérico de Supabase (ej. recuperación). */
 export async function activateMembershipAction() {
   const supabase = await createClient();
   const {
@@ -72,6 +143,25 @@ export async function removeClientMemberAction(memberId: string, clientId: strin
   const { error } = await admin.from("client_members").delete().eq("id", memberId);
   if (error) throw new Error(error.message);
   await logHistory({ clientId, event: "Usuario removido del acceso al portal" });
+  revalidatePath(`/clients/${clientId}`);
+}
+
+/** El admin edita los datos de un miembro ya creado desde el panel. */
+export async function updateClientMemberAction(memberId: string, clientId: string, formData: FormData) {
+  await assertAdmin();
+  const admin = createAdminClient();
+
+  const name = String(formData.get("name") || "").trim();
+  const phone = String(formData.get("phone") || "").trim();
+  const roleInClient = String(formData.get("role_in_client") || "colaborador");
+
+  const { error } = await admin
+    .from("client_members")
+    .update({ name, phone: phone || null, role_in_client: roleInClient })
+    .eq("id", memberId);
+
+  if (error) return { error: error.message };
+
   revalidatePath(`/clients/${clientId}`);
 }
 

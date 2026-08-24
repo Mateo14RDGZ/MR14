@@ -163,6 +163,7 @@ export interface ClientMember {
   user_id: string;
   email: string;
   name: string | null;
+  phone: string | null;
   role_in_client: string;
   status: MemberStatus;
   created_at: string;

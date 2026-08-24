@@ -13,6 +13,7 @@ import { PaymentsTab } from "@/components/clients/PaymentsTab";
 import { RequestsTab } from "@/components/clients/RequestsTab";
 import { HistoryTab } from "@/components/clients/HistoryTab";
 import { DeleteClientButton } from "@/components/clients/DeleteClientButton";
+import { InviteMemberDialog } from "@/components/clients/InviteMemberDialog";
 import { Avatar } from "@/components/ui/Avatar";
 import { CLIENT_STATUSES } from "@/lib/types";
 import { ArrowLeft } from "lucide-react";
@@ -47,7 +48,10 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             </div>
           </div>
         </div>
-        <DeleteClientButton clientId={client.id} />
+        <div className="flex items-center gap-2">
+          <InviteMemberDialog clientId={client.id} businessName={client.business_name} defaultPhone={client.whatsapp || client.phone} />
+          <DeleteClientButton clientId={client.id} />
+        </div>
       </div>
 
       <Tabs
@@ -57,7 +61,19 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           { id: "payments", label: "Pagos", count: payments.length, content: <PaymentsTab clientId={client.id} payments={payments} projects={projectOptions} /> },
           { id: "credentials", label: "Credenciales", count: credentials.length, content: <CredentialsTab clientId={client.id} credentials={credentials} projects={projectOptions} /> },
           { id: "documents", label: "Documentos", count: documents.length, content: <DocumentsTab clientId={client.id} documents={documents} projects={projectOptions} /> },
-          { id: "members", label: "Usuarios", count: members.length, content: <MembersTab clientId={client.id} members={members} /> },
+          {
+            id: "members",
+            label: "Usuarios",
+            count: members.length,
+            content: (
+              <MembersTab
+                clientId={client.id}
+                members={members}
+                businessName={client.business_name}
+                defaultPhone={client.whatsapp || client.phone}
+              />
+            ),
+          },
           {
             id: "support",
             label: "Tickets",
