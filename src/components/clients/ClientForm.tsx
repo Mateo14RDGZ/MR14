@@ -84,21 +84,23 @@ export function ClientForm({
         </div>
       </section>
 
-      <section>
-        <h2 className="mb-4 text-sm font-semibold text-accent">Redes sociales</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {["instagram", "facebook", "tiktok", "linkedin", "x"].map((s) => (
-            <Field key={s}>
-              <Label className="capitalize">{s}</Label>
-              <Input
-                name={`social_${s}`}
-                defaultValue={client?.social_links?.[s] ?? ""}
-                placeholder={`https://${s}.com/...`}
-              />
-            </Field>
-          ))}
-        </div>
-      </section>
+      {client && (
+        <section>
+          <h2 className="mb-4 text-sm font-semibold text-accent">Redes sociales</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {["instagram", "facebook", "tiktok", "linkedin", "x"].map((s) => (
+              <Field key={s}>
+                <Label className="capitalize">{s}</Label>
+                <Input
+                  name={`social_${s}`}
+                  defaultValue={client?.social_links?.[s] ?? ""}
+                  placeholder={`https://${s}.com/...`}
+                />
+              </Field>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <h2 className="mb-4 text-sm font-semibold text-accent">Estado y fechas</h2>
