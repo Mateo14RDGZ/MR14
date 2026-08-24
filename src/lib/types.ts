@@ -214,7 +214,7 @@ export type QuoteStatus = "pending" | "accepted" | "rejected" | "superseded";
 export type NotificationType =
   | "ticket_created" | "ticket_message" | "ticket_status_changed"
   | "ticket_needs_client_reply" | "quote_received" | "quote_accepted"
-  | "quote_rejected" | "ticket_resolved";
+  | "quote_rejected" | "ticket_resolved" | "member_pending_approval";
 
 export const TICKET_STATUSES: { value: TicketStatus; label: string }[] = [
   { value: "received", label: "Recibido" },

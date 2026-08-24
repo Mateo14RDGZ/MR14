@@ -60,15 +60,16 @@ export async function getInvitationByToken(token: string) {
 
 /**
  * Llamada desde el formulario público de invitación. Crea la cuenta del
- * cliente con los datos que él mismo completó, la vincula al cliente y lo
- * deja logueado directo en su portal.
+ * cliente con los datos que él mismo completó y la deja marcada como
+ * "pendiente de aprobación" — todavía no puede entrar al portal hasta que
+ * un admin la apruebe desde la ficha del cliente. Se notifica a los admins.
  */
 export async function completeInvitationAction(token: string, formData: FormData) {
   const admin = createAdminClient();
 
   const { data: invite } = await admin
     .from("client_invitations")
-    .select("*")
+    .select("*, clients(business_name)")
     .eq("token", token)
     .is("used_at", null)
     .gt("expires_at", new Date().toISOString())
@@ -107,7 +108,7 @@ export async function completeInvitationAction(token: string, formData: FormData
     name,
     phone: phone || null,
     role_in_client: invite.role_in_client,
-    status: "active",
+    status: "invited", // pendiente de aprobación del admin
     invited_by: invite.created_by,
   });
 
@@ -117,14 +118,29 @@ export async function completeInvitationAction(token: string, formData: FormData
   }
 
   await admin.from("client_invitations").update({ used_at: new Date().toISOString() }).eq("id", invite.id);
-  await logHistory({ clientId: invite.client_id, event: `Cliente completó su registro: ${email}` });
+
+  const businessName = (invite.clients as { business_name?: string } | null)?.business_name ?? "un cliente";
+
+  await admin.from("project_history").insert({
+    client_id: invite.client_id,
+    event: `${name} completó su registro y espera aprobación (${email})`,
+    visibility: "internal",
+  });
+
+  const { data: admins } = await admin.from("profiles").select("id").eq("role", "admin");
+  if (admins && admins.length > 0) {
+    await admin.from("notifications").insert(
+      admins.map((a) => ({
+        user_id: a.id,
+        type: "member_pending_approval",
+        title: "Nueva solicitud de acceso",
+        body: `${name} (${businessName}) completó su registro y espera tu aprobación.`,
+      }))
+    );
+  }
+
   revalidatePath(`/clients/${invite.client_id}`);
-
-  const supabase = await createClient();
-  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-  if (signInError) return { error: "Cuenta creada. Iniciá sesión con tu email y contraseña.", createdOk: true };
-
-  redirect("/portal");
+  redirect(`/invitacion/${token}/enviado`);
 }
 
 /** Llamada por el propio usuario cliente tras activar su cuenta vía un link genérico de Supabase (ej. recuperación). */
@@ -135,6 +151,16 @@ export async function activateMembershipAction() {
   } = await supabase.auth.getUser();
   if (!user) return;
   await supabase.from("client_members").update({ status: "active" }).eq("user_id", user.id).eq("status", "invited");
+}
+
+/** El admin aprueba una solicitud de acceso: recién ahí el cliente puede entrar al portal. */
+export async function approveClientMemberAction(memberId: string, clientId: string) {
+  await assertAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin.from("client_members").update({ status: "active" }).eq("id", memberId);
+  if (error) return { error: error.message };
+  await logHistory({ clientId, event: "Acceso al portal aprobado" });
+  revalidatePath(`/clients/${clientId}`);
 }
 
 export async function removeClientMemberAction(memberId: string, clientId: string) {

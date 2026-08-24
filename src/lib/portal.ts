@@ -15,12 +15,24 @@ export async function getPortalContext() {
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
   if (profile?.role === "admin") redirect("/dashboard");
 
-  const { data: memberships } = await supabase
+  const { data: allMemberships } = await supabase
     .from("client_members")
     .select("*, clients(*)")
     .eq("user_id", user.id);
 
-  if (!memberships || memberships.length === 0) redirect("/login?error=" + encodeURIComponent("Tu cuenta no tiene ningún negocio asociado todavía."));
+  const memberships = (allMemberships ?? []).filter((m) => m.status === "active");
+
+  if (memberships.length === 0) {
+    const pending = (allMemberships ?? []).some((m) => m.status === "invited");
+    redirect(
+      "/login?error=" +
+        encodeURIComponent(
+          pending
+            ? "Tu solicitud de acceso todavía está pendiente de aprobación por MR14."
+            : "Tu cuenta no tiene ningún negocio asociado todavía."
+        )
+    );
+  }
 
   const cookieStore = await cookies();
   const cookieClientId = cookieStore.get(ACTIVE_CLIENT_COOKIE)?.value;

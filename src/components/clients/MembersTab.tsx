@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
 import { InviteMemberDialog } from "@/components/clients/InviteMemberDialog";
 import { EditMemberDialog } from "@/components/clients/EditMemberDialog";
+import { ApproveMemberButton } from "@/components/clients/ApproveMemberButton";
 import { RemoveMemberButton } from "@/components/clients/RemoveMemberButton";
 import type { ClientMember } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
@@ -42,9 +43,10 @@ export function MembersTab({
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <Badge tone={m.status === "active" ? "success" : "warning"}>
-                  {m.status === "active" ? "Activo" : "Invitado"}
+                  {m.status === "active" ? "Activo" : "Pendiente de aprobación"}
                 </Badge>
                 <span className="hidden text-xs text-muted-2 sm:inline">{formatDate(m.created_at)}</span>
+                {m.status === "invited" && <ApproveMemberButton memberId={m.id} clientId={clientId} />}
                 <EditMemberDialog clientId={clientId} member={m} />
                 <RemoveMemberButton id={m.id} clientId={clientId} />
               </div>
