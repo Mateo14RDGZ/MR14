@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { logHistory } from "@/lib/history";
 import type { ClientStatus } from "@/lib/types";
 
@@ -99,10 +100,44 @@ export async function updateClientStatusAction(clientId: string, status: ClientS
   revalidatePath("/dashboard");
 }
 
+/**
+ * Borra al cliente por completo: la ficha, todo lo que cuelga de ella
+ * (proyectos, credenciales, documentos, pagos, tickets, historial, etc. —
+ * vía "on delete cascade" en la base) y además lo que el cascade de la base
+ * NO cubre: los archivos en Storage y las cuentas de Supabase Auth de los
+ * usuarios del portal de ese cliente (para que no quede ni el email dando
+ * vueltas).
+ */
 export async function deleteClientAction(clientId: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("clients").delete().eq("id", clientId);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user?.id ?? "").single();
+  if (profile?.role !== "admin") throw new Error("Acción restringida a administradores de MR14.");
+
+  const admin = createAdminClient();
+
+  const [{ data: members }, { data: documents }, { data: attachments }] = await Promise.all([
+    admin.from("client_members").select("user_id").eq("client_id", clientId),
+    admin.from("documents").select("storage_path").eq("client_id", clientId),
+    admin.from("ticket_attachments").select("storage_path, tickets!inner(client_id)").eq("tickets.client_id", clientId),
+  ]);
+
+  if (documents && documents.length > 0) {
+    await admin.storage.from("documents").remove(documents.map((d) => d.storage_path));
+  }
+  if (attachments && attachments.length > 0) {
+    await admin.storage.from("ticket-attachments").remove(attachments.map((a) => a.storage_path));
+  }
+
+  const { error } = await admin.from("clients").delete().eq("id", clientId);
   if (error) throw new Error(error.message);
+
+  if (members && members.length > 0) {
+    await Promise.all(members.map((m) => admin.auth.admin.deleteUser(m.user_id).catch(() => null)));
+  }
+
   revalidatePath("/clients");
   redirect("/clients");
 }
