@@ -83,9 +83,9 @@ export async function getInvitationByToken(token: string) {
 
 /**
  * Llamada desde el formulario público de invitación. Crea la cuenta del
- * cliente con los datos que él mismo completó y la deja marcada como
- * "pendiente de aprobación" — todavía no puede entrar al portal hasta que
- * un admin la apruebe desde la ficha del cliente. Se notifica a los admins.
+ * cliente con los datos que él mismo completó, lo deja activo de una y
+ * logueado directo en su portal. Se notifica a los admins para que sepan
+ * que hay un cliente nuevo.
  */
 export async function completeInvitationAction(token: string, formData: FormData) {
   const admin = createAdminClient();
@@ -174,7 +174,7 @@ export async function completeInvitationAction(token: string, formData: FormData
     name,
     phone: phone || null,
     role_in_client: invite.role_in_client,
-    status: "invited", // pendiente de aprobación del admin
+    status: "active",
     invited_by: invite.created_by,
   });
 
@@ -187,7 +187,7 @@ export async function completeInvitationAction(token: string, formData: FormData
 
   await admin.from("project_history").insert({
     client_id: clientId,
-    event: `${name} completó su registro y espera aprobación (${email})`,
+    event: `${name} completó su registro (${email})`,
     visibility: "internal",
   });
 
@@ -197,8 +197,8 @@ export async function completeInvitationAction(token: string, formData: FormData
       admins.map((a) => ({
         user_id: a.id,
         type: "member_pending_approval",
-        title: "Nueva solicitud de acceso",
-        body: `${name} (${businessName || "cliente nuevo"}) completó su registro y espera tu aprobación.`,
+        title: "Nuevo cliente registrado",
+        body: `${name} (${businessName || "cliente nuevo"}) completó su registro y ya tiene acceso a su portal.`,
       }))
     );
   }

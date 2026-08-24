@@ -47,7 +47,7 @@ export default async function InvitationPage({
         icon={CheckCircle2}
         tone="text-success"
         title="Ya te registraste"
-        description="Tu cuenta ya fue creada con este link. Iniciá sesión normalmente — si todavía no te aprobaron el acceso, vas a ver un aviso al entrar."
+        description="Tu cuenta ya fue creada con este link. Iniciá sesión normalmente con tu email y contraseña."
       />
     );
   }

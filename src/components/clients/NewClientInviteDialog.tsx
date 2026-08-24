@@ -42,8 +42,8 @@ export function NewClientInviteDialog() {
         {!link ? (
           <div className="space-y-4">
             <p className="text-sm text-muted">
-              Se genera un link único para que el prospecto complete los datos de su negocio y cree su propia
-              cuenta. Vos lo aprobás después desde su ficha en Clientes.
+              Se genera un link único para que el prospecto complete los datos de su negocio, cree su propia
+              cuenta y entre directo a su portal.
             </p>
             <Button type="button" disabled={pending} className="w-full" onClick={generate}>
               {pending ? "Generando…" : "Generar link de invitación"}
