@@ -45,6 +45,31 @@ export async function createInvitationLinkAction(clientId: string, formData: For
   return { link: `${appUrl}/invitacion/${token}` };
 }
 
+/**
+ * Genera un link "abierto" (sin cliente todavía) para que un prospecto se
+ * registre solo: completa los datos de su negocio + su contraseña, y se
+ * crean la ficha del cliente y su usuario del portal en un solo paso,
+ * pendientes de aprobación del admin.
+ */
+export async function createClientRegistrationLinkAction() {
+  const { user } = await assertAdmin();
+  const admin = createAdminClient();
+
+  const token = crypto.randomBytes(24).toString("base64url");
+
+  const { error } = await admin.from("client_invitations").insert({
+    client_id: null,
+    token,
+    role_in_client: "owner",
+    created_by: user.id,
+  });
+
+  if (error) return { error: error.message };
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  return { link: `${appUrl}/invitacion/${token}` };
+}
+
 /** Lee una invitación válida (no usada, no vencida) para renderizar el formulario público. */
 export async function getInvitationByToken(token: string) {
   const admin = createAdminClient();
@@ -87,6 +112,36 @@ export async function completeInvitationAction(token: string, formData: FormData
   if (password.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres." };
   if (password !== confirmPassword) return { error: "Las contraseñas no coinciden." };
 
+  let clientId = invite.client_id as string | null;
+  let businessName = (invite.clients as { business_name?: string } | null)?.business_name ?? "";
+
+  // Invitación "abierta": todavía no existe el cliente, lo crea el prospecto acá mismo.
+  if (!clientId) {
+    businessName = String(formData.get("business_name") || "").trim();
+    const city = String(formData.get("city") || "").trim();
+
+    if (!businessName) return { error: "Completá el nombre de tu negocio." };
+
+    const { data: newClient, error: clientError } = await admin
+      .from("clients")
+      .insert({
+        business_name: businessName,
+        contact_name: name,
+        phone: phone || null,
+        whatsapp: phone || null,
+        email,
+        city: city || null,
+        status: "prospecto",
+      })
+      .select("id")
+      .single();
+
+    if (clientError || !newClient) {
+      return { error: clientError?.message ?? "No se pudo registrar tu negocio." };
+    }
+    clientId = newClient.id;
+  }
+
   const { data: created, error: createError } = await admin.auth.admin.createUser({
     email,
     password,
@@ -102,7 +157,7 @@ export async function completeInvitationAction(token: string, formData: FormData
   }
 
   const { error: memberError } = await admin.from("client_members").insert({
-    client_id: invite.client_id,
+    client_id: clientId,
     user_id: created.user.id,
     email,
     name,
@@ -119,10 +174,8 @@ export async function completeInvitationAction(token: string, formData: FormData
 
   await admin.from("client_invitations").update({ used_at: new Date().toISOString() }).eq("id", invite.id);
 
-  const businessName = (invite.clients as { business_name?: string } | null)?.business_name ?? "un cliente";
-
   await admin.from("project_history").insert({
-    client_id: invite.client_id,
+    client_id: clientId,
     event: `${name} completó su registro y espera aprobación (${email})`,
     visibility: "internal",
   });
@@ -134,12 +187,13 @@ export async function completeInvitationAction(token: string, formData: FormData
         user_id: a.id,
         type: "member_pending_approval",
         title: "Nueva solicitud de acceso",
-        body: `${name} (${businessName}) completó su registro y espera tu aprobación.`,
+        body: `${name} (${businessName || "cliente nuevo"}) completó su registro y espera tu aprobación.`,
       }))
     );
   }
 
-  revalidatePath(`/clients/${invite.client_id}`);
+  revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/clients");
   redirect(`/invitacion/${token}/enviado`);
 }
 

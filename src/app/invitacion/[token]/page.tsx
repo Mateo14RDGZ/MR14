@@ -32,7 +32,8 @@ export default async function InvitationPage({
     );
   }
 
-  const businessName = (invite.clients as { business_name?: string } | null)?.business_name ?? "tu negocio";
+  const isNewClient = !invite.client_id;
+  const businessName = (invite.clients as { business_name?: string } | null)?.business_name;
 
   async function action(formData: FormData) {
     "use server";
@@ -49,7 +50,13 @@ export default async function InvitationPage({
         <div className="mb-8 flex flex-col items-center gap-3">
           <Logo size="xl" />
           <p className="text-center text-sm text-muted">
-            Creá tu acceso al Portal MR14 de <span className="text-foreground">{businessName}</span>
+            {isNewClient ? (
+              "Registrate como cliente de MR14"
+            ) : (
+              <>
+                Creá tu acceso al Portal MR14 de <span className="text-foreground">{businessName}</span>
+              </>
+            )}
           </p>
         </div>
 
@@ -59,9 +66,21 @@ export default async function InvitationPage({
               {error}
             </div>
           )}
+          {isNewClient && (
+            <>
+              <Field>
+                <Label>Nombre de tu negocio *</Label>
+                <Input name="business_name" required placeholder="Motocenter" autoFocus />
+              </Field>
+              <Field>
+                <Label>Ciudad</Label>
+                <Input name="city" placeholder="Montevideo" />
+              </Field>
+            </>
+          )}
           <Field>
-            <Label>Nombre completo *</Label>
-            <Input name="name" required placeholder="Roberto Telechea" autoFocus />
+            <Label>Tu nombre *</Label>
+            <Input name="name" required placeholder="Roberto Telechea" autoFocus={!isNewClient} />
           </Field>
           <Field>
             <Label>Email *</Label>
@@ -80,7 +99,7 @@ export default async function InvitationPage({
             <Input type="password" name="confirm_password" required minLength={8} />
           </Field>
           <Button type="submit" className="w-full" size="lg">
-            Crear mi acceso
+            {isNewClient ? "Registrarme" : "Crear mi acceso"}
           </Button>
         </form>
       </div>

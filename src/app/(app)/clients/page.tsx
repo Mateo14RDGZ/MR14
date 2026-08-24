@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge, statusTone } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
+import { NewClientInviteDialog } from "@/components/clients/NewClientInviteDialog";
 import { CLIENT_STATUSES } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { Plus, Users, ChevronRight } from "lucide-react";
@@ -19,11 +20,14 @@ export default async function ClientsPage() {
         title="Clientes"
         description={`${clients.length} cliente${clients.length === 1 ? "" : "s"} registrados`}
         action={
-          <Link href="/clients/new">
-            <Button>
-              <Plus size={16} /> Nuevo cliente
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/clients/new">
+              <Button variant="secondary">
+                <Plus size={16} /> Cargar manualmente
+              </Button>
+            </Link>
+            <NewClientInviteDialog />
+          </div>
         }
       />
 
@@ -31,14 +35,8 @@ export default async function ClientsPage() {
         <EmptyState
           icon={Users}
           title="Todavía no hay clientes"
-          description="Creá tu primer cliente para empezar a gestionar proyectos e infraestructura."
-          action={
-            <Link href="/clients/new">
-              <Button>
-                <Plus size={16} /> Nuevo cliente
-              </Button>
-            </Link>
-          }
+          description="Invitá a tu primer cliente para que se registre solo, o cargalo vos manualmente."
+          action={<NewClientInviteDialog />}
         />
       ) : (
         <>
