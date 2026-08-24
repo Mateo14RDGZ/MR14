@@ -1,14 +1,6 @@
 -- ============================================================
--- Logo por cliente: bucket público de Storage
--- (clients.logo_url ya existe desde 0001_init.sql, nunca se había usado)
+-- Logo por cliente: políticas de Storage (paso 2/2 — ejecutar después de 0015)
 -- ============================================================
-
--- Bucket público: el logo es un asset de marca, no información sensible
--- (a diferencia de "documents"), y se necesita mostrar en la animación de
--- login sin depender de URLs firmadas con expiración.
-insert into storage.buckets (id, name, public)
-values ('client-logos', 'client-logos', true)
-on conflict (id) do nothing;
 
 create policy "public_read_client_logos"
   on storage.objects for select
