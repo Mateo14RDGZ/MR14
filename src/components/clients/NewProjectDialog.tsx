@@ -72,7 +72,7 @@ export function NewProjectDialog({
             <Label>Descripción</Label>
             <Textarea name="description" rows={2} />
           </Field>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field className="mb-0">
               <Label>Fecha de inicio</Label>
               <Input type="date" name="start_date" />
@@ -82,7 +82,7 @@ export function NewProjectDialog({
               <Input type="date" name="estimated_delivery_date" />
             </Field>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Field className="mb-0">
               <Label>Precio</Label>
               <Input type="number" name="price" min={0} step="1" defaultValue={0} />
