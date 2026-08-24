@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
 import { TICKET_CATEGORIES, TICKET_STATUSES, type Ticket } from "@/lib/types";
+
+type TicketListItem = Pick<Ticket, "id" | "number" | "subject" | "category" | "status" | "created_at">;
 import { formatDate } from "@/lib/utils";
 import { LifeBuoy } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,7 +25,7 @@ const STATUS_TONE: Record<string, "muted" | "warning" | "accent" | "success" | "
 
 const OPEN_STATUSES = ["received", "reviewing", "in_progress", "waiting_client", "requires_quote", "approved"];
 
-export function TicketList({ tickets, basePath }: { tickets: (Ticket & { projects?: { name: string } | null })[]; basePath: string }) {
+export function TicketList({ tickets, basePath }: { tickets: TicketListItem[]; basePath: string }) {
   const [tab, setTab] = useState<"open" | "resolved" | "all">("open");
 
   const filtered = tickets.filter((t) => {

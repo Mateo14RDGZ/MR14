@@ -2,28 +2,24 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { daysUntil, formatCurrency } from "@/lib/utils";
 
-export async function getDashboardData() {
+/**
+ * Solo lo que hace falta para los KPIs principales del dashboard admin
+ * (clientes + proyectos). Renovaciones e historial quedan en
+ * getDashboardSecondary(), que se pide aparte y se streamea en su propio
+ * Suspense para no bloquear el primer render con contenido secundario.
+ */
+export async function getDashboardCore() {
   const supabase = await createClient();
 
-  const [clients, projects, renewals, history] = await Promise.all([
+  const [clients, projects] = await Promise.all([
     supabase.from("clients").select("id,business_name,status"),
     supabase
       .from("projects")
       .select("id,name,status,price,deposit,balance,payment_status,client_id,clients(business_name)"),
-    supabase
-      .from("renewals")
-      .select("id,service_name,due_date,status,client_id,clients(business_name)")
-      .order("due_date", { ascending: true }),
-    supabase
-      .from("project_history")
-      .select("id,event,created_at,client_id,clients(business_name)")
-      .order("created_at", { ascending: false })
-      .limit(10),
   ]);
 
   const clientList = clients.data ?? [];
   const projectList = projects.data ?? [];
-  const renewalList = renewals.data ?? [];
 
   const activeClients = clientList.filter((c) => !["cerrado", "prospecto"].includes(c.status)).length;
   const inDevelopment = projectList.filter((p) => p.status === "en_desarrollo").length;
@@ -37,11 +33,6 @@ export async function getDashboardData() {
     .reduce((sum, p) => sum + Number(p.balance ?? 0), 0);
   const moneyCollected = projectList.reduce((sum, p) => sum + Number(p.deposit ?? 0), 0);
 
-  const upcomingRenewals = renewalList
-    .map((r) => ({ ...r, days: daysUntil(r.due_date) }))
-    .filter((r) => r.status !== "renovado" && r.days !== null && r.days <= 30 && r.days >= 0)
-    .slice(0, 8);
-
   const clientsWithPendingPayments = projectList.filter(
     (p) => p.payment_status === "pendiente" || p.payment_status === "parcial"
   ).length;
@@ -54,8 +45,32 @@ export async function getDashboardData() {
     delivered,
     moneyPending,
     moneyCollected,
-    upcomingRenewals,
     clientsWithPendingPayments,
+  };
+}
+
+/** Contenido secundario del dashboard admin: dominios por vencer + actividad reciente. */
+export async function getDashboardSecondary() {
+  const supabase = await createClient();
+  const [renewals, history] = await Promise.all([
+    supabase
+      .from("renewals")
+      .select("id,service_name,due_date,status,client_id,clients(business_name)")
+      .order("due_date", { ascending: true }),
+    supabase
+      .from("project_history")
+      .select("id,event,created_at,client_id,clients(business_name)")
+      .order("created_at", { ascending: false })
+      .limit(10),
+  ]);
+
+  const upcomingRenewals = (renewals.data ?? [])
+    .map((r) => ({ ...r, days: daysUntil(r.due_date) }))
+    .filter((r) => r.status !== "renovado" && r.days !== null && r.days <= 30 && r.days >= 0)
+    .slice(0, 8);
+
+  return {
+    upcomingRenewals,
     recentActivity: history.data ?? [],
   };
 }
@@ -230,9 +245,13 @@ export async function getQuickReplies() {
   return data ?? [];
 }
 
+/** Lista de clientes: solo las columnas que pinta /clients (la ficha completa usa getClientDetail). */
 export async function getClients() {
   const supabase = await createClient();
-  const { data } = await supabase.from("clients").select("*").order("created_at", { ascending: false });
+  const { data } = await supabase
+    .from("clients")
+    .select("id,business_name,contact_name,city,status,created_at")
+    .order("created_at", { ascending: false });
   return data ?? [];
 }
 
@@ -334,11 +353,12 @@ export async function getPortalPaymentsData(clientId: string) {
   };
 }
 
+/** Lista global de proyectos: solo las columnas que pinta /projects (la ficha usa getProjectDetail). */
 export async function getAllProjects() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("projects")
-    .select("*,clients(id,business_name)")
+    .select("id,name,type,status,progress_percent,price,currency,balance,estimated_delivery_date,client_id,clients(id,business_name)")
     .order("created_at", { ascending: false });
   return data ?? [];
 }
@@ -381,25 +401,22 @@ export async function getClientAudits(clientId: string) {
   return data ?? [];
 }
 
-export async function getPortalDashboardData(clientId: string) {
+/**
+ * Solo lo que hace falta para pintar la pantalla principal del portal al
+ * toque: el proyecto más reciente del cliente + su dominio/hosting. Nada
+ * de historial ni renovaciones acá — eso se pide aparte (getPortalSecondary)
+ * y se streamea en un Suspense separado para no bloquear el primer render.
+ */
+export async function getPortalDashboardCore(clientId: string) {
   const supabase = await createClient();
-  const [projects, renewals, history] = await Promise.all([
-    supabase
-      .from("projects")
-      .select("*")
-      .eq("client_id", clientId)
-      .order("created_at", { ascending: false }),
-    supabase.from("renewals").select("*").eq("client_id", clientId).order("due_date", { ascending: true }),
-    supabase
-      .from("project_history")
-      .select("*")
-      .eq("client_id", clientId)
-      .eq("visibility", "client")
-      .order("created_at", { ascending: false })
-      .limit(10),
-  ]);
+  const { data: project } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  const project = projects.data?.[0] ?? null;
   let infra: { domains: unknown[]; hosting: unknown[] } = { domains: [], hosting: [] };
   if (project) {
     const [domains, hosting] = await Promise.all([
@@ -410,13 +427,43 @@ export async function getPortalDashboardData(clientId: string) {
   }
 
   return {
-    projects: projects.data ?? [],
     project,
     domain: (infra.domains as { domain: string; status: string | null; expiry_date: string | null; registrar: string | null }[])[0] ?? null,
     hosting: (infra.hosting as { platform: string; production_url: string | null }[])[0] ?? null,
+  };
+}
+
+/** Contenido secundario del dashboard del portal: renovaciones + historial reciente. */
+export async function getPortalSecondary(clientId: string) {
+  const supabase = await createClient();
+  const [renewals, history] = await Promise.all([
+    supabase.from("renewals").select("*").eq("client_id", clientId).order("due_date", { ascending: true }),
+    supabase
+      .from("project_history")
+      .select("*")
+      .eq("client_id", clientId)
+      .eq("visibility", "client")
+      .order("created_at", { ascending: false })
+      .limit(10),
+  ]);
+
+  return {
     renewals: renewals.data ?? [],
     recentActivity: history.data ?? [],
   };
+}
+
+/** Proyecto activo del cliente sin traer renovaciones/historial que la pantalla no usa (ej. Mi Web). */
+export async function getActiveProject(clientId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data;
 }
 
 export async function getPortalWebsiteInfo(projectId: string, clientId?: string) {
@@ -450,6 +497,19 @@ export async function getPortalWebsiteInfo(projectId: string, clientId?: string)
     domain: domains.data?.[0] ?? null,
     hosting: hosting.data?.[0] ?? null,
     lastAudit,
+  };
+}
+
+/** Para el checklist de "Entrega del proyecto": solo cuenta, sin traer filas completas. */
+export async function getPortalDeliveryChecklist(clientId: string) {
+  const supabase = await createClient();
+  const [documents, credentials] = await Promise.all([
+    supabase.from("documents").select("id", { count: "exact", head: true }).eq("client_id", clientId).eq("visibility", "client"),
+    supabase.from("credentials").select("id", { count: "exact", head: true }).eq("client_id", clientId).eq("visibility", "delivered"),
+  ]);
+  return {
+    hasDocuments: (documents.count ?? 0) > 0,
+    hasDeliveredCredentials: (credentials.count ?? 0) > 0,
   };
 }
 
@@ -565,9 +625,13 @@ export async function getAllTickets(filters?: {
   query?: string;
 }) {
   const supabase = await createClient();
+  // Sin "description": las listas (bandeja admin, Mis solicitudes) no la
+  // muestran; el detalle del ticket la trae aparte con getTicketDetail.
   let q = supabase
     .from("tickets")
-    .select("*,clients(id,business_name),projects(id,name)")
+    .select(
+      "id,number,client_id,project_id,category,subject,status,priority,resolved_at,closed_at,reopen_deadline,created_at,updated_at,clients(id,business_name),projects(id,name)"
+    )
     .order("created_at", { ascending: false });
 
   if (filters?.clientId) q = q.eq("client_id", filters.clientId);
@@ -610,7 +674,9 @@ export async function getPortalTickets(clientId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("tickets")
-    .select("*,projects(id,name)")
+    .select(
+      "id,number,client_id,project_id,category,subject,status,priority,resolved_at,closed_at,reopen_deadline,created_at,updated_at,projects(id,name)"
+    )
     .eq("client_id", clientId)
     .order("created_at", { ascending: false });
   return data ?? [];

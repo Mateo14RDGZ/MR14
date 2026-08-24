@@ -3,10 +3,10 @@
 import { Command } from "cmdk";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Users, FolderKanban, Globe, GitBranch, FileText } from "lucide-react";
+import { Search, Users, FolderKanban, Globe, GitBranch, FileText, LifeBuoy, UserPlus, Wallet, Plus } from "lucide-react";
 
 interface SearchResult {
-  type: "client" | "project" | "domain" | "repository" | "document";
+  type: "client" | "project" | "domain" | "repository" | "document" | "ticket";
   id: string;
   title: string;
   subtitle?: string;
@@ -19,7 +19,26 @@ const ICONS = {
   domain: Globe,
   repository: GitBranch,
   document: FileText,
+  ticket: LifeBuoy,
 };
+
+const GROUP_LABELS: Record<SearchResult["type"], string> = {
+  client: "Clientes",
+  project: "Proyectos",
+  domain: "Dominios",
+  repository: "Repositorios",
+  document: "Documentos",
+  ticket: "Tickets",
+};
+
+const GROUP_ORDER: SearchResult["type"][] = ["client", "project", "ticket", "domain", "document", "repository"];
+
+const QUICK_ACTIONS = [
+  { icon: UserPlus, label: "Nuevo cliente", href: "/clients" },
+  { icon: FolderKanban, label: "Nuevo proyecto", href: "/projects" },
+  { icon: Wallet, label: "Registrar pago", href: "/clients" },
+  { icon: LifeBuoy, label: "Tickets", href: "/support" },
+];
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -71,6 +90,17 @@ export function CommandPalette() {
 
   if (!open) return null;
 
+  const grouped = GROUP_ORDER.map((type) => ({
+    type,
+    items: results.filter((r) => r.type === type),
+  })).filter((g) => g.items.length > 0);
+
+  function go(href: string) {
+    setOpen(false);
+    setQuery("");
+    router.push(href);
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-[2px] pt-24 px-4 animate-fade-in"
@@ -87,7 +117,7 @@ export function CommandPalette() {
             autoFocus
             value={query}
             onValueChange={setQuery}
-            placeholder="Buscar clientes, proyectos, dominios, repos, documentos..."
+            placeholder="Buscar clientes, proyectos, tickets, dominios, documentos..."
             className="h-12 w-full bg-transparent text-sm outline-none placeholder:text-muted-2"
           />
           <kbd className="hidden rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-2 sm:block">
@@ -95,29 +125,53 @@ export function CommandPalette() {
           </kbd>
         </div>
         <Command.List className="max-h-80 overflow-y-auto p-2">
+          {!query && (
+            <Command.Group
+              heading="Acciones"
+              className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-2"
+            >
+              {QUICK_ACTIONS.map((a) => (
+                <Command.Item
+                  key={a.label}
+                  onSelect={() => go(a.href)}
+                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm data-[selected=true]:bg-surface-2"
+                >
+                  <Plus size={14} className="text-muted-2" />
+                  <a.icon size={16} className="text-muted" />
+                  <span className="text-foreground">{a.label}</span>
+                </Command.Item>
+              ))}
+            </Command.Group>
+          )}
+
           {loading && <div className="px-3 py-6 text-center text-xs text-muted-2">Buscando…</div>}
           {!loading && query && results.length === 0 && (
             <div className="px-3 py-6 text-center text-xs text-muted-2">Sin resultados.</div>
           )}
+
           {!loading &&
-            results.map((r) => {
-              const Icon = ICONS[r.type];
+            grouped.map((g) => {
+              const Icon = ICONS[g.type];
               return (
-                <Command.Item
-                  key={`${r.type}-${r.id}`}
-                  onSelect={() => {
-                    setOpen(false);
-                    setQuery("");
-                    router.push(r.href);
-                  }}
-                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm data-[selected=true]:bg-surface-2"
+                <Command.Group
+                  key={g.type}
+                  heading={GROUP_LABELS[g.type]}
+                  className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-2"
                 >
-                  <Icon size={16} className="text-muted" />
-                  <div className="min-w-0">
-                    <p className="truncate text-foreground">{r.title}</p>
-                    {r.subtitle && <p className="truncate text-xs text-muted-2">{r.subtitle}</p>}
-                  </div>
-                </Command.Item>
+                  {g.items.map((r) => (
+                    <Command.Item
+                      key={`${r.type}-${r.id}`}
+                      onSelect={() => go(r.href)}
+                      className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm data-[selected=true]:bg-surface-2"
+                    >
+                      <Icon size={16} className="text-muted" />
+                      <div className="min-w-0">
+                        <p className="truncate text-foreground">{r.title}</p>
+                        {r.subtitle && <p className="truncate text-xs text-muted-2">{r.subtitle}</p>}
+                      </div>
+                    </Command.Item>
+                  ))}
+                </Command.Group>
               );
             })}
         </Command.List>
