@@ -26,6 +26,50 @@ function num(fd: FormData, key: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+/**
+ * Genera el plan de cuotas a partir del precio/anticipo/cantidad elegidos al
+ * crear el proyecto. Si hay anticipo, la primera cuota es el anticipo y el
+ * resto se reparte en partes iguales; si no, todo se reparte parejo.
+ */
+function buildInstallmentPlan(params: {
+  price: number;
+  deposit: number;
+  count: number;
+  startDate: string | null;
+}): { number: number; label: string; amount: number; due_date: string }[] {
+  const { price, deposit, count, startDate } = params;
+  if (price <= 0) return [];
+
+  const base = startDate ? new Date(startDate) : new Date();
+  const plan: { number: number; label: string; amount: number; due_date: string }[] = [];
+  let n = 1;
+
+  const hasDeposit = deposit > 0 && deposit < price;
+  if (hasDeposit) {
+    plan.push({ number: n++, label: "Anticipo", amount: deposit, due_date: base.toISOString().slice(0, 10) });
+  }
+
+  const remaining = hasDeposit ? price - deposit : price;
+  const remainingCount = Math.max(1, hasDeposit ? count - 1 : count);
+  const perInstallment = Math.round((remaining / remainingCount) * 100) / 100;
+
+  for (let i = 0; i < remainingCount; i++) {
+    const due = new Date(base);
+    due.setMonth(due.getMonth() + i + 1);
+    const isLast = i === remainingCount - 1;
+    // La última cuota absorbe el redondeo para que la suma cierre exacto.
+    const amount = isLast ? Math.round((price - plan.reduce((s, p) => s + p.amount, 0)) * 100) / 100 : perInstallment;
+    plan.push({
+      number: n++,
+      label: remainingCount === 1 ? "Saldo" : `Cuota ${i + 1}`,
+      amount,
+      due_date: due.toISOString().slice(0, 10),
+    });
+  }
+
+  return plan;
+}
+
 function buildProjectPayload(formData: FormData) {
   return {
     name: str(formData, "name") ?? "Proyecto sin nombre",
@@ -61,6 +105,19 @@ export async function createProjectAction(clientId: string, formData: FormData) 
     position: i,
   }));
   await supabase.from("tasks").insert(checklistRows);
+
+  const installmentsCount = Math.max(1, Math.min(12, Number(formData.get("installments_count")) || 1));
+  const installments = buildInstallmentPlan({
+    price: payload.price,
+    deposit: payload.deposit,
+    count: installmentsCount,
+    startDate: payload.start_date,
+  });
+  if (installments.length > 0) {
+    await supabase.from("project_installments").insert(
+      installments.map((i) => ({ ...i, project_id: data.id }))
+    );
+  }
 
   await logHistory({
     clientId,

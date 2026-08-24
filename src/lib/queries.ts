@@ -111,7 +111,7 @@ export async function getProjectDetail(id: string) {
   const { data: project } = await supabase.from("projects").select("*").eq("id", id).single();
   if (!project) return null;
 
-  const [client, domains, hosting, repositories, databases, tasks, history] = await Promise.all([
+  const [client, domains, hosting, repositories, databases, tasks, history, installments] = await Promise.all([
     supabase.from("clients").select("*").eq("id", project.client_id).single(),
     supabase.from("domains").select("*").eq("project_id", id),
     supabase.from("hosting").select("*").eq("project_id", id),
@@ -124,6 +124,7 @@ export async function getProjectDetail(id: string) {
       .eq("project_id", id)
       .order("created_at", { ascending: false })
       .limit(20),
+    supabase.from("project_installments").select("*").eq("project_id", id).order("number", { ascending: true }),
   ]);
 
   return {
@@ -135,6 +136,31 @@ export async function getProjectDetail(id: string) {
     databases: databases.data ?? [],
     tasks: tasks.data ?? [],
     history: history.data ?? [],
+    installments: installments.data ?? [],
+  };
+}
+
+export async function getPortalPaymentsData(clientId: string) {
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!project) return { project: null, installments: [], payments: [] };
+
+  const [installments, payments] = await Promise.all([
+    supabase.from("project_installments").select("*").eq("project_id", project.id).order("number", { ascending: true }),
+    supabase.from("payments").select("*").eq("project_id", project.id).order("paid_at", { ascending: false }),
+  ]);
+
+  return {
+    project,
+    installments: installments.data ?? [],
+    payments: payments.data ?? [],
   };
 }
 

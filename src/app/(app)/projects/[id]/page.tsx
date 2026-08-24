@@ -18,14 +18,16 @@ import { MarkDeliveredButton } from "@/components/projects/MarkDeliveredButton";
 import { HistoryTab } from "@/components/clients/HistoryTab";
 import { PROJECT_STATUSES, PROJECT_TYPES } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { ArrowLeft, FileDown } from "lucide-react";
+import { installmentsWithStatus } from "@/lib/installments";
+import { ArrowLeft, FileDown, CheckCircle2, Clock } from "lucide-react";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const data = await getProjectDetail(id);
   if (!data || !data.client) notFound();
 
-  const { project, client, domains, hosting, repositories, databases, tasks, history } = data;
+  const { project, client, domains, hosting, repositories, databases, tasks, history, installments } = data;
+  const installmentRows = installmentsWithStatus(installments, project.amount_paid);
   const [tickets, supportSummary] = await Promise.all([
     getAllTickets({ projectId: project.id }),
     getProjectSupportSummary(project.id),
@@ -102,6 +104,37 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <RepositoriesSection projectId={project.id} clientId={client.id} repositories={repositories} />
         <DatabasesSection projectId={project.id} clientId={client.id} databases={databases} />
       </div>
+
+      {installmentRows.length > 0 && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-card-title">Plan de cuotas</h2>
+          </CardHeader>
+          <CardBody className="space-y-0 divide-y divide-border">
+            {installmentRows.map((r) => (
+              <div key={r.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  {r.paid ? (
+                    <CheckCircle2 size={16} className="shrink-0 text-success" />
+                  ) : (
+                    <Clock size={16} className="shrink-0 text-muted-2" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{r.label || `Cuota ${r.number}`}</p>
+                    {r.due_date && <p className="text-xs text-muted-2">Vence {formatDate(r.due_date)}</p>}
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-sm font-medium tabular-nums">{formatCurrency(r.amount, project.currency)}</span>
+                  <Badge tone={r.paid ? "success" : r.isNext ? "warning" : "muted"}>
+                    {r.paid ? "Pagada" : r.isNext ? "Próxima" : "Pendiente"}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </CardBody>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

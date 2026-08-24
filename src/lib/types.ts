@@ -203,6 +203,16 @@ export interface Payment {
   created_at: string;
 }
 
+export interface ProjectInstallment {
+  id: string;
+  project_id: string;
+  number: number;
+  label: string | null;
+  amount: number;
+  due_date: string | null;
+  created_at: string;
+}
+
 export interface Request {
   id: string;
   client_id: string;

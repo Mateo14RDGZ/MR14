@@ -99,6 +99,19 @@ export function NewProjectDialog({
               </Select>
             </Field>
           </div>
+          <Field className="mb-0">
+            <Label>Cuotas (incluyendo el anticipo, si hay)</Label>
+            <Select name="installments_count" defaultValue="1">
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                <option key={n} value={n}>
+                  {n === 1 ? "Pago único" : `${n} cuotas`}
+                </option>
+              ))}
+            </Select>
+            <p className="text-caption mt-1">
+              Se genera el plan automáticamente. El cliente lo va a ver en su portal.
+            </p>
+          </Field>
           <Button type="submit" disabled={pending} className="w-full">
             {pending ? "Creando…" : "Crear proyecto"}
           </Button>

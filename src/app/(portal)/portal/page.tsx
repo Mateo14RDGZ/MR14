@@ -104,16 +104,18 @@ export default async function PortalDashboardPage() {
             </div>
           </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-2 text-muted">
-              <Wallet size={15} />
-              <p className="text-label">Pagos</p>
-            </div>
-            <p className="mt-2 text-metric text-warning">{formatCurrency(project.balance, project.currency)}</p>
-            <p className="text-caption mt-0.5">
-              {project.balance > 0 ? "saldo pendiente" : "sin saldo pendiente"}
-            </p>
-          </Card>
+          <Link href="/portal/pagos">
+            <Card className="h-full p-4 transition-colors hover:border-muted-2">
+              <div className="flex items-center gap-2 text-muted">
+                <Wallet size={15} />
+                <p className="text-label">Pagos</p>
+              </div>
+              <p className="mt-2 text-metric text-warning">{formatCurrency(project.balance, project.currency)}</p>
+              <p className="text-caption mt-0.5">
+                {project.balance > 0 ? "saldo pendiente" : "sin saldo pendiente"}
+              </p>
+            </Card>
+          </Link>
 
           <Link href="/portal/solicitudes">
             <Card className="h-full p-4 transition-colors hover:border-muted-2">
