@@ -1,5 +1,6 @@
 import { getAllRenewals, getClientsForSelect } from "@/lib/queries";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
 import { NewRenewalDialog } from "@/components/renewals/NewRenewalDialog";
@@ -12,13 +13,11 @@ export default async function RenewalsPage() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Renovaciones</h1>
-          <p className="mt-1 text-sm text-muted">{renewals.length} servicios registrados</p>
-        </div>
-        <NewRenewalDialog clients={clients} />
-      </div>
+      <PageHeader
+        title="Renovaciones"
+        description={`${renewals.length} servicios registrados`}
+        action={<NewRenewalDialog clients={clients} />}
+      />
 
       {renewals.length === 0 ? (
         <EmptyState icon={RefreshCw} title="Sin renovaciones registradas" />

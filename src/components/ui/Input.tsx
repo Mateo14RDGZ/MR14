@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { forwardRef, type InputHTMLAttributes, type TextareaHTMLAttributes, type SelectHTMLAttributes } from "react";
 
 const fieldBase =
-  "w-full rounded-lg border border-border bg-surface px-3 h-10 text-sm text-foreground placeholder:text-muted-2 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent disabled:opacity-50";
+  "w-full rounded-lg border border-border bg-surface-2 px-3 h-10 text-foreground placeholder:text-muted-2 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent disabled:opacity-50";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => (

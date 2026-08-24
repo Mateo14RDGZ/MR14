@@ -21,30 +21,26 @@ export default async function PortalMiWebPage() {
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Mi web</h1>
+        <h1 className="text-page-title">Mi web</h1>
         <p className="mt-1 text-sm text-muted">Información pública de tu sitio, sin detalles técnicos internos.</p>
       </div>
 
-      <Card className="p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs text-muted-2">URL principal</p>
-            <p className="truncate text-lg font-medium">{hosting?.production_url ?? domain?.domain ?? "-"}</p>
-          </div>
-          {hosting?.production_url && (
-            <a href={hosting.production_url} target="_blank" rel="noopener noreferrer">
-              <Button size="sm">
-                <ExternalLink size={14} /> Abrir sitio
-              </Button>
-            </a>
-          )}
-        </div>
+      <Card className="p-6 text-center sm:p-8">
+        <p className="text-caption">URL principal</p>
+        <p className="mt-1.5 truncate text-page-title">{hosting?.production_url ?? domain?.domain ?? "Sin publicar"}</p>
+        {hosting?.production_url && (
+          <a href={hosting.production_url} target="_blank" rel="noopener noreferrer">
+            <Button size="lg" className="mt-4">
+              <ExternalLink size={16} /> Abrir sitio
+            </Button>
+          </a>
+        )}
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold">Detalles técnicos</h2>
+            <h2 className="text-card-title">Detalles técnicos</h2>
           </CardHeader>
           <CardBody className="space-y-3 text-sm">
             <Row label="Dominio" value={domain?.domain} />
@@ -58,7 +54,7 @@ export default async function PortalMiWebPage() {
 
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold">Última auditoría</h2>
+            <h2 className="text-card-title">Última auditoría</h2>
           </CardHeader>
           <CardBody>
             {!lastAudit ? (

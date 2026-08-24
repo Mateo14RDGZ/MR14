@@ -13,7 +13,7 @@ export default async function PortalRenewalsPage() {
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Renovaciones</h1>
+        <h1 className="text-page-title">Renovaciones</h1>
         <p className="mt-1 text-sm text-muted">Dominio, hosting y otros servicios asociados a tu proyecto.</p>
       </div>
 

@@ -73,12 +73,12 @@ export function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 pt-24 px-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-[2px] pt-24 px-4 animate-fade-in"
       onClick={() => setOpen(false)}
     >
       <Command
         shouldFilter={false}
-        className="w-full max-w-lg overflow-hidden rounded-xl border border-border bg-surface shadow-2xl"
+        className="w-full max-w-lg overflow-hidden rounded-lg border border-border bg-surface shadow-2xl animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 border-b border-border px-4">
@@ -130,7 +130,7 @@ export function CommandPaletteTrigger() {
   return (
     <button
       onClick={() => document.dispatchEvent(new Event("mr14:open-search"))}
-      className="flex h-9 w-full max-w-sm items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm text-muted-2 transition-colors hover:border-muted-2"
+      className="flex h-9 w-full max-w-sm items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 text-sm text-muted-2 transition-colors hover:border-border-strong"
     >
       <Search size={15} />
       Buscar…

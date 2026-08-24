@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 
 const ENV_CHECKS = [
@@ -19,14 +20,11 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl animate-fade-in space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Configuración</h1>
-        <p className="mt-1 text-sm text-muted">Información de la cuenta y del entorno.</p>
-      </div>
+      <PageHeader title="Configuración" description="Información de la cuenta y del entorno." />
 
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-semibold">Sesión</h2>
+          <h2 className="text-card-title">Sesión</h2>
         </CardHeader>
         <CardBody className="space-y-2 text-sm">
           <div className="flex justify-between">
@@ -42,7 +40,7 @@ export default async function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-semibold">Estado del entorno</h2>
+          <h2 className="text-card-title">Estado del entorno</h2>
         </CardHeader>
         <CardBody className="space-y-2 text-sm">
           {ENV_CHECKS.map((key) => (
@@ -58,7 +56,7 @@ export default async function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-semibold">Acerca de MR14</h2>
+          <h2 className="text-card-title">Acerca de MR14</h2>
         </CardHeader>
         <CardBody className="text-sm text-muted">
           <p>MR14 · Panel interno de clientes, proyectos e infraestructura.</p>

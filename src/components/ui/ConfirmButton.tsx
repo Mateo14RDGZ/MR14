@@ -35,7 +35,7 @@ export function ConfirmButton({
           onClick={() => !pending && setOpen(false)}
         >
           <div
-            className="w-full max-w-sm rounded-xl border border-border bg-surface p-5"
+            className="w-full max-w-sm animate-scale-in rounded-xl border border-border bg-surface p-5"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-3 flex items-center gap-2 text-danger">

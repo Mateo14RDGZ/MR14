@@ -93,7 +93,7 @@ function AuditReport({
     <div className="animate-fade-in space-y-6">
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-semibold">Auditoría del sitio — Resumen</h2>
+          <h2 className="text-card-title">Auditoría del sitio — Resumen</h2>
         </CardHeader>
         <CardBody className="grid gap-4 sm:grid-cols-3">
           <div>
@@ -114,7 +114,7 @@ function AuditReport({
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold">Tecnología</h2>
+            <h2 className="text-card-title">Tecnología</h2>
           </CardHeader>
           <CardBody className="space-y-2 text-sm">
             <Row label="Framework" value={result.framework} />
@@ -127,7 +127,7 @@ function AuditReport({
 
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold">SEO</h2>
+            <h2 className="text-card-title">SEO</h2>
           </CardHeader>
           <CardBody className="space-y-2 text-sm">
             <Row label="Title" value={result.title} />
@@ -141,7 +141,7 @@ function AuditReport({
 
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold">Estructura y contenido</h2>
+            <h2 className="text-card-title">Estructura y contenido</h2>
           </CardHeader>
           <CardBody className="space-y-2 text-sm">
             <Row label="Imágenes" value={`${result.images.total} (${result.images.withoutAlt} sin alt)`} />
@@ -155,7 +155,7 @@ function AuditReport({
 
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold">Errores y recomendaciones</h2>
+            <h2 className="text-card-title">Errores y recomendaciones</h2>
           </CardHeader>
           <CardBody className="space-y-3 text-sm">
             {result.errors.length > 0 && (
@@ -189,7 +189,7 @@ function AuditReport({
       {result.structure.length > 0 && (
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold">Estructura detectada</h2>
+            <h2 className="text-card-title">Estructura detectada</h2>
           </CardHeader>
           <CardBody>
             <ul className="space-y-1 text-sm text-muted">

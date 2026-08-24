@@ -15,7 +15,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
       <Link href={`/clients/${id}`} className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
         <ArrowLeft size={14} /> {client.business_name}
       </Link>
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight">Editar cliente</h1>
+      <h1 className="mb-6 text-page-title">Editar cliente</h1>
       <ClientEditForm client={client} />
     </div>
   );

@@ -1,9 +1,7 @@
 import { cn } from "@/lib/utils";
 
 export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
-  return (
-    <div className={cn("rounded-xl border border-border bg-surface", className)}>{children}</div>
-  );
+  return <div className={cn("rounded-lg border border-border bg-surface", className)}>{children}</div>;
 }
 
 export function CardHeader({
@@ -13,7 +11,7 @@ export function CardHeader({
   className?: string;
   children: React.ReactNode;
 }) {
-  return <div className={cn("border-b border-border px-5 py-4", className)}>{children}</div>;
+  return <div className={cn("border-b border-border px-5 py-3.5", className)}>{children}</div>;
 }
 
 export function CardBody({ className, children }: { className?: string; children: React.ReactNode }) {
@@ -38,10 +36,10 @@ export function StatCard({
     warning: "text-warning",
   }[tone];
   return (
-    <Card className="p-5">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
-      <p className={cn("mt-2 text-2xl font-semibold tabular-nums", toneColor)}>{value}</p>
-      {hint && <p className="mt-1 text-xs text-muted-2">{hint}</p>}
+    <Card className="p-4">
+      <p className="text-label">{label}</p>
+      <p className={cn("text-metric mt-1.5", toneColor)}>{value}</p>
+      {hint && <p className="text-caption mt-1">{hint}</p>}
     </Card>
   );
 }

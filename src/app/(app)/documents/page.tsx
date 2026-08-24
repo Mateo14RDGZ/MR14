@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAllDocuments } from "@/lib/queries";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
 import { DocumentDownloadButton } from "@/components/shared/DocumentDownloadButton";
@@ -12,10 +13,7 @@ export default async function DocumentsPage() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Documentos</h1>
-        <p className="mt-1 text-sm text-muted">{documents.length} documentos en todos los clientes</p>
-      </div>
+      <PageHeader title="Documentos" description={`${documents.length} documentos en todos los clientes`} />
 
       {documents.length === 0 ? (
         <EmptyState

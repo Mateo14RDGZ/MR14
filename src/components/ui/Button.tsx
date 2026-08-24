@@ -5,17 +5,17 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "outline";
 type Size = "sm" | "md" | "lg" | "icon";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-accent-foreground hover:opacity-90",
-  secondary: "bg-surface-2 text-foreground hover:bg-border",
-  ghost: "bg-transparent text-foreground hover:bg-surface-2",
-  outline: "bg-transparent border border-border text-foreground hover:bg-surface-2",
-  danger: "bg-danger/10 text-danger border border-danger/30 hover:bg-danger/20",
+  primary: "bg-foreground text-background hover:opacity-90",
+  secondary: "bg-surface-2 text-foreground border border-border hover:bg-surface-3 hover:border-border-strong",
+  ghost: "bg-transparent text-muted hover:bg-surface-2 hover:text-foreground",
+  outline: "bg-transparent border border-border text-foreground hover:bg-surface-2 hover:border-border-strong",
+  danger: "bg-danger-soft text-danger border border-danger/25 hover:bg-danger/20",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-xs",
-  md: "h-10 px-4 text-sm",
-  lg: "h-12 px-6 text-sm",
+  sm: "h-8 px-3 text-xs gap-1.5",
+  md: "h-9 px-3.5 text-sm gap-2",
+  lg: "h-11 px-5 text-sm gap-2",
   icon: "h-9 w-9",
 };
 
@@ -27,7 +27,7 @@ export const Button = forwardRef<
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap",
+        "inline-flex items-center justify-center rounded-lg font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none whitespace-nowrap",
         variants[variant],
         sizes[size],
         className

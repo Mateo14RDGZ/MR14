@@ -12,15 +12,15 @@ export function PortalSidebar({ businessName }: { businessName: string }) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden lg:flex lg:w-64 lg:shrink-0 lg:flex-col border-r border-border bg-surface">
-      <div className="flex h-16 items-center px-5 border-b border-border">
-        <Logo />
+    <aside className="hidden lg:flex lg:w-60 lg:shrink-0 lg:flex-col border-r border-border bg-surface">
+      <div className="flex h-14 items-center px-4">
+        <Logo size="sm" />
       </div>
-      <div className="border-b border-border px-5 py-4">
-        <p className="text-xs uppercase tracking-wide text-muted-2">Portal de</p>
-        <p className="truncate font-medium">{businessName}</p>
+      <div className="px-4 py-3">
+        <p className="text-caption">Portal de</p>
+        <p className="truncate text-sm font-medium">{businessName}</p>
       </div>
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-0.5 px-2.5 py-2">
         {PORTAL_NAV_ITEMS.map((item) => {
           const active = item.href === "/portal" ? pathname === "/portal" : pathname.startsWith(item.href);
           const Icon = item.icon;
@@ -29,35 +29,37 @@ export function PortalSidebar({ businessName }: { businessName: string }) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                active ? "bg-accent/10 text-accent" : "text-muted hover:bg-surface-2 hover:text-foreground"
+                "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors duration-150",
+                active
+                  ? "bg-surface-2 font-medium text-foreground"
+                  : "text-muted hover:bg-surface-2/60 hover:text-foreground"
               )}
             >
-              <Icon size={18} strokeWidth={1.75} />
+              <Icon size={17} strokeWidth={1.75} className={active ? "text-foreground" : "text-muted-2"} />
               {item.label}
             </Link>
           );
         })}
+      </nav>
+      <div className="space-y-0.5 border-t border-border px-2.5 py-2.5">
         <Link
           href="/portal/perfil"
           className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+            "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors duration-150",
             pathname.startsWith("/portal/perfil")
-              ? "bg-accent/10 text-accent"
-              : "text-muted hover:bg-surface-2 hover:text-foreground"
+              ? "bg-surface-2 font-medium text-foreground"
+              : "text-muted hover:bg-surface-2/60 hover:text-foreground"
           )}
         >
-          <User size={18} strokeWidth={1.75} />
+          <User size={17} strokeWidth={1.75} className={pathname.startsWith("/portal/perfil") ? "text-foreground" : "text-muted-2"} />
           Mi perfil
         </Link>
-      </nav>
-      <div className="border-t border-border p-3">
         <form action={signOut}>
           <button
             type="submit"
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-danger"
+            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-muted transition-colors duration-150 hover:bg-surface-2/60 hover:text-danger"
           >
-            <LogOut size={18} strokeWidth={1.75} />
+            <LogOut size={17} strokeWidth={1.75} />
             Cerrar sesión
           </button>
         </form>

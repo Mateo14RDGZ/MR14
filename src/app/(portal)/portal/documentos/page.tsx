@@ -13,7 +13,7 @@ export default async function PortalDocumentsPage() {
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Documentos</h1>
+        <h1 className="text-page-title">Documentos</h1>
         <p className="mt-1 text-sm text-muted">Contratos, comprobantes y documentación compartida por MR14.</p>
       </div>
 

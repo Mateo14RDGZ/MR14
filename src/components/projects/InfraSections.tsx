@@ -38,7 +38,7 @@ function SectionShell({
       <CardHeader className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon size={16} className="text-accent" />
-          <h2 className="text-sm font-semibold">{title}</h2>
+          <h2 className="text-card-title">{title}</h2>
         </div>
         <Button size="sm" variant="ghost" onClick={onAdd}>
           <Plus size={14} />

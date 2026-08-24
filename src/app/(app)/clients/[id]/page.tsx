@@ -13,8 +13,8 @@ import { PaymentsTab } from "@/components/clients/PaymentsTab";
 import { RequestsTab } from "@/components/clients/RequestsTab";
 import { HistoryTab } from "@/components/clients/HistoryTab";
 import { DeleteClientButton } from "@/components/clients/DeleteClientButton";
+import { Avatar } from "@/components/ui/Avatar";
 import { CLIENT_STATUSES } from "@/lib/types";
-import { initials } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -37,12 +37,10 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
       <div className="mb-6 flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-2 text-lg font-semibold text-muted">
-            {initials(client.business_name)}
-          </div>
+          <Avatar name={client.business_name} size="lg" />
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{client.business_name}</h1>
-            <div className="mt-1 flex items-center gap-2">
+            <h1 className="text-page-title">{client.business_name}</h1>
+            <div className="mt-1.5 flex items-center gap-2">
               <Badge tone={statusTone(client.status, "client")}>
                 {CLIENT_STATUSES.find((s) => s.value === client.status)?.label}
               </Badge>

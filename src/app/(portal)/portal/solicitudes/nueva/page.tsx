@@ -13,7 +13,7 @@ export default async function NewTicketPage() {
       <Link href="/portal/solicitudes" className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
         <ArrowLeft size={14} /> Mis solicitudes
       </Link>
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight">Solicitar soporte</h1>
+      <h1 className="mb-1 text-page-title">Solicitar soporte</h1>
       <p className="mb-6 text-sm text-muted">Contanos qué necesitás y te respondemos a la brevedad.</p>
       <NewTicketForm clientId={activeClientId} projects={projects} />
     </div>

@@ -4,30 +4,42 @@ type Tone = "default" | "accent" | "success" | "warning" | "danger" | "muted";
 
 const toneClasses: Record<Tone, string> = {
   default: "bg-surface-2 text-foreground border-border",
-  accent: "bg-accent/10 text-accent border-accent/30",
-  success: "bg-success/10 text-success border-success/30",
-  warning: "bg-warning/10 text-warning border-warning/30",
-  danger: "bg-danger/10 text-danger border-danger/30",
+  accent: "bg-accent-soft text-accent border-accent/25",
+  success: "bg-success-soft text-success border-success/25",
+  warning: "bg-warning-soft text-warning border-warning/25",
+  danger: "bg-danger-soft text-danger border-danger/25",
   muted: "bg-transparent text-muted border-border",
+};
+
+const dotClasses: Record<Tone, string> = {
+  default: "bg-muted",
+  accent: "bg-accent",
+  success: "bg-success",
+  warning: "bg-warning",
+  danger: "bg-danger",
+  muted: "bg-muted-2",
 };
 
 export function Badge({
   children,
   tone = "default",
+  dot = true,
   className,
 }: {
   children: React.ReactNode;
   tone?: Tone;
+  dot?: boolean;
   className?: string;
 }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap",
+        "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap",
         toneClasses[tone],
         className
       )}
     >
+      {dot && <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", dotClasses[tone])} />}
       {children}
     </span>
   );

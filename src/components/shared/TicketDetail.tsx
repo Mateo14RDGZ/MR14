@@ -93,7 +93,7 @@ export function TicketDetail({
           <CardHeader className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="font-mono text-xs text-muted-2">#{ticket.number}</p>
-              <h1 className="text-lg font-semibold">{ticket.subject}</h1>
+              <h1 className="text-card-title">{ticket.subject}</h1>
             </div>
             <div className="flex items-center gap-2">
               <Badge tone={PRIORITY_TONE[ticket.priority]}>
@@ -125,34 +125,31 @@ export function TicketDetail({
 
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold">Conversación</h2>
+            <h2 className="text-card-title">Conversación</h2>
           </CardHeader>
-          <CardBody className="space-y-4">
-            {messages.length === 0 && <p className="text-sm text-muted-2">Sin mensajes todavía.</p>}
+          <CardBody className="space-y-0 divide-y divide-border">
+            {messages.length === 0 && <p className="pb-4 text-sm text-muted-2">Sin mensajes todavía.</p>}
             {messages.map((m) => (
-              <div key={m.id} className={m.author_role === "admin" ? "ml-6" : "mr-6"}>
-                <div
-                  className={
-                    m.author_role === "admin"
-                      ? "rounded-xl rounded-tr-sm border border-accent/30 bg-accent/10 p-3"
-                      : "rounded-xl rounded-tl-sm border border-border bg-surface-2 p-3"
-                  }
-                >
-                  <p className="mb-1 text-xs font-medium text-muted-2">
-                    {m.author_role === "admin" ? "MR14" : "Cliente"} · {formatDateTime(m.created_at)}
-                  </p>
-                  <p className="whitespace-pre-line text-sm">{m.body}</p>
-                  {(attachmentsByMessage.get(m.id) ?? []).length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {(attachmentsByMessage.get(m.id) ?? []).map((a) => (
-                        <AttachmentChip key={a.id} attachment={a} />
-                      ))}
-                    </div>
-                  )}
+              <div key={m.id} className="py-4 first:pt-0 last:pb-0">
+                <div className="mb-1.5 flex items-baseline gap-2">
+                  <span className="text-sm font-medium">{m.author_role === "admin" ? "MR14" : "Cliente"}</span>
+                  <span className="text-xs text-muted-2">{formatDateTime(m.created_at)}</span>
                 </div>
+                <p className="whitespace-pre-line text-sm text-muted">{m.body}</p>
+                {(attachmentsByMessage.get(m.id) ?? []).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {(attachmentsByMessage.get(m.id) ?? []).map((a) => (
+                      <AttachmentChip key={a.id} attachment={a} />
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
-            {!["closed"].includes(ticket.status) && <ReplyForm ticketId={ticket.id} />}
+            {!["closed"].includes(ticket.status) && (
+              <div className="pt-4 first:pt-0">
+                <ReplyForm ticketId={ticket.id} />
+              </div>
+            )}
           </CardBody>
         </Card>
       </div>
@@ -161,7 +158,7 @@ export function TicketDetail({
         {role === "admin" && (
           <Card>
             <CardHeader>
-              <h2 className="text-sm font-semibold">Gestión</h2>
+              <h2 className="text-card-title">Gestión</h2>
             </CardHeader>
             <CardBody className="space-y-4">
               <StatusSelect ticketId={ticket.id} current={ticket.status} />
@@ -188,14 +185,14 @@ export function TicketDetail({
 
         <Card>
           <CardHeader className="flex items-center gap-2">
-            <Clock size={14} className="text-accent" />
-            <h2 className="text-sm font-semibold">Historial</h2>
+            <Clock size={14} className="text-muted" />
+            <h2 className="text-card-title">Historial</h2>
           </CardHeader>
           <CardBody>
             <ol className="space-y-3 border-l border-border pl-4">
               {events.map((e) => (
                 <li key={e.id} className="relative text-xs">
-                  <div className="absolute -left-[19px] top-1 h-1.5 w-1.5 rounded-full bg-accent" />
+                  <div className="absolute -left-[19px] top-1 h-1.5 w-1.5 rounded-full bg-muted-2" />
                   <p className="text-foreground">{eventLabel(e)}</p>
                   <p className="text-muted-2">{formatDateTime(e.created_at)}</p>
                 </li>
@@ -259,7 +256,7 @@ function ReplyForm({ ticketId }: { ticketId: string }) {
   }
 
   return (
-    <form action={onSubmit} className="space-y-2 border-t border-border pt-4">
+    <form action={onSubmit} className="space-y-2">
       <Textarea name="body" rows={3} placeholder="Escribí tu respuesta…" required />
       <div className="flex items-center justify-between gap-2">
         <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-2">
@@ -400,9 +397,9 @@ function QuoteCard({
   const decided = Boolean(version.decided_at);
 
   return (
-    <Card className="border-accent/30">
+    <Card>
       <CardHeader>
-        <h2 className="text-sm font-semibold text-accent">Presupuesto {quotes_status_label(quote.status)}</h2>
+        <h2 className="text-card-title">Presupuesto {quotes_status_label(quote.status)}</h2>
       </CardHeader>
       <CardBody className="space-y-2">
         <p className="text-sm">{version.description}</p>

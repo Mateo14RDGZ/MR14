@@ -13,7 +13,7 @@ export default async function PortalRequestsPage() {
     <div className="animate-fade-in space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Mis solicitudes</h1>
+          <h1 className="text-page-title">Mis solicitudes</h1>
           <p className="mt-1 text-sm text-muted">Soporte, cambios y nuevas funcionalidades de tu proyecto.</p>
         </div>
         <Link href="/portal/solicitudes/nueva">

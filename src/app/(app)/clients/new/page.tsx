@@ -21,7 +21,7 @@ export default function NewClientPage() {
       <Link href="/clients" className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
         <ArrowLeft size={14} /> Clientes
       </Link>
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight">Nuevo cliente</h1>
+      <h1 className="mb-6 text-page-title">Nuevo cliente</h1>
       <ClientForm action={action} />
     </div>
   );

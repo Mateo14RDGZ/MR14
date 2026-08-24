@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAllTickets, getSupportDashboardData, getClientsForSelect } from "@/lib/queries";
 import { StatCard, Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -47,10 +48,7 @@ export default async function SupportPage({
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Soporte</h1>
-        <p className="mt-1 text-sm text-muted">Bandeja de tickets de todos los clientes.</p>
-      </div>
+      <PageHeader title="Soporte" description="Bandeja de tickets de todos los clientes." />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Abiertos" value={metrics.open} />

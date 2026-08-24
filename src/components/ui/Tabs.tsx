@@ -14,15 +14,15 @@ export function Tabs({
 
   return (
     <div>
-      <div className="mb-6 flex gap-1 overflow-x-auto border-b border-border">
+      <div className="mb-6 flex gap-1 overflow-x-auto border-b border-border [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setActive(t.id)}
             className={cn(
-              "whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
+              "whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors duration-150",
               active === t.id
-                ? "border-accent text-accent"
+                ? "border-foreground text-foreground"
                 : "border-transparent text-muted hover:text-foreground"
             )}
           >

@@ -22,16 +22,16 @@ export default async function LoginPage({
 
   return (
     <div className="flex min-h-svh items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm animate-fade-in">
-        <div className="mb-8 flex flex-col items-center gap-3">
-          <Logo />
-          <p className="text-center text-sm text-muted">Panel de proyectos y clientes</p>
+      <div className="w-full max-w-[340px] animate-fade-in">
+        <div className="mb-10 flex flex-col items-center gap-3">
+          <Logo size="lg" />
+          <p className="text-center text-sm text-muted">Gestión de proyectos y clientes</p>
         </div>
 
-        <form action={action} className="rounded-xl border border-border bg-surface p-6">
+        <form action={action} className="space-y-5">
           <input type="hidden" name="next" value={params.next ?? ""} />
           {params.error && (
-            <div className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
+            <div className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-xs text-danger">
               {params.error}
             </div>
           )}
@@ -39,7 +39,7 @@ export default async function LoginPage({
             <Label>Email</Label>
             <Input type="email" name="email" placeholder="tu@mr14.dev" required autoFocus />
           </Field>
-          <Field className="mb-6">
+          <Field>
             <Label>Contraseña</Label>
             <Input type="password" name="password" placeholder="••••••••" required />
           </Field>
@@ -48,9 +48,14 @@ export default async function LoginPage({
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-muted-2">
-          Acceso exclusivo para el equipo de MR14 · Mateo Rodríguez
-        </p>
+        <div className="mt-5 text-center">
+          <a
+            href="mailto:contacto@mateordgz.dev?subject=Recuperar%20contrase%C3%B1a"
+            className="text-xs text-muted-2 transition-colors hover:text-muted"
+          >
+            Recuperar contraseña
+          </a>
+        </div>
       </div>
     </div>
   );

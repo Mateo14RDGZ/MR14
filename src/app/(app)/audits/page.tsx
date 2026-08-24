@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getRecentAudits, getClientsForSelect } from "@/lib/queries";
 import { AnalyzeForm } from "@/components/audits/AnalyzeForm";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { formatDateTime } from "@/lib/utils";
 
@@ -10,16 +11,16 @@ export default async function AuditsPage() {
 
   return (
     <div className="animate-fade-in space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Auditorías</h1>
-        <p className="mt-1 text-sm text-muted">Analizá cualquier sitio web y generá documentación técnica automática.</p>
-      </div>
+      <PageHeader
+        title="Auditorías"
+        description="Analizá cualquier sitio web y generá documentación técnica automática."
+      />
 
       <AnalyzeForm clients={clients} />
 
       {audits.length > 0 && (
         <div>
-          <h2 className="mb-3 text-sm font-semibold text-muted">Auditorías recientes</h2>
+          <h2 className="text-section-title mb-3">Auditorías recientes</h2>
           <div className="space-y-2">
             {audits.map((a) => {
               const score = (a.score ?? {}) as { seo?: number };

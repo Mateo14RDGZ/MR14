@@ -2,28 +2,30 @@ import Link from "next/link";
 import { getClients } from "@/lib/queries";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Avatar } from "@/components/ui/Avatar";
 import { Badge, statusTone } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
 import { CLIENT_STATUSES } from "@/lib/types";
-import { initials } from "@/lib/utils";
-import { Plus, Users } from "lucide-react";
+import { formatDate } from "@/lib/utils";
+import { Plus, Users, ChevronRight } from "lucide-react";
 
 export default async function ClientsPage() {
   const clients = await getClients();
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
-          <p className="mt-1 text-sm text-muted">{clients.length} clientes registrados</p>
-        </div>
-        <Link href="/clients/new">
-          <Button>
-            <Plus size={16} /> Nuevo cliente
-          </Button>
-        </Link>
-      </div>
+      <PageHeader
+        title="Clientes"
+        description={`${clients.length} cliente${clients.length === 1 ? "" : "s"} registrados`}
+        action={
+          <Link href="/clients/new">
+            <Button>
+              <Plus size={16} /> Nuevo cliente
+            </Button>
+          </Link>
+        }
+      />
 
       {clients.length === 0 ? (
         <EmptyState
@@ -39,31 +41,68 @@ export default async function ClientsPage() {
           }
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {clients.map((c) => {
-            const statusLabel = CLIENT_STATUSES.find((s) => s.value === c.status)?.label ?? c.status;
-            return (
-              <Link key={c.id} href={`/clients/${c.id}`}>
-                <Card className="h-full p-5 transition-colors hover:border-muted-2">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-2 text-sm font-semibold text-muted">
-                        {initials(c.business_name)}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{c.business_name}</p>
-                        <p className="truncate text-xs text-muted-2">{c.contact_name ?? "-"}</p>
-                      </div>
+        <>
+          {/* Desktop table */}
+          <Card className="hidden overflow-hidden sm:block">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-label">
+                  <th className="px-5 py-3 font-medium">Cliente</th>
+                  <th className="px-5 py-3 font-medium">Contacto</th>
+                  <th className="px-5 py-3 font-medium">Ciudad</th>
+                  <th className="px-5 py-3 font-medium">Estado</th>
+                  <th className="px-5 py-3 font-medium">Alta</th>
+                  <th className="w-8 px-5 py-3" />
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map((c) => {
+                  const statusLabel = CLIENT_STATUSES.find((s) => s.value === c.status)?.label ?? c.status;
+                  return (
+                    <tr key={c.id} className="group border-b border-border last:border-0">
+                      <td className="p-0">
+                        <Link href={`/clients/${c.id}`} className="flex items-center gap-3 px-5 py-3.5">
+                          <Avatar name={c.business_name} size="sm" />
+                          <span className="truncate font-medium">{c.business_name}</span>
+                        </Link>
+                      </td>
+                      <td className="px-5 py-3.5 text-muted">{c.contact_name ?? "—"}</td>
+                      <td className="px-5 py-3.5 text-muted">{c.city ?? "—"}</td>
+                      <td className="px-5 py-3.5">
+                        <Badge tone={statusTone(c.status, "client")}>{statusLabel}</Badge>
+                      </td>
+                      <td className="px-5 py-3.5 text-muted-2">{formatDate(c.created_at)}</td>
+                      <td className="px-5 py-3.5 text-right">
+                        <Link href={`/clients/${c.id}`}>
+                          <ChevronRight size={16} className="text-muted-2 transition-colors group-hover:text-foreground" />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </Card>
+
+          {/* Mobile cards */}
+          <div className="space-y-2.5 sm:hidden">
+            {clients.map((c) => {
+              const statusLabel = CLIENT_STATUSES.find((s) => s.value === c.status)?.label ?? c.status;
+              return (
+                <Link key={c.id} href={`/clients/${c.id}`}>
+                  <Card className="flex items-center gap-3 p-4">
+                    <Avatar name={c.business_name} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{c.business_name}</p>
+                      <p className="truncate text-xs text-muted-2">{c.contact_name ?? "Sin contacto"}</p>
                     </div>
-                  </div>
-                  <div className="mt-4">
                     <Badge tone={statusTone(c.status, "client")}>{statusLabel}</Badge>
-                  </div>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

@@ -43,7 +43,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
+          <h1 className="text-page-title">{project.name}</h1>
           <p className="mt-1 text-sm text-muted">{PROJECT_TYPES.find((t) => t.value === project.type)?.label}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -90,7 +90,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold">Etapa del proyecto</h2>
+            <h2 className="text-card-title">Etapa del proyecto</h2>
           </CardHeader>
           <CardBody>
             <StageEditor
@@ -113,7 +113,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-semibold">Checklist de entrega</h2>
+          <h2 className="text-card-title">Checklist de entrega</h2>
         </CardHeader>
         <CardBody>
           <Checklist projectId={project.id} clientId={client.id} tasks={tasks} />
@@ -122,7 +122,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-semibold">Documentación</h2>
+          <h2 className="text-card-title">Documentación</h2>
         </CardHeader>
         <CardBody className="flex flex-wrap gap-2">
           <PdfLink type="ficha-tecnica" clientId={client.id} projectId={project.id} label="Ficha técnica" />
@@ -133,7 +133,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
       <Card>
         <CardHeader className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Soporte</h2>
+          <h2 className="text-card-title">Soporte</h2>
           <span className="text-xs text-muted-2">
             {supportSummary.total} tickets totales · {supportSummary.open} abiertos · {supportSummary.resolved} resueltos
           </span>
@@ -145,7 +145,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-semibold">Historial del proyecto</h2>
+          <h2 className="text-card-title">Historial del proyecto</h2>
         </CardHeader>
         <CardBody>
           <HistoryTab history={history} />
@@ -158,7 +158,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 function Info({ label, value, tone }: { label: string; value: string; tone?: "success" | "warning" }) {
   return (
     <div>
-      <p className="text-xs text-muted-2">{label}</p>
+      <p className="text-caption">{label}</p>
       <p className={`font-medium capitalize ${tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : ""}`}>
         {value}
       </p>

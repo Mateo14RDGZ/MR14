@@ -9,13 +9,14 @@ export async function Topbar() {
   const { notifications, unreadCount } = await getMyNotifications();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/80 px-4 backdrop-blur lg:px-8">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur-md lg:px-6">
       <div className="lg:hidden">
-        <Logo />
+        <Logo size="sm" />
       </div>
-      <div className="flex-1">
+      <div className="min-w-0 flex-1 max-w-sm">
         <CommandPaletteTrigger />
       </div>
+      <div className="flex-1" />
       <NotificationBell notifications={notifications} unreadCount={unreadCount} ticketBasePath="/support" />
       <form action={signOut} className="lg:hidden">
         <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-surface-2">

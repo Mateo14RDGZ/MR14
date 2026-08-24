@@ -9,13 +9,13 @@ export default async function PortalProfilePage() {
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Mi perfil</h1>
+        <h1 className="text-page-title">Mi perfil</h1>
         <p className="mt-1 text-sm text-muted">{user.email}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-semibold">Datos personales</h2>
+          <h2 className="text-card-title">Datos personales</h2>
         </CardHeader>
         <CardBody>
           <ProfileForm defaultName={profile?.full_name ?? ""} defaultPhone={profile?.phone ?? ""} />
@@ -24,7 +24,7 @@ export default async function PortalProfilePage() {
 
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-semibold">Cambiar contraseña</h2>
+          <h2 className="text-card-title">Cambiar contraseña</h2>
         </CardHeader>
         <CardBody>
           <PasswordForm />
