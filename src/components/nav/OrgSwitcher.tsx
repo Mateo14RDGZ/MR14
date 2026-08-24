@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { setActiveOrganizationAction } from "@/actions/members";
-import { Building2 } from "lucide-react";
+import { Building2, User } from "lucide-react";
 import { signOut } from "@/actions/auth";
 import { LogOut } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
@@ -44,6 +45,12 @@ export async function OrgSwitcher({
       )}
       <div className="flex-1" />
       <NotificationBell notifications={notifications} unreadCount={unreadCount} ticketBasePath="/portal/solicitudes" />
+      <Link
+        href="/portal/perfil"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-surface-2 lg:hidden"
+      >
+        <User size={18} />
+      </Link>
       <form action={signOut} className="lg:hidden">
         <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-surface-2">
           <LogOut size={18} />
