@@ -95,8 +95,8 @@ export function InternalNotes({
               ) : (
                 <>
                   <p className="whitespace-pre-line break-words">{n.content}</p>
-                  <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-2">
-                    <span>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-2">
+                    <span className="min-w-0">
                       {n.profiles?.full_name || "MR14"} · {formatDateTime(n.updated_at || n.created_at)}
                       {n.updated_at !== n.created_at ? " (editada)" : ""}
                     </span>

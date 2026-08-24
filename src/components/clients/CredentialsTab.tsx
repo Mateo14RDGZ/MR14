@@ -48,14 +48,14 @@ export function CredentialsTab({
         <div className="space-y-3">
           {credentials.map((c) => (
             <Card key={c.id} className="p-4">
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <div>
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
                   <p className="font-medium">
                     {c.service_label || CREDENTIAL_SERVICES.find((s) => s.value === c.service)?.label}
                   </p>
                   <p className="text-xs text-muted-2">{c.username || "Sin usuario"}</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Badge tone={c.visibility === "internal" ? "muted" : c.visibility === "temporary" ? "warning" : "success"}>
                     {VISIBILITY_LABEL[c.visibility]}
                   </Badge>
