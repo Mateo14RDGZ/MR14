@@ -100,6 +100,37 @@ export async function updateClientStatusAction(clientId: string, status: ClientS
   revalidatePath("/dashboard");
 }
 
+const LOGO_BUCKET = "client-logos";
+
+export async function uploadClientLogoAction(clientId: string, formData: FormData) {
+  const supabase = await createClient();
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) return { error: "Seleccioná una imagen." };
+  if (!file.type.startsWith("image/")) return { error: "El archivo debe ser una imagen." };
+  if (file.size > 5 * 1024 * 1024) return { error: "La imagen no puede pesar más de 5MB." };
+
+  // Path fijo por cliente (sin extensión, el content-type ya viaja en los
+  // metadatos): un re-upload sobreescribe el mismo objeto en vez de dejar
+  // archivos viejos sueltos en el bucket.
+  const path = `${clientId}/logo`;
+  const arrayBuffer = await file.arrayBuffer();
+  const { error: uploadError } = await supabase.storage
+    .from(LOGO_BUCKET)
+    .upload(path, arrayBuffer, { contentType: file.type, upsert: true });
+  if (uploadError) return { error: uploadError.message };
+
+  const { data: pub } = supabase.storage.from(LOGO_BUCKET).getPublicUrl(path);
+  // Cache-bust: mismo path público, así que sin esto el navegador podría
+  // seguir mostrando el logo anterior tras reemplazarlo.
+  const logo_url = `${pub.publicUrl}?v=${Date.now()}`;
+
+  const { error } = await supabase.from("clients").update({ logo_url }).eq("id", clientId);
+  if (error) return { error: error.message };
+
+  revalidatePath(`/clients/${clientId}`);
+  return { success: true, logo_url };
+}
+
 /**
  * Borra al cliente por completo: la ficha, todo lo que cuelga de ella
  * (proyectos, credenciales, documentos, pagos, tickets, historial, etc. —
@@ -130,6 +161,8 @@ export async function deleteClientAction(clientId: string) {
   if (attachments && attachments.length > 0) {
     await admin.storage.from("ticket-attachments").remove(attachments.map((a) => a.storage_path));
   }
+  // Path fijo (ver uploadClientLogoAction): no hace falta consultar si existe.
+  await admin.storage.from("client-logos").remove([`${clientId}/logo`]);
 
   const { error } = await admin.from("clients").delete().eq("id", clientId);
   if (error) throw new Error(error.message);

@@ -26,7 +26,35 @@ export async function signIn(formData: FormData) {
     .single();
 
   const defaultNext = profile?.role === "admin" ? "/dashboard" : "/portal";
-  redirect(requestedNext || defaultNext);
+  const dest = requestedNext || defaultNext;
+
+  // Solo el cliente tiene animación de bienvenida (es su logo, no tiene
+  // sentido para el login del admin). Si todavía no cargó un logo, se salta
+  // directo al destino — no hay nada que animar con un solo isotipo.
+  if (profile?.role !== "admin") {
+    const { data: membership } = await supabase
+      .from("client_members")
+      .select("clients(business_name, logo_url)")
+      .eq("user_id", data.user.id)
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle();
+
+    const client = (membership?.clients ?? null) as unknown as {
+      business_name: string;
+      logo_url: string | null;
+    } | null;
+    if (client?.logo_url) {
+      const params = new URLSearchParams({
+        dest,
+        logo: client.logo_url,
+        name: client.business_name,
+      });
+      redirect(`/bienvenida?${params.toString()}`);
+    }
+  }
+
+  redirect(dest);
 }
 
 export async function signOut() {

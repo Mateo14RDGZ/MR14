@@ -18,7 +18,7 @@ import { DeleteClientButton } from "@/components/clients/DeleteClientButton";
 import { InviteMemberDialog } from "@/components/clients/InviteMemberDialog";
 import { NewTicketDialog } from "@/components/shared/NewTicketDialog";
 import { NewProjectDialog } from "@/components/clients/NewProjectDialog";
-import { Avatar } from "@/components/ui/Avatar";
+import { ClientLogoUpload } from "@/components/clients/ClientLogoUpload";
 import { Button } from "@/components/ui/Button";
 import { PROJECT_STATUSES, CLIENT_STATUSES } from "@/lib/types";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
@@ -56,7 +56,7 @@ export default async function ClientDetailPage({
 
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Avatar name={client.business_name} size="lg" />
+          <ClientLogoUpload clientId={client.id} businessName={client.business_name} logoUrl={client.logo_url} />
           <div>
             <h1 className="text-page-title">{client.business_name}</h1>
             <div className="mt-1 flex items-center gap-2">
