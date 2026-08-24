@@ -60,7 +60,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           { id: "members", label: "Usuarios", count: members.length, content: <MembersTab clientId={client.id} members={members} /> },
           {
             id: "support",
-            label: "Soporte",
+            label: "Tickets",
             count: supportSummary.total,
             content: (
               <div className="space-y-4">

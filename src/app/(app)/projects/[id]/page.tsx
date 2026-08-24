@@ -133,7 +133,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
       <Card>
         <CardHeader className="flex items-center justify-between">
-          <h2 className="text-card-title">Soporte</h2>
+          <h2 className="text-card-title">Tickets</h2>
           <span className="text-xs text-muted-2">
             {supportSummary.total} tickets totales · {supportSummary.open} abiertos · {supportSummary.resolved} resueltos
           </span>

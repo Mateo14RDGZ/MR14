@@ -16,7 +16,7 @@ export default async function SupportTicketPage({ params }: { params: Promise<{ 
   return (
     <div className="mx-auto max-w-5xl animate-fade-in">
       <Link href="/support" className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
-        <ArrowLeft size={14} /> Soporte
+        <ArrowLeft size={14} /> Tickets
       </Link>
       <TicketDetail
         role="admin"

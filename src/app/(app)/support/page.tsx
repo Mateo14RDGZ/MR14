@@ -48,7 +48,7 @@ export default async function SupportPage({
 
   return (
     <div className="animate-fade-in space-y-6">
-      <PageHeader title="Soporte" description="Bandeja de tickets de todos los clientes." />
+      <PageHeader title="Tickets" description="Bandeja de tickets de todos los clientes." />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Abiertos" value={metrics.open} />

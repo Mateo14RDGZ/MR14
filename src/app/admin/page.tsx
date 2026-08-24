@@ -1,6 +1,6 @@
 import { LoginForm } from "@/components/auth/LoginForm";
 
-export default async function LoginPage({
+export default async function AdminLoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ next?: string; error?: string }>;
@@ -9,8 +9,8 @@ export default async function LoginPage({
 
   return (
     <LoginForm
-      basePath="/login"
-      subtitle="Gestión de proyectos y clientes"
+      basePath="/admin"
+      subtitle="Acceso administrador"
       next={params.next}
       error={params.error}
     />

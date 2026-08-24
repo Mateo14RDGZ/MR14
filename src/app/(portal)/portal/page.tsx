@@ -119,7 +119,7 @@ export default async function PortalDashboardPage() {
             <Card className="h-full p-4 transition-colors hover:border-muted-2">
               <div className="flex items-center gap-2 text-muted">
                 <LifeBuoy size={15} />
-                <p className="text-label">Soporte</p>
+                <p className="text-label">Tickets</p>
               </div>
               <p className="mt-2 text-metric">{ticketSummary.open}</p>
               <p className="text-caption mt-0.5">

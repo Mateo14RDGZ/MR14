@@ -11,5 +11,5 @@ export const PORTAL_NAV_ITEMS: NavItem[] = [
   { href: "/portal/mi-web", label: "Mi Web", icon: Globe },
   { href: "/portal/documentos", label: "Documentos", icon: FileText },
   { href: "/portal/renovaciones", label: "Renov.", icon: RefreshCw },
-  { href: "/portal/solicitudes", label: "Soporte", icon: LifeBuoy },
+  { href: "/portal/solicitudes", label: "Tickets", icon: LifeBuoy },
 ];

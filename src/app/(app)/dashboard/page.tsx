@@ -57,7 +57,7 @@ export default async function DashboardPage() {
         >
           <LifeBuoy size={16} className="shrink-0 text-warning" />
           <p className="flex-1 text-sm text-warning">
-            {support.needsAttention} ticket{support.needsAttention === 1 ? "" : "s"} requieren atención en Soporte.
+            {support.needsAttention} ticket{support.needsAttention === 1 ? "" : "s"} requieren atención en Tickets.
           </p>
           <ChevronRight size={16} className="shrink-0 text-warning" />
         </Link>

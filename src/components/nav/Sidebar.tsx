@@ -14,8 +14,8 @@ export function Sidebar({ userEmail }: { userEmail?: string | null }) {
 
   return (
     <aside className="hidden lg:flex lg:w-60 lg:shrink-0 lg:flex-col border-r border-border bg-surface">
-      <div className="flex h-14 items-center px-4">
-        <Logo size="sm" />
+      <div className="flex h-16 items-center px-4">
+        <Logo size="md" />
       </div>
       <nav className="flex-1 space-y-0.5 px-2.5 py-2">
         {primaryItems.map((item) => {

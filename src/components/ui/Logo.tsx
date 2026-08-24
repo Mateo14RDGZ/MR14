@@ -8,10 +8,10 @@ export function Logo({
 }: {
   className?: string;
   mark?: boolean;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }) {
-  const markSize = { sm: 22, md: 28, lg: 40 }[size];
-  const textSize = { sm: "text-sm", md: "text-lg", lg: "text-2xl" }[size];
+  const markSize = { sm: 22, md: 32, lg: 44, xl: 60 }[size];
+  const textSize = { sm: "text-sm", md: "text-xl", lg: "text-2xl", xl: "text-3xl" }[size];
 
   if (mark) {
     return (

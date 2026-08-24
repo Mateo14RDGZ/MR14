@@ -9,9 +9,9 @@ export async function Topbar() {
   const { notifications, unreadCount } = await getMyNotifications();
 
   return (
-    <header className="sticky top-0 z-30 flex min-h-14 items-center gap-3 border-b border-border bg-background/85 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md lg:px-6">
+    <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-background/85 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md lg:px-6">
       <div className="lg:hidden">
-        <Logo size="sm" />
+        <Logo size="md" />
       </div>
       <div className="min-w-0 flex-1 max-w-sm">
         <CommandPaletteTrigger />

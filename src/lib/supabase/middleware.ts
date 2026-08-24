@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/auth", "/manifest.webmanifest", "/sw.js", "/icons"];
+const PUBLIC_PATHS = ["/login", "/admin", "/auth", "/manifest.webmanifest", "/sw.js", "/icons"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -39,7 +39,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && path === "/login" && !request.nextUrl.searchParams.has("error")) {
+  if (user && (path === "/login" || path === "/admin") && !request.nextUrl.searchParams.has("error")) {
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
     const url = request.nextUrl.clone();
     url.pathname = profile?.role === "admin" ? "/dashboard" : "/portal";
