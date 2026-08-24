@@ -39,7 +39,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && path === "/login") {
+  if (user && path === "/login" && !request.nextUrl.searchParams.has("error")) {
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
     const url = request.nextUrl.clone();
     url.pathname = profile?.role === "admin" ? "/dashboard" : "/portal";
