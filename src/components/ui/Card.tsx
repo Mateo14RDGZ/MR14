@@ -36,10 +36,10 @@ export function StatCard({
     warning: "text-warning",
   }[tone];
   return (
-    <Card className="p-4">
+    <Card className="min-w-0 p-4">
       <p className="text-label">{label}</p>
-      <p className={cn("text-metric mt-1.5", toneColor)}>{value}</p>
-      {hint && <p className="text-caption mt-1">{hint}</p>}
+      <p className={cn("text-metric mt-1.5 truncate", toneColor)}>{value}</p>
+      {hint && <p className="text-caption mt-1 truncate">{hint}</p>}
     </Card>
   );
 }

@@ -4,6 +4,7 @@ import { Command } from "cmdk";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Users, FolderKanban, Globe, GitBranch, FileText, LifeBuoy, UserPlus, Wallet, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SearchResult {
   type: "client" | "project" | "domain" | "repository" | "document" | "ticket";
@@ -180,15 +181,19 @@ export function CommandPalette() {
   );
 }
 
-export function CommandPaletteTrigger() {
+export function CommandPaletteTrigger({ className }: { className?: string }) {
   return (
     <button
       onClick={() => document.dispatchEvent(new Event("mr14:open-search"))}
-      className="flex h-9 w-full max-w-sm items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 text-sm text-muted-2 transition-colors hover:border-border-strong"
+      className={cn(
+        "flex h-9 w-full items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 text-sm text-muted-2 transition-colors active:scale-[0.99] hover:border-border-strong",
+        className
+      )}
     >
-      <Search size={15} />
-      Buscar…
-      <kbd className="ml-auto rounded border border-border px-1.5 py-0.5 text-[10px]">⌘K</kbd>
+      <Search size={15} className="shrink-0" />
+      <span className="truncate">Buscar…</span>
+      {/* El shortcut solo tiene sentido con teclado físico: se oculta en mobile/touch. */}
+      <kbd className="ml-auto hidden shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] lg:block">⌘K</kbd>
     </button>
   );
 }

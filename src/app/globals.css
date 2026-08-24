@@ -58,6 +58,16 @@ html {
   color-scheme: dark;
 }
 
+/* Protección final: la causa real de cualquier overflow horizontal debe
+   resolverse en el componente que la genera (min-w-0, wrap, truncate). Esto
+   es solo un backstop para que un desborde puntual nunca abra scroll
+   horizontal en toda la página/PWA. */
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

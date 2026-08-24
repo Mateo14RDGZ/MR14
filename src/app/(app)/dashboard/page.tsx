@@ -87,11 +87,11 @@ export default async function DashboardPage() {
       <Card className="overflow-hidden">
         <div className="grid grid-cols-2 divide-x divide-y divide-border sm:grid-cols-3 sm:divide-y-0 lg:grid-cols-6">
           {secondaryStats.map((s) => (
-            <div key={s.label} className="p-4">
+            <div key={s.label} className="min-w-0 p-4">
               <p className="text-label">{s.label}</p>
               <p
                 className={cn(
-                  "mt-1 text-lg font-semibold tabular-nums",
+                  "mt-1 truncate text-lg font-semibold tabular-nums",
                   s.tone === "warning" && "text-warning",
                   s.tone === "success" && "text-success",
                   s.tone === "danger" && "text-danger"
