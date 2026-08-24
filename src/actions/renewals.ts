@@ -46,10 +46,48 @@ export async function markRenewalRenewedAction(id: string, clientId: string, new
   const supabase = await createClient();
   const { error } = await supabase
     .from("renewals")
-    .update({ status: "renovado", due_date: newDueDate })
+    .update({
+      status: "renovado",
+      due_date: newDueDate,
+      workflow_status: "renewed",
+      renewed_at: new Date().toISOString(),
+    })
     .eq("id", id);
   if (error) throw new Error(error.message);
   await logHistory({ clientId, event: "Renovación marcada como renovada" });
+  revalidatePath("/renewals");
+  revalidatePath(`/clients/${clientId}`);
+}
+
+export async function markRenewalNotifiedAction(id: string, clientId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("renewals")
+    .update({ workflow_status: "client_notified", notified_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  await logHistory({ clientId, event: "Cliente avisado de renovación próxima" });
+  revalidatePath("/renewals");
+  revalidatePath(`/clients/${clientId}`);
+}
+
+export async function confirmRenewalAction(id: string, clientId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("renewals")
+    .update({ workflow_status: "confirmed", confirmed_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  await logHistory({ clientId, event: "Renovación confirmada por el cliente" });
+  revalidatePath("/renewals");
+  revalidatePath(`/clients/${clientId}`);
+}
+
+export async function markRenewalNotRenewedAction(id: string, clientId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("renewals").update({ workflow_status: "not_renewed" }).eq("id", id);
+  if (error) throw new Error(error.message);
+  await logHistory({ clientId, event: "Renovación marcada como no renovada" });
   revalidatePath("/renewals");
   revalidatePath(`/clients/${clientId}`);
 }

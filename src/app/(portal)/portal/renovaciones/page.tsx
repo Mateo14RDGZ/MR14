@@ -4,7 +4,16 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
+import { RENEWAL_WORKFLOW_STATUSES } from "@/lib/types";
 import { RefreshCw } from "lucide-react";
+
+const WORKFLOW_TONE: Record<string, "muted" | "warning" | "accent" | "success" | "danger"> = {
+  pending: "muted",
+  client_notified: "warning",
+  confirmed: "accent",
+  renewed: "success",
+  not_renewed: "danger",
+};
 
 export default async function PortalRenewalsPage() {
   const { activeClientId } = await getPortalContext();
@@ -31,9 +40,16 @@ export default async function PortalRenewalsPage() {
                     <p className="font-medium">{r.service_name}</p>
                     <p className="text-xs text-muted-2 capitalize">{r.kind.replace(/_/g, " ")}</p>
                   </div>
-                  <Badge tone={urgent ? "warning" : r.status === "vencido" ? "danger" : "success"}>
-                    {r.status.replace(/_/g, " ")}
-                  </Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge tone={urgent ? "warning" : r.status === "vencido" ? "danger" : "success"}>
+                      {r.status.replace(/_/g, " ")}
+                    </Badge>
+                    {r.workflow_status !== "pending" && (
+                      <Badge tone={WORKFLOW_TONE[r.workflow_status] ?? "muted"}>
+                        {RENEWAL_WORKFLOW_STATUSES.find((w) => w.value === r.workflow_status)?.label ?? r.workflow_status}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
                   <div>

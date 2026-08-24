@@ -204,6 +204,32 @@ export async function getClientHealthMap(): Promise<Map<string, ClientHealth>> {
   return health;
 }
 
+export async function getClientInternalNotes(clientId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("internal_notes")
+    .select("*,profiles(full_name)")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+export async function getProjectInternalNotes(projectId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("internal_notes")
+    .select("*,profiles(full_name)")
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+export async function getQuickReplies() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("quick_replies").select("*").order("position", { ascending: true });
+  return data ?? [];
+}
+
 export async function getClients() {
   const supabase = await createClient();
   const { data } = await supabase.from("clients").select("*").order("created_at", { ascending: false });

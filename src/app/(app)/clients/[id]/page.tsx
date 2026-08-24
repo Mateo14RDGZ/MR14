@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getClientDetail, getAllTickets, getClientSupportSummary, getClientAudits } from "@/lib/queries";
+import { getClientDetail, getAllTickets, getClientSupportSummary, getClientAudits, getClientInternalNotes } from "@/lib/queries";
+import { InternalNotes } from "@/components/shared/InternalNotes";
 import { TicketList } from "@/components/portal/TicketList";
 import { Tabs } from "@/components/ui/Tabs";
 import { Badge, statusTone } from "@/components/ui/Badge";
@@ -34,10 +35,11 @@ export default async function ClientDetailPage({
   const { client, projects, credentials, documents, history, members, payments, requests } = data;
   const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }));
   const hasPendingApproval = members.some((m) => m.status === "invited");
-  const [tickets, supportSummary, audits] = await Promise.all([
+  const [tickets, supportSummary, audits, internalNotes] = await Promise.all([
     getAllTickets({ clientId: client.id }),
     getClientSupportSummary(client.id),
     getClientAudits(client.id),
+    getClientInternalNotes(client.id),
   ]);
 
   return (
@@ -112,6 +114,7 @@ export default async function ClientDetailPage({
           { id: "requests", label: "Solicitudes", count: requests.length, content: <RequestsTab clientId={client.id} requests={requests} /> },
           { id: "audits", label: "Auditorías", count: audits.length, content: <AuditsTab audits={audits} /> },
           { id: "history", label: "Historial", content: <HistoryTab history={history} /> },
+          { id: "notes", label: "Notas internas", count: internalNotes.length, content: <InternalNotes notes={internalNotes} clientId={client.id} /> },
         ]}
       />
     </div>

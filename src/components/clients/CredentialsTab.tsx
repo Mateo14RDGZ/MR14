@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/ui/Empty";
 import { NewCredentialDialog } from "@/components/clients/NewCredentialDialog";
 import { SecretField } from "@/components/shared/SecretField";
 import { DeleteCredentialButton } from "@/components/clients/DeleteCredentialButton";
+import { DeliverCredentialButton } from "@/components/clients/DeliverCredentialButton";
 import { CREDENTIAL_SERVICES, type CredentialRow } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { KeyRound, FileDown } from "lucide-react";
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 const VISIBILITY_LABEL = {
   internal: "Solo MR14",
   client: "Visible al cliente",
+  delivered: "Entregada",
   temporary: "Temporal",
 } as const;
 
@@ -54,16 +56,21 @@ export function CredentialsTab({
                   <p className="text-xs text-muted-2">{c.username || "Sin usuario"}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge tone={c.visibility === "internal" ? "muted" : c.visibility === "client" ? "success" : "warning"}>
+                  <Badge tone={c.visibility === "internal" ? "muted" : c.visibility === "temporary" ? "warning" : "success"}>
                     {VISIBILITY_LABEL[c.visibility]}
                   </Badge>
+                  {(c.visibility === "client" || c.visibility === "temporary") && (
+                    <DeliverCredentialButton id={c.id} clientId={clientId} />
+                  )}
                   <DeleteCredentialButton id={c.id} clientId={clientId} />
                 </div>
               </div>
               <SecretField credentialId={c.id} />
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-2">
                 <span className="break-all">{c.access_url || "Sin URL"}</span>
-                <span className="shrink-0">Actualizado {formatDate(c.last_updated)}</span>
+                <span className="shrink-0">
+                  {c.delivered_at ? `Entregada ${formatDate(c.delivered_at)}` : `Actualizado ${formatDate(c.last_updated)}`}
+                </span>
               </div>
             </Card>
           ))}

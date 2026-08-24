@@ -6,7 +6,16 @@ import { EmptyState } from "@/components/ui/Empty";
 import { NewRenewalDialog } from "@/components/renewals/NewRenewalDialog";
 import { RenewalActions } from "@/components/renewals/RenewalActions";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/utils";
+import { RENEWAL_WORKFLOW_STATUSES } from "@/lib/types";
 import { RefreshCw } from "lucide-react";
+
+const WORKFLOW_TONE: Record<string, "muted" | "warning" | "accent" | "success" | "danger"> = {
+  pending: "muted",
+  client_notified: "warning",
+  confirmed: "accent",
+  renewed: "success",
+  not_renewed: "danger",
+};
 
 export default async function RenewalsPage() {
   const [renewals, clients] = await Promise.all([getAllRenewals(), getClientsForSelect()]);
@@ -36,13 +45,16 @@ export default async function RenewalsPage() {
                       {(r.clients as { business_name?: string } | null)?.business_name} · {r.kind.replace(/_/g, " ")}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <Badge tone={overdue ? "danger" : urgent ? "warning" : "success"}>
                       {overdue ? "Vencido" : urgent ? `${days} días` : r.status.replace(/_/g, " ")}
                     </Badge>
+                    <Badge tone={WORKFLOW_TONE[r.workflow_status] ?? "muted"}>
+                      {RENEWAL_WORKFLOW_STATUSES.find((w) => w.value === r.workflow_status)?.label ?? r.workflow_status}
+                    </Badge>
                     <span className="text-sm text-muted-2">{formatDate(r.due_date)}</span>
                     <span className="text-sm text-muted-2">{r.price ? formatCurrency(r.price) : "-"}</span>
-                    <RenewalActions id={r.id} clientId={r.client_id} />
+                    <RenewalActions id={r.id} clientId={r.client_id} workflowStatus={r.workflow_status} />
                   </div>
                 </div>
               </Card>

@@ -108,8 +108,25 @@ export const CREDENTIAL_SERVICES: { value: CredentialService; label: string }[] 
 ];
 
 export type UserRole = "admin" | "client";
-export type CredentialVisibility = "internal" | "client" | "temporary";
+export type CredentialVisibility = "internal" | "client" | "temporary" | "delivered";
 export type DocumentVisibility = "internal" | "client";
+export type DocumentStatus = "draft" | "sent" | "signed" | "archived";
+export type RenewalWorkflowStatus = "pending" | "client_notified" | "confirmed" | "renewed" | "not_renewed";
+
+export const DOCUMENT_STATUSES: { value: DocumentStatus; label: string }[] = [
+  { value: "draft", label: "Borrador" },
+  { value: "sent", label: "Enviado" },
+  { value: "signed", label: "Firmado" },
+  { value: "archived", label: "Archivado" },
+];
+
+export const RENEWAL_WORKFLOW_STATUSES: { value: RenewalWorkflowStatus; label: string }[] = [
+  { value: "pending", label: "Pendiente" },
+  { value: "client_notified", label: "Cliente avisado" },
+  { value: "confirmed", label: "Confirmada" },
+  { value: "renewed", label: "Renovada" },
+  { value: "not_renewed", label: "No renovada" },
+];
 export type HistoryVisibility = "internal" | "client";
 export type MemberStatus = "invited" | "active";
 export type RequestType =
@@ -477,6 +494,8 @@ export interface CredentialRow {
   last_updated: string;
   visibility: CredentialVisibility;
   visible_until: string | null;
+  delivered_at: string | null;
+  delivered_by: string | null;
 }
 
 export interface DocumentRow {
@@ -490,6 +509,9 @@ export interface DocumentRow {
   tags: string[];
   category: string | null;
   visibility: DocumentVisibility;
+  status: DocumentStatus;
+  signed_by_mr14: boolean;
+  signed_by_client: boolean;
   uploaded_at: string;
 }
 
@@ -502,8 +524,30 @@ export interface RenewalRow {
   due_date: string;
   price: number | null;
   status: RenewalStatus;
+  workflow_status: RenewalWorkflowStatus;
+  notified_at: string | null;
+  confirmed_at: string | null;
+  renewed_at: string | null;
   auto_renew: boolean;
   notes: string | null;
+}
+
+export interface InternalNote {
+  id: string;
+  client_id: string | null;
+  project_id: string | null;
+  content: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuickReply {
+  id: string;
+  text: string;
+  position: number;
+  created_by: string | null;
+  created_at: string;
 }
 
 export interface TaskRow {

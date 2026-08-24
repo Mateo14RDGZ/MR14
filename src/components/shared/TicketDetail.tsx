@@ -27,6 +27,7 @@ import {
   type TicketEvent,
   type TicketQuote,
   type TicketQuoteVersion,
+  type QuickReply,
 } from "@/lib/types";
 import { formatCurrency, formatDateTime, daysUntil } from "@/lib/utils";
 import { Paperclip, Send, FileDown, Clock } from "lucide-react";
@@ -60,6 +61,7 @@ export function TicketDetail({
   attachments,
   events,
   quotes,
+  quickReplies = [],
 }: {
   role: "admin" | "client";
   ticket: Ticket;
@@ -69,6 +71,7 @@ export function TicketDetail({
   attachments: TicketAttachment[];
   events: TicketEvent[];
   quotes: QuoteWithVersions[];
+  quickReplies?: QuickReply[];
 }) {
   const attachmentsByMessage = new Map<string, TicketAttachment[]>();
   const generalAttachments: TicketAttachment[] = [];
@@ -147,7 +150,7 @@ export function TicketDetail({
             ))}
             {!["closed"].includes(ticket.status) && (
               <div className="pt-4 first:pt-0">
-                <ReplyForm ticketId={ticket.id} />
+                <ReplyForm ticketId={ticket.id} quickReplies={role === "admin" ? quickReplies : []} />
               </div>
             )}
           </CardBody>
@@ -245,19 +248,46 @@ function AttachmentChip({ attachment }: { attachment: TicketAttachment }) {
   );
 }
 
-function ReplyForm({ ticketId }: { ticketId: string }) {
+function ReplyForm({ ticketId, quickReplies = [] }: { ticketId: string; quickReplies?: QuickReply[] }) {
   const [pending, startTransition] = useTransition();
+  const [body, setBody] = useState("");
 
   function onSubmit(formData: FormData) {
+    formData.set("body", body);
     startTransition(async () => {
       const result = await addTicketMessageAction(ticketId, formData);
       if (result?.error) toast.error(result.error);
+      else setBody("");
     });
   }
 
   return (
     <form action={onSubmit} className="space-y-2">
-      <Textarea name="body" rows={3} placeholder="Escribí tu respuesta…" required />
+      {quickReplies.length > 0 && (
+        <Select
+          defaultValue=""
+          onChange={(e) => {
+            if (e.target.value) setBody(e.target.value);
+            e.target.value = "";
+          }}
+          className="h-9 text-xs"
+        >
+          <option value="">Respuesta rápida…</option>
+          {quickReplies.map((q) => (
+            <option key={q.id} value={q.text}>
+              {q.text}
+            </option>
+          ))}
+        </Select>
+      )}
+      <Textarea
+        name="body"
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+        rows={3}
+        placeholder="Escribí tu respuesta…"
+        required
+      />
       <div className="flex items-center justify-between gap-2">
         <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-2">
           <Paperclip size={13} />
@@ -449,6 +479,26 @@ function QuoteCard({
           <p className="pt-1 text-xs text-muted-2">
             {version.decision === "accepted" ? "Aceptado" : "Rechazado"} el {formatDateTime(version.decided_at)}
           </p>
+        )}
+        {quote.ticket_quote_versions.length > 1 && (
+          <details className="pt-2">
+            <summary className="cursor-pointer text-xs text-muted-2 hover:text-foreground">
+              Ver historial de versiones ({quote.ticket_quote_versions.length})
+            </summary>
+            <ul className="mt-2 space-y-2 border-t border-border pt-2">
+              {quote.ticket_quote_versions
+                .slice()
+                .sort((a, b) => b.version - a.version)
+                .map((v) => (
+                  <li key={v.id} className="text-xs text-muted-2">
+                    <span className="font-medium text-muted">v{v.version}</span> · {formatCurrency(v.amount, v.currency)}
+                    {v.decided_at
+                      ? ` · ${v.decision === "accepted" ? "aceptado" : "rechazado"} el ${formatDateTime(v.decided_at)}`
+                      : " · sin decisión"}
+                  </li>
+                ))}
+            </ul>
+          </details>
         )}
       </CardBody>
     </Card>

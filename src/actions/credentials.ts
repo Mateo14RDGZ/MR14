@@ -108,6 +108,29 @@ export async function revealCredentialAction(id: string): Promise<string> {
   return decryptSecret(data.secret_encrypted);
 }
 
+/** Marca la credencial como entregada al cliente: la hace visible y deja registro de quién y cuándo. */
+export async function deliverCredentialAction(id: string, clientId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from("credentials")
+    .update({ visibility: "delivered", delivered_at: new Date().toISOString(), delivered_by: user?.id ?? null })
+    .eq("id", id)
+    .select("service_label,service,project_id")
+    .single();
+  if (error) return { error: error.message };
+
+  await logHistory({
+    clientId,
+    projectId: data?.project_id ?? null,
+    event: `Acceso de ${data?.service_label || data?.service} entregado al cliente`,
+  });
+  revalidatePath(`/clients/${clientId}`);
+}
+
 /** Registra que un usuario copió (sin ver) una credencial ya descifrada en pantalla. */
 export async function logCredentialCopyAction(id: string) {
   const supabase = await createClient();

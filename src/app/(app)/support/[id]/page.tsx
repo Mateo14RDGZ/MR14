@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getTicketDetail } from "@/lib/queries";
+import { getTicketDetail, getQuickReplies } from "@/lib/queries";
 import { TicketDetail } from "@/components/shared/TicketDetail";
 import { ArrowLeft } from "lucide-react";
 
 export default async function SupportTicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const data = await getTicketDetail(id);
+  const [data, quickReplies] = await Promise.all([getTicketDetail(id), getQuickReplies()]);
   if (!data) notFound();
 
   const { ticket, messages, attachments, events, quotes } = data;
@@ -27,6 +27,7 @@ export default async function SupportTicketPage({ params }: { params: Promise<{ 
         attachments={attachments}
         events={events}
         quotes={quotes}
+        quickReplies={quickReplies}
       />
     </div>
   );

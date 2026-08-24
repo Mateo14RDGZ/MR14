@@ -95,3 +95,57 @@ export async function deleteDocumentAction(id: string, storagePath: string, clie
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/documents");
 }
+
+const DOCUMENT_STATUS_LABEL: Record<string, string> = {
+  draft: "Borrador",
+  sent: "Enviado",
+  signed: "Firmado",
+  archived: "Archivado",
+};
+
+export async function updateDocumentStatusAction(id: string, clientId: string, status: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("documents")
+    .update({ status })
+    .eq("id", id)
+    .select("name,project_id")
+    .single();
+  if (error) throw new Error(error.message);
+
+  await logHistory({
+    clientId,
+    projectId: data?.project_id ?? null,
+    event: `Documento "${data?.name}" marcado como ${DOCUMENT_STATUS_LABEL[status] ?? status}`,
+  });
+  revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/documents");
+}
+
+export async function toggleDocumentSignatureAction(
+  id: string,
+  clientId: string,
+  field: "signed_by_mr14" | "signed_by_client",
+  value: boolean
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("documents")
+    .update({ [field]: value })
+    .eq("id", id)
+    .select("name,project_id,signed_by_mr14,signed_by_client")
+    .single();
+  if (error) throw new Error(error.message);
+
+  if (data && value && data.signed_by_mr14 && data.signed_by_client) {
+    await supabase.from("documents").update({ status: "signed" }).eq("id", id);
+  }
+
+  await logHistory({
+    clientId,
+    projectId: data?.project_id ?? null,
+    event: `Documento "${data?.name}": ${field === "signed_by_mr14" ? "firma de MR14" : "firma del cliente"} ${value ? "registrada" : "quitada"}`,
+  });
+  revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/documents");
+}

@@ -314,7 +314,10 @@ export async function createQuoteAction(ticketId: string, formData: FormData) {
     return { error: "Completá descripción y un monto válido." };
   }
 
-  let { data: quote } = await supabase.from("ticket_quotes").select("*").eq("ticket_id", ticketId).maybeSingle();
+  const { data: existingQuote } = await supabase.from("ticket_quotes").select("*").eq("ticket_id", ticketId).maybeSingle();
+
+  let quote = existingQuote;
+  let version: number;
 
   if (!quote) {
     const { data: newQuote, error } = await supabase
@@ -324,12 +327,14 @@ export async function createQuoteAction(ticketId: string, formData: FormData) {
       .single();
     if (error || !newQuote) return { error: error?.message ?? "No se pudo crear el presupuesto." };
     quote = newQuote;
+    version = quote.current_version;
   } else {
-    // Nueva versión: la anterior vigente queda superada.
-    await supabase.from("ticket_quotes").update({ status: "pending", current_version: quote.current_version + 1 }).eq("id", quote.id);
+    // Nueva versión: la anterior (aceptada, rechazada o no) queda superada,
+    // nunca se edita directamente. Este es el número real de la versión
+    // que se está por insertar, no el que ya tenía la fila antes del update.
+    version = quote.current_version + 1;
+    await supabase.from("ticket_quotes").update({ status: "pending", current_version: version }).eq("id", quote.id);
   }
-
-  const version = quote.current_version;
   const { error: versionError } = await supabase.from("ticket_quote_versions").insert({
     quote_id: quote.id,
     version,

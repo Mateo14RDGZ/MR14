@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProjectDetail, getAllTickets, getProjectSupportSummary } from "@/lib/queries";
+import { getProjectDetail, getAllTickets, getProjectSupportSummary, getProjectInternalNotes } from "@/lib/queries";
+import { InternalNotes } from "@/components/shared/InternalNotes";
 import { TicketList } from "@/components/portal/TicketList";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge, statusTone } from "@/components/ui/Badge";
@@ -28,9 +29,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   const { project, client, domains, hosting, repositories, databases, tasks, history, installments } = data;
   const installmentRows = installmentsWithStatus(installments, project.amount_paid);
-  const [tickets, supportSummary] = await Promise.all([
+  const [tickets, supportSummary, internalNotes] = await Promise.all([
     getAllTickets({ projectId: project.id }),
     getProjectSupportSummary(project.id),
+    getProjectInternalNotes(project.id),
   ]);
 
   return (
@@ -174,6 +176,15 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </CardHeader>
         <CardBody>
           <HistoryTab history={history} />
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <h2 className="text-card-title">Notas internas</h2>
+        </CardHeader>
+        <CardBody>
+          <InternalNotes notes={internalNotes} clientId={client.id} projectId={project.id} />
         </CardBody>
       </Card>
     </div>
