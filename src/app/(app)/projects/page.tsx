@@ -52,20 +52,20 @@ export default async function ProjectsPage() {
                   </span>
                 </div>
 
-                <div className="mt-3 grid grid-cols-3 gap-3 text-sm sm:grid-cols-3">
-                  <div>
+                <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
+                  <div className="min-w-0">
                     <p className="text-caption">Precio</p>
-                    <p className="font-medium tabular-nums">{formatCurrency(p.price, p.currency)}</p>
+                    <p className="truncate font-medium tabular-nums">{formatCurrency(p.price, p.currency)}</p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-caption">Saldo</p>
-                    <p className="font-medium tabular-nums text-warning">
+                    <p className="truncate font-medium tabular-nums text-warning">
                       {formatCurrency(p.balance, p.currency)}
                     </p>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-caption">Entrega estimada</p>
-                    <p className="font-medium">{formatDate(p.estimated_delivery_date)}</p>
+                    <p className="truncate font-medium">{formatDate(p.estimated_delivery_date)}</p>
                   </div>
                 </div>
               </Card>
