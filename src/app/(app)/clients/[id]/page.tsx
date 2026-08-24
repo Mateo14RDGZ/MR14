@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getClientDetail, getAllTickets, getClientSupportSummary } from "@/lib/queries";
+import { getClientDetail, getAllTickets, getClientSupportSummary, getClientAudits } from "@/lib/queries";
 import { TicketList } from "@/components/portal/TicketList";
 import { Tabs } from "@/components/ui/Tabs";
 import { Badge, statusTone } from "@/components/ui/Badge";
@@ -12,6 +12,7 @@ import { MembersTab } from "@/components/clients/MembersTab";
 import { PaymentsTab } from "@/components/clients/PaymentsTab";
 import { RequestsTab } from "@/components/clients/RequestsTab";
 import { HistoryTab } from "@/components/clients/HistoryTab";
+import { AuditsTab } from "@/components/clients/AuditsTab";
 import { DeleteClientButton } from "@/components/clients/DeleteClientButton";
 import { InviteMemberDialog } from "@/components/clients/InviteMemberDialog";
 import { Avatar } from "@/components/ui/Avatar";
@@ -33,9 +34,10 @@ export default async function ClientDetailPage({
   const { client, projects, credentials, documents, history, members, payments, requests } = data;
   const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }));
   const hasPendingApproval = members.some((m) => m.status === "invited");
-  const [tickets, supportSummary] = await Promise.all([
+  const [tickets, supportSummary, audits] = await Promise.all([
     getAllTickets({ clientId: client.id }),
     getClientSupportSummary(client.id),
+    getClientAudits(client.id),
   ]);
 
   return (
@@ -108,6 +110,7 @@ export default async function ClientDetailPage({
             ),
           },
           { id: "requests", label: "Solicitudes", count: requests.length, content: <RequestsTab clientId={client.id} requests={requests} /> },
+          { id: "audits", label: "Auditorías", count: audits.length, content: <AuditsTab audits={audits} /> },
           { id: "history", label: "Historial", content: <HistoryTab history={history} /> },
         ]}
       />

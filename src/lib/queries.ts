@@ -175,6 +175,16 @@ export async function getRecentAudits(limit = 20) {
   return data ?? [];
 }
 
+export async function getClientAudits(clientId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("website_audits")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
 export async function getPortalDashboardData(clientId: string) {
   const supabase = await createClient();
   const [projects, renewals, history] = await Promise.all([
@@ -213,7 +223,7 @@ export async function getPortalDashboardData(clientId: string) {
   };
 }
 
-export async function getPortalWebsiteInfo(projectId: string) {
+export async function getPortalWebsiteInfo(projectId: string, clientId?: string) {
   const supabase = await createClient();
   const [domains, hosting, audits] = await Promise.all([
     supabase.from("domains").select("*").eq("project_id", projectId),
@@ -225,10 +235,25 @@ export async function getPortalWebsiteInfo(projectId: string) {
       .order("created_at", { ascending: false })
       .limit(1),
   ]);
+
+  let lastAudit = audits.data?.[0] ?? null;
+
+  // Fallback: auditorías asociadas al cliente pero sin proyecto puntual (ej. hechas antes de
+  // que existiera el selector de proyecto, o desde /audits sin elegir uno).
+  if (!lastAudit && clientId) {
+    const { data } = await supabase
+      .from("website_audits")
+      .select("*")
+      .eq("client_id", clientId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    lastAudit = data?.[0] ?? null;
+  }
+
   return {
     domain: domains.data?.[0] ?? null,
     hosting: hosting.data?.[0] ?? null,
-    lastAudit: audits.data?.[0] ?? null,
+    lastAudit,
   };
 }
 

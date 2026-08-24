@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getRecentAudits, getClientsForSelect } from "@/lib/queries";
+import { getRecentAudits, getClientsForSelect, getAllProjects } from "@/lib/queries";
 import { AnalyzeForm } from "@/components/audits/AnalyzeForm";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/Badge";
 import { formatDateTime } from "@/lib/utils";
 
 export default async function AuditsPage() {
-  const [audits, clients] = await Promise.all([getRecentAudits(), getClientsForSelect()]);
+  const [audits, clients, projects] = await Promise.all([getRecentAudits(), getClientsForSelect(), getAllProjects()]);
+  const projectOptions = projects.map((p) => ({ id: p.id, name: p.name, client_id: p.client_id }));
 
   return (
     <div className="animate-fade-in space-y-8">
@@ -16,7 +17,7 @@ export default async function AuditsPage() {
         description="Analizá cualquier sitio web y generá documentación técnica automática."
       />
 
-      <AnalyzeForm clients={clients} />
+      <AnalyzeForm clients={clients} projects={projectOptions} />
 
       {audits.length > 0 && (
         <div>

@@ -16,7 +16,7 @@ export default async function PortalMiWebPage() {
     return <EmptyState icon={Globe} title="Todavía no hay un proyecto asociado" />;
   }
 
-  const { domain, hosting, lastAudit } = await getPortalWebsiteInfo(project.id);
+  const { domain, hosting, lastAudit } = await getPortalWebsiteInfo(project.id, activeClientId);
   const score = (lastAudit?.score ?? {}) as { seo?: number; accessibility?: number; performance?: number };
 
   return (

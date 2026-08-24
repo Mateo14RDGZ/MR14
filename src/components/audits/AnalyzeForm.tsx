@@ -10,17 +10,27 @@ import type { AuditResult } from "@/lib/website-analyzer";
 import { ScanSearch, CheckCircle2, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export function AnalyzeForm({ clients }: { clients: { id: string; business_name: string }[] }) {
+export function AnalyzeForm({
+  clients,
+  projects,
+}: {
+  clients: { id: string; business_name: string }[];
+  projects: { id: string; name: string; client_id: string }[];
+}) {
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<AuditResult | null>(null);
   const [score, setScore] = useState<{ seo: number; accessibility: number; performance: number } | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState("");
   const router = useRouter();
+
+  const clientProjects = projects.filter((p) => p.client_id === selectedClientId);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const url = String(formData.get("url") || "");
     const clientId = String(formData.get("client_id") || "") || undefined;
+    const projectId = String(formData.get("project_id") || "") || undefined;
     if (!url) return;
 
     startTransition(async () => {
@@ -28,7 +38,7 @@ export function AnalyzeForm({ clients }: { clients: { id: string; business_name:
         const res = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url, clientId }),
+          body: JSON.stringify({ url, clientId, projectId }),
         });
         const data = await res.json();
         if (data.error) {
@@ -56,11 +66,28 @@ export function AnalyzeForm({ clients }: { clients: { id: string; business_name:
             {clients.length > 0 && (
               <Field className="mb-0 sm:w-56">
                 <Label>Cliente (opcional)</Label>
-                <Select name="client_id" defaultValue="">
+                <Select
+                  name="client_id"
+                  defaultValue=""
+                  onChange={(e) => setSelectedClientId(e.target.value)}
+                >
                   <option value="">Sin asociar</option>
                   {clients.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.business_name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            )}
+            {selectedClientId && clientProjects.length > 0 && (
+              <Field className="mb-0 sm:w-56">
+                <Label>Proyecto (opcional)</Label>
+                <Select name="project_id" defaultValue="">
+                  <option value="">Sin asociar</option>
+                  {clientProjects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
                     </option>
                   ))}
                 </Select>
