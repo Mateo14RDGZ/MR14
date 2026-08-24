@@ -30,9 +30,9 @@ export default async function SettingsPage() {
           <h2 className="text-card-title">Sesión</h2>
         </CardHeader>
         <CardBody className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted">Email</span>
-            <span className="font-medium">{user?.email}</span>
+          <div className="flex items-center justify-between gap-3">
+            <span className="shrink-0 text-muted">Email</span>
+            <span className="truncate font-medium">{user?.email}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted">Rol</span>

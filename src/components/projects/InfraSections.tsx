@@ -78,8 +78,8 @@ export function DomainsSection({
         <div className="space-y-3">
           {domains.map((d) => (
             <div key={d.id} className="rounded-lg border border-border p-3 text-sm">
-              <div className="mb-2 flex items-start justify-between">
-                <p className="font-medium">{d.domain}</p>
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <p className="break-all font-medium">{d.domain}</p>
                 <ConfirmButton
                   action={() => deleteDomainAction(d.id, projectId, clientId)}
                   label={<Trash2 size={13} />}
@@ -192,8 +192,8 @@ export function HostingSection({
                 />
               </div>
               <dl className="space-y-1 text-xs text-muted-2">
-                <div>Producción: {h.production_url || "-"}</div>
-                <div>Preview: {h.preview_url || "-"}</div>
+                <div className="break-all">Producción: {h.production_url || "-"}</div>
+                <div className="break-all">Preview: {h.preview_url || "-"}</div>
                 <div>Plan: {h.plan || "-"}</div>
               </dl>
             </div>
@@ -282,8 +282,8 @@ export function RepositoriesSection({
         <div className="space-y-3">
           {repositories.map((r) => (
             <div key={r.id} className="rounded-lg border border-border p-3 text-sm">
-              <div className="mb-2 flex items-start justify-between">
-                <p className="font-medium">{r.name || r.url}</p>
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <p className="break-all font-medium">{r.name || r.url}</p>
                 <ConfirmButton
                   action={() => deleteRepositoryAction(r.id, projectId, clientId)}
                   label={<Trash2 size={13} />}
@@ -293,7 +293,7 @@ export function RepositoriesSection({
                 />
               </div>
               <dl className="space-y-1 text-xs text-muted-2">
-                <div>URL: {r.url || "-"}</div>
+                <div className="break-all">URL: {r.url || "-"}</div>
                 <div>Rama principal: {r.main_branch}</div>
                 <div>Visibilidad: {r.is_private ? "Privado" : "Público"}</div>
               </dl>
@@ -377,7 +377,7 @@ export function DatabasesSection({
                 />
               </div>
               <dl className="space-y-1 text-xs text-muted-2">
-                <div>Proyecto: {db.project_name || "-"}</div>
+                <div className="break-all">Proyecto: {db.project_name || "-"}</div>
                 <div>Región: {db.region || "-"}</div>
               </dl>
             </div>

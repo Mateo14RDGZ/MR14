@@ -90,9 +90,9 @@ export default async function PortalMiWebPage() {
 
 function Row({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-muted">{label}</span>
-      <span className="font-medium capitalize">{value || "Información no disponible"}</span>
+    <div className="flex items-center justify-between gap-3">
+      <span className="shrink-0 text-muted">{label}</span>
+      <span className="truncate font-medium capitalize">{value || "Información no disponible"}</span>
     </div>
   );
 }

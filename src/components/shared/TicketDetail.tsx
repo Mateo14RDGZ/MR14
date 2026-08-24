@@ -108,7 +108,7 @@ export function TicketDetail({
             <p className="mb-1 text-xs text-muted-2">
               {clientName} · {projectName} · {TICKET_CATEGORIES.find((c) => c.value === ticket.category)?.label}
             </p>
-            <p className="whitespace-pre-line text-sm text-muted">{ticket.description}</p>
+            <p className="whitespace-pre-line break-words text-sm text-muted">{ticket.description}</p>
             {generalAttachments.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {generalAttachments.map((a) => (
@@ -135,7 +135,7 @@ export function TicketDetail({
                   <span className="text-sm font-medium">{m.author_role === "admin" ? "MR14" : "Cliente"}</span>
                   <span className="text-xs text-muted-2">{formatDateTime(m.created_at)}</span>
                 </div>
-                <p className="whitespace-pre-line text-sm text-muted">{m.body}</p>
+                <p className="whitespace-pre-line break-words text-sm text-muted">{m.body}</p>
                 {(attachmentsByMessage.get(m.id) ?? []).length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {(attachmentsByMessage.get(m.id) ?? []).map((a) => (

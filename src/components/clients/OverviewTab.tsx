@@ -80,7 +80,7 @@ function InfoItem({ icon: Icon, label, value }: { icon?: React.ElementType; labe
       <p className="mb-0.5 flex items-center gap-1.5 text-xs text-muted-2">
         {Icon && <Icon size={12} />} {label}
       </p>
-      <p className="text-sm font-medium">{value || "-"}</p>
+      <p className="break-words text-sm font-medium">{value || "-"}</p>
     </div>
   );
 }

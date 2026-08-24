@@ -62,8 +62,8 @@ export function CredentialsTab({
               </div>
               <SecretField credentialId={c.id} />
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-2">
-                <span>{c.access_url || "Sin URL"}</span>
-                <span>Actualizado {formatDate(c.last_updated)}</span>
+                <span className="break-all">{c.access_url || "Sin URL"}</span>
+                <span className="shrink-0">Actualizado {formatDate(c.last_updated)}</span>
               </div>
             </Card>
           ))}
