@@ -6,22 +6,31 @@ import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Label, Field } from "@/components/ui/Input";
 import { createPaymentAction } from "@/actions/payments";
+import { formatCurrency } from "@/lib/utils";
 import { CircleDollarSign } from "lucide-react";
+
+interface ProjectOption {
+  id: string;
+  name: string;
+  balance: number;
+  currency: string;
+}
 
 export function RegisterPaymentDialog({
   clientId,
   projects,
 }: {
   clientId: string;
-  projects: { id: string; name: string }[];
+  projects: ProjectOption[];
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
 
   if (projects.length === 0) return null;
+  const selected = projects.find((p) => p.id === projectId) ?? projects[0];
 
   function onSubmit(formData: FormData) {
-    const projectId = String(formData.get("project_id") || "");
     startTransition(async () => {
       const result = await createPaymentAction(clientId, projectId, formData);
       if (result?.error) toast.error(result.error);
@@ -39,20 +48,34 @@ export function RegisterPaymentDialog({
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} title="Registrar pago">
         <form action={onSubmit} className="space-y-4">
-          <Field className="mb-0">
-            <Label>Proyecto</Label>
-            <select
-              name="project_id"
-              required
-              className="w-full rounded-lg border border-border bg-surface px-3 h-10 text-sm outline-none focus:border-accent"
-            >
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </Field>
+          {projects.length > 1 ? (
+            <Field className="mb-0">
+              <Label>Proyecto</Label>
+              <select
+                name="project_id"
+                required
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                className="w-full rounded-lg border border-border bg-surface px-3 h-10 text-sm outline-none focus:border-accent"
+              >
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          ) : (
+            <input type="hidden" name="project_id" value={projectId} />
+          )}
+
+          {selected && (
+            <div className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm">
+              <span className="text-muted">Saldo pendiente: </span>
+              <span className="font-medium text-warning">{formatCurrency(selected.balance, selected.currency)}</span>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <Field className="mb-0">
               <Label>Monto *</Label>
@@ -72,7 +95,7 @@ export function RegisterPaymentDialog({
             <Textarea name="notes" rows={2} />
           </Field>
           <Button type="submit" disabled={pending} className="w-full">
-            {pending ? "Guardando…" : "Registrar pago"}
+            {pending ? "Registrando…" : "Registrar pago"}
           </Button>
         </form>
       </Dialog>

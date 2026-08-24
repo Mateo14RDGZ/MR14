@@ -40,7 +40,7 @@ export function NewCredentialDialog({
       <Dialog open={open} onClose={() => setOpen(false)} title="Nueva credencial">
         <form action={onSubmit} className="space-y-4">
           <div className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
-            No compartas este documento sin autorización del cliente.
+            No compartas esta credencial sin autorización del cliente.
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Field className="mb-0">

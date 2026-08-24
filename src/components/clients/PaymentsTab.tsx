@@ -13,7 +13,7 @@ export function PaymentsTab({
 }: {
   clientId: string;
   payments: Payment[];
-  projects: { id: string; name: string }[];
+  projects: { id: string; name: string; balance: number; currency: string }[];
 }) {
   return (
     <div className="space-y-4">

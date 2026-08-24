@@ -37,7 +37,7 @@ export default async function ClientDetailPage({
   if (!data.client) notFound();
 
   const { client, projects, credentials, documents, history, members, payments, requests } = data;
-  const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }));
+  const projectOptions = projects.map((p) => ({ id: p.id, name: p.name, balance: p.balance, currency: p.currency }));
   const hasPendingApproval = members.some((m) => m.status === "invited");
   const mainProject = projects[0];
   const lastActivity = history[0]?.created_at;
