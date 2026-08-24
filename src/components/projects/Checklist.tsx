@@ -60,7 +60,7 @@ export function Checklist({
                   await deleteChecklistItemAction(t.id, projectId, clientId);
                 })
               }
-              className="opacity-0 transition-opacity group-hover:opacity-100 text-muted-2 hover:text-danger"
+              className="text-muted-2 transition-colors hover:text-danger"
             >
               <Trash2 size={13} />
             </button>

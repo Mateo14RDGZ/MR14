@@ -1,19 +1,24 @@
 import Link from "next/link";
-import { getAllProjects } from "@/lib/queries";
+import { getAllProjects, getClientsForSelect } from "@/lib/queries";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Badge, statusTone } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
+import { NewProjectDialog } from "@/components/clients/NewProjectDialog";
 import { PROJECT_STATUSES, PROJECT_TYPES } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { FolderKanban } from "lucide-react";
 
 export default async function ProjectsPage() {
-  const projects = await getAllProjects();
+  const [projects, clients] = await Promise.all([getAllProjects(), getClientsForSelect()]);
 
   return (
     <div className="animate-fade-in space-y-6">
-      <PageHeader title="Proyectos" description={`${projects.length} proyectos en total`} />
+      <PageHeader
+        title="Proyectos"
+        description={`${projects.length} proyectos en total`}
+        action={<NewProjectDialog clients={clients} />}
+      />
 
       {projects.length === 0 ? (
         <EmptyState icon={FolderKanban} title="Sin proyectos todavía" />

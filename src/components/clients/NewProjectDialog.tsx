@@ -9,14 +9,26 @@ import { createProjectAction } from "@/actions/projects";
 import { PROJECT_TYPES } from "@/lib/types";
 import { Plus } from "lucide-react";
 
-export function NewProjectDialog({ clientId }: { clientId: string }) {
+export function NewProjectDialog({
+  clientId,
+  clients,
+}: {
+  clientId?: string;
+  clients?: { id: string; business_name: string }[];
+}) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function onSubmit(formData: FormData) {
+    const targetClientId = clientId ?? String(formData.get("client_id") || "");
+    if (!targetClientId) {
+      toast.error("Elegí un cliente.");
+      return;
+    }
     startTransition(async () => {
-      const result = await createProjectAction(clientId, formData);
+      const result = await createProjectAction(targetClientId, formData);
       if (result?.error) toast.error(result.error);
+      else setOpen(false);
     });
   }
 
@@ -27,6 +39,21 @@ export function NewProjectDialog({ clientId }: { clientId: string }) {
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} title="Nuevo proyecto">
         <form action={onSubmit} className="space-y-4">
+          {!clientId && (
+            <Field className="mb-0">
+              <Label>Cliente *</Label>
+              <Select name="client_id" required defaultValue="">
+                <option value="" disabled>
+                  Elegí un cliente
+                </option>
+                {clients?.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.business_name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
           <Field className="mb-0">
             <Label>Nombre *</Label>
             <Input name="name" required placeholder="Ej: Web presencia Motocenter" />
