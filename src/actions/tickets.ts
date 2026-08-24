@@ -258,7 +258,7 @@ export async function updateTicketStatusAction(ticketId: string, status: TicketS
       title: status === "waiting_client" ? `Necesitamos info tuya en ${ticket.number}` : `Ticket ${ticket.number} resuelto`,
       body: status === "waiting_client" ? "MR14 te pidió más información sobre tu solicitud." : "Tu solicitud fue marcada como resuelta.",
       ticketId,
-      url: `/portal/solicitudes/${ticketId}`,
+      url: status === "waiting_client" ? `/portal/solicitudes/${ticketId}#responder` : `/portal/solicitudes/${ticketId}`,
     });
   }
 

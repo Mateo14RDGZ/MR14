@@ -31,8 +31,10 @@ import {
   type TicketQuoteVersion,
   type QuickReply,
 } from "@/lib/types";
-import { formatCurrency, formatDateTime, daysUntil } from "@/lib/utils";
+import { formatCurrency, formatDateTime, daysUntil, timeAgo } from "@/lib/utils";
 import { Paperclip, Send, FileDown, Clock, Sparkles } from "lucide-react";
+
+const NEEDS_REPLY_STATUSES = new Set(["received", "reviewing", "requires_quote"]);
 
 const STATUS_TONE: Record<string, "muted" | "warning" | "accent" | "success" | "danger"> = {
   received: "muted",
@@ -103,19 +105,25 @@ export function TicketDetail({
               <h1 className="text-card-title">{ticket.subject}</h1>
             </div>
             <div className="flex items-center gap-2">
+              <Badge tone={STATUS_TONE[ticket.status]}>
+                {role === "client" ? CLIENT_TICKET_STATUS_LABEL[ticket.status] : TICKET_STATUSES.find((s) => s.value === ticket.status)?.label}
+              </Badge>
               {role === "admin" && (
                 <Badge tone={PRIORITY_TONE[ticket.priority]}>
                   {TICKET_PRIORITIES.find((p) => p.value === ticket.priority)?.label}
                 </Badge>
               )}
-              <Badge tone={STATUS_TONE[ticket.status]}>
-                {role === "client" ? CLIENT_TICKET_STATUS_LABEL[ticket.status] : TICKET_STATUSES.find((s) => s.value === ticket.status)?.label}
-              </Badge>
             </div>
           </CardHeader>
           <CardBody>
             <p className="mb-1 text-xs text-muted-2">
-              {clientName} · {projectName} · {TICKET_CATEGORIES.find((c) => c.value === ticket.category)?.label}
+              {clientName}
+              {role === "admin" && NEEDS_REPLY_STATUSES.has(ticket.status) && (
+                <span className="text-warning"> · Sin responder hace {timeAgo(ticket.updated_at)}</span>
+              )}
+            </p>
+            <p className="mb-1 text-xs text-muted-2">
+              {projectName} · {TICKET_CATEGORIES.find((c) => c.value === ticket.category)?.label}
             </p>
             <p className="whitespace-pre-line break-words text-sm text-muted">{ticket.description}</p>
             {generalAttachments.length > 0 && (
@@ -127,6 +135,17 @@ export function TicketDetail({
             )}
           </CardBody>
         </Card>
+
+        {role === "client" && ticket.status === "waiting_client" && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning/30 bg-warning-soft px-4 py-3">
+            <p className="text-sm font-medium text-warning">Necesitamos tu respuesta.</p>
+            <a href="#responder">
+              <Button size="sm" variant="secondary">
+                Responder
+              </Button>
+            </a>
+          </div>
+        )}
 
         {latestVersion && (
           <QuoteCard ticketId={ticket.id} clientId={ticket.client_id} role={role} quote={latestQuote} version={latestVersion} />
@@ -155,7 +174,7 @@ export function TicketDetail({
               </div>
             ))}
             {!["closed"].includes(ticket.status) && (
-              <div className="pt-4 first:pt-0">
+              <div id="responder" className="scroll-mt-20 pt-4 first:pt-0">
                 <ReplyForm ticketId={ticket.id} quickReplies={role === "admin" ? quickReplies : []} />
               </div>
             )}

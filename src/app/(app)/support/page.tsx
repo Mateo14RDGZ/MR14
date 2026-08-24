@@ -51,6 +51,17 @@ export default async function SupportPage({
   ]);
   const projectOptions = projects.map((p) => ({ id: p.id, name: p.name, client_id: p.client_id }));
 
+  // Prioridad visual: lo que espera respuesta de MR14 va primero (más
+  // antiguo primero, porque es lo más urgente), el resto queda por fecha
+  // de creación como antes. Sin agregar ninguna métrica nueva.
+  const sortedTickets = [...tickets].sort((a, b) => {
+    const aWaiting = NEEDS_REPLY_STATUSES.has(a.status);
+    const bWaiting = NEEDS_REPLY_STATUSES.has(b.status);
+    if (aWaiting !== bWaiting) return aWaiting ? -1 : 1;
+    if (aWaiting && bWaiting) return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
   return (
     <div className="animate-fade-in space-y-6">
       <PageHeader
@@ -117,11 +128,11 @@ export default async function SupportPage({
         </form>
       </Card>
 
-      {tickets.length === 0 ? (
+      {sortedTickets.length === 0 ? (
         <EmptyState icon={LifeBuoy} title="Sin tickets" description="No hay solicitudes que coincidan con estos filtros." />
       ) : (
         <div className="space-y-2">
-          {tickets.map((t) => {
+          {sortedTickets.map((t) => {
             const needsReply = NEEDS_REPLY_STATUSES.has(t.status);
             const hoursSince = (Date.now() - new Date(t.updated_at).getTime()) / 36e5;
             const isStale = needsReply && hoursSince >= 24;

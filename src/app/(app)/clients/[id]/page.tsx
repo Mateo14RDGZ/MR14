@@ -17,6 +17,7 @@ import { AuditsTab } from "@/components/clients/AuditsTab";
 import { DeleteClientButton } from "@/components/clients/DeleteClientButton";
 import { InviteMemberDialog } from "@/components/clients/InviteMemberDialog";
 import { NewTicketDialog } from "@/components/shared/NewTicketDialog";
+import { NewProjectDialog } from "@/components/clients/NewProjectDialog";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { PROJECT_STATUSES, CLIENT_STATUSES } from "@/lib/types";
@@ -72,7 +73,12 @@ export default async function ClientDetailPage({
         </div>
       </div>
 
-      {mainProject && (
+      {!mainProject ? (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-surface p-4">
+          <p className="text-sm text-muted">Todavía no tenés ningún proyecto para este cliente.</p>
+          <NewProjectDialog clientId={client.id} triggerLabel="Crear proyecto" />
+        </div>
+      ) : (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-surface p-4">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             <div>
@@ -102,11 +108,13 @@ export default async function ClientDetailPage({
                 <FolderKanban size={14} /> Ver proyecto
               </Button>
             </Link>
-            <Link href={`/clients/${client.id}?tab=payments`}>
-              <Button size="sm" variant="secondary">
-                <Wallet size={14} /> Registrar pago
-              </Button>
-            </Link>
+            {mainProject.balance > 0 && (
+              <Link href={`/clients/${client.id}?tab=payments`}>
+                <Button size="sm" variant="secondary">
+                  <Wallet size={14} /> Registrar pago
+                </Button>
+              </Link>
+            )}
             <NewTicketDialog
               clients={[{ id: client.id, business_name: client.business_name }]}
               projects={projects.map((p) => ({ id: p.id, name: p.name, client_id: client.id }))}

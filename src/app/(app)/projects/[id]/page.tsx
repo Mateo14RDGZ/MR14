@@ -4,7 +4,7 @@ import { getProjectDetail, getAllTickets, getProjectSupportSummary, getProjectIn
 import { InternalNotes } from "@/components/shared/InternalNotes";
 import { TicketList } from "@/components/portal/TicketList";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
-import { Badge, statusTone } from "@/components/ui/Badge";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Checklist } from "@/components/projects/Checklist";
 import { StageEditor } from "@/components/projects/StageEditor";
@@ -55,23 +55,33 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </div>
       </div>
 
+      {/* Lo esencial de un vistazo — el detalle de precio/fechas queda en la card de abajo. */}
+      <div className="flex flex-wrap gap-x-6 gap-y-3 rounded-lg border border-border bg-surface p-4 text-sm">
+        <SummaryItem label="Cliente" value={client.business_name} />
+        <SummaryItem label="Estado" value={PROJECT_STATUSES.find((s) => s.value === project.status)?.label ?? project.status} />
+        <SummaryItem label="Progreso" value={`${project.progress_percent}%`} />
+        <SummaryItem
+          label="Próximo paso"
+          value={project.next_step || "Sin definir"}
+          muted={!project.next_step}
+        />
+        <SummaryItem
+          label="Saldo"
+          value={project.balance > 0 ? formatCurrency(project.balance, project.currency) : "Al día"}
+          tone={project.balance > 0 ? "warning" : "success"}
+        />
+        <SummaryItem label="Fecha estimada" value={formatDate(project.estimated_delivery_date)} />
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardBody className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Badge tone={statusTone(project.status, "project")}>
-                {PROJECT_STATUSES.find((s) => s.value === project.status)?.label}
-              </Badge>
-              <span className="text-caption">Se actualiza desde &quot;Etapa del proyecto&quot; →</span>
-            </div>
             {project.description && <p className="text-sm text-muted">{project.description}</p>}
-            <div className="grid grid-cols-2 gap-4 border-t border-border pt-4 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               <Info label="Precio" value={formatCurrency(project.price, project.currency)} />
               <Info label="Pagado" value={formatCurrency(project.amount_paid, project.currency)} tone="success" />
-              <Info label="Saldo" value={formatCurrency(project.balance, project.currency)} tone="warning" />
               <Info label="Estado de pago" value={project.payment_status} />
               <Info label="Inicio" value={formatDate(project.start_date)} />
-              <Info label="Entrega estimada" value={formatDate(project.estimated_delivery_date)} />
               <Info label="Entrega real" value={formatDate(project.actual_delivery_date)} />
               <Info label="Moneda" value={project.currency} />
             </div>
@@ -87,6 +97,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <Card>
           <CardHeader>
             <h2 className="text-card-title">Etapa del proyecto</h2>
+            <p className="mt-0.5 text-caption">Acá se actualiza el estado y el próximo paso.</p>
           </CardHeader>
           <CardBody>
             <StageEditor
@@ -187,6 +198,31 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <InternalNotes notes={internalNotes} clientId={client.id} projectId={project.id} />
         </CardBody>
       </Card>
+    </div>
+  );
+}
+
+function SummaryItem({
+  label,
+  value,
+  tone,
+  muted,
+}: {
+  label: string;
+  value: string;
+  tone?: "success" | "warning";
+  muted?: boolean;
+}) {
+  return (
+    <div>
+      <p className="text-caption">{label}</p>
+      <p
+        className={`font-medium ${
+          tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : muted ? "text-muted-2" : ""
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }
