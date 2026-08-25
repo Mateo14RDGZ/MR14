@@ -14,7 +14,7 @@ export async function Topbar() {
           (no entra junto al resto en ~390px) — en desktop va todo en una sola fila. */}
       <div className="flex min-h-14 items-center gap-3 px-4 lg:min-h-16 lg:px-6">
         <div className="lg:hidden">
-          <Logo size="md" />
+          <Logo mark size="lg" />
         </div>
         <div className="hidden min-w-0 flex-1 max-w-sm lg:block">
           <CommandPaletteTrigger />

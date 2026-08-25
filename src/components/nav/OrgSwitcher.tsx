@@ -24,7 +24,7 @@ export async function OrgSwitcher({
   return (
     <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-background/85 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md lg:px-6">
       <div className="lg:hidden">
-        <Logo size="md" />
+        <Logo mark size="lg" />
       </div>
       {memberships.length > 1 && (
         <form action={setActiveOrganizationAction} className="flex items-center gap-2">

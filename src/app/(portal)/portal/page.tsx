@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { installmentsWithStatus } from "@/lib/installments";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { STAGE_META } from "@/lib/types";
-import { Globe, ExternalLink, Wallet, FolderKanban, MessageCircle, LifeBuoy, ChevronRight, CircleCheck } from "lucide-react";
+import { Globe, Wallet, FolderKanban, MessageCircle, LifeBuoy, ChevronRight, CircleCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 const DELIVERED_STATUSES = ["entregado", "publicado", "mantenimiento"];
@@ -59,14 +59,6 @@ export default async function PortalDashboardPage() {
         <p className="text-display">Hola, {activeClient?.contact_name || activeClient?.business_name}</p>
         <p className="text-sm text-muted-2">{activeClient?.business_name}</p>
       </div>
-
-      {data.hosting?.production_url && (
-        <a href={data.hosting.production_url} target="_blank" rel="noopener noreferrer">
-          <Button size="lg">
-            <ExternalLink size={16} /> Abrir sitio
-          </Button>
-        </a>
-      )}
 
       <NextActionsPanel actions={nextActions} />
 

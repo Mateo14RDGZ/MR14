@@ -8,7 +8,7 @@ export function PendingApprovalScreen() {
     <div className="flex min-h-svh items-center justify-center bg-background px-4">
       <div className="w-full max-w-[360px] animate-fade-in text-center">
         <div className="mb-6 flex flex-col items-center gap-3">
-          <Logo size="xl" />
+          <Logo mark size="2xl" />
         </div>
         <Clock size={32} className="mx-auto mb-3 text-warning" />
         <p className="text-card-title">Esperando confirmación de MR14</p>
