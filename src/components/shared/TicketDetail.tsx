@@ -199,6 +199,7 @@ export function TicketDetail({
               <StatusSelect ticketId={ticket.id} current={ticket.status} />
               <PrioritySelect ticketId={ticket.id} current={ticket.priority} />
               <CreateQuoteDialog ticketId={ticket.id} />
+              {ticket.status !== "closed" && <AdminCloseButton ticketId={ticket.id} />}
             </CardBody>
           </Card>
         )}
@@ -556,6 +557,20 @@ function QuoteCard({
 
 function quotes_status_label(status: string) {
   return { pending: "pendiente", accepted: "aceptado", rejected: "rechazado", superseded: "reemplazado" }[status] ?? status;
+}
+
+function AdminCloseButton({ ticketId }: { ticketId: string }) {
+  return (
+    <ConfirmButton
+      action={() => updateTicketStatusAction(ticketId, "closed")}
+      label="Cerrar ticket"
+      variant="secondary"
+      size="sm"
+      className="w-full"
+      confirmTitle="¿Cerrar este ticket?"
+      confirmDescription="Marcalo como cerrado cuando ya resolviste lo que pedía el cliente. Se puede reabrir después si hace falta."
+    />
+  );
 }
 
 function ClientCloseButton({ ticketId }: { ticketId: string }) {

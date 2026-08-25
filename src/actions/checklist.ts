@@ -65,7 +65,10 @@ export async function updateProjectStageAction(
     .single();
   if (error) return { error: error.message };
 
-  await logHistory({ clientId, projectId, event: `Etapa actualizada: "${meta.adminLabel}" (${meta.progress}%)`, visibility: "client" });
+  // visibility "client": esto lo lee el cliente en su propio historial — va
+  // en su idioma (clientLabel), no en la jerga interna del admin ni con el
+  // % pelado, que no le dice nada a alguien sin conocimientos técnicos.
+  await logHistory({ clientId, projectId, event: `Tu proyecto avanzó a: ${meta.clientLabel}`, visibility: "client" });
 
   const clientMemberIds = await getClientMemberUserIds(clientId);
   await notifyUsers({

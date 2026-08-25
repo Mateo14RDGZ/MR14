@@ -7,6 +7,13 @@ import { Input, Textarea, Select, Label, Field } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { createTicketAction } from "@/actions/tickets";
 import { TICKET_CATEGORIES } from "@/lib/types";
+
+const CLIENT_PRIORITY_OPTIONS = [
+  { value: "low", label: "No corre urgencia" },
+  { value: "normal", label: "Normal" },
+  { value: "high", label: "Es urgente" },
+  { value: "critical", label: "Es una emergencia" },
+];
 import { Paperclip } from "lucide-react";
 
 export function NewTicketForm({
@@ -49,6 +56,16 @@ export function NewTicketForm({
               {TICKET_CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field className="mb-0">
+            <Label>¿Qué tan urgente es?</Label>
+            <Select name="priority" defaultValue="normal">
+              {CLIENT_PRIORITY_OPTIONS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
                 </option>
               ))}
             </Select>

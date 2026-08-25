@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { logHistory } from "@/lib/history";
 import { notifyUsers, getAdminUserIds, getClientMemberUserIds } from "@/lib/notifications";
 import { slugify } from "@/lib/utils";
-import type { TicketCategory, TicketPriority, TicketStatus } from "@/lib/types";
+import { CLIENT_TICKET_STATUS_LABEL, type TicketCategory, type TicketPriority, type TicketStatus } from "@/lib/types";
 
 const ATTACHMENTS_BUCKET = "ticket-attachments";
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10MB
@@ -82,10 +82,9 @@ export async function createTicketAction(clientId: string, formData: FormData) {
     return { error: "Completá proyecto, asunto y descripción." };
   }
 
-  // El cliente no puede fijar prioridad (se infiere de la categoría); el
-  // admin sí puede, si el form la mandó.
-  const priority: TicketPriority =
-    role === "admin" && requestedPriority ? requestedPriority : category === "site_down" ? "high" : "normal";
+  // El cliente elige la prioridad; si no manda nada (o es admin creando sin
+  // tocar el campo) se infiere de la categoría como antes.
+  const priority: TicketPriority = requestedPriority || (category === "site_down" ? "high" : "normal");
 
   const { data: ticket, error } = await supabase
     .from("tickets")
@@ -239,10 +238,12 @@ export async function updateTicketStatusAction(ticketId: string, status: TicketS
     meta: { status },
   });
 
+  // visibility "client": lo ve el cliente en su historial — nombre y estado
+  // en su idioma (Solicitudes/CLIENT_TICKET_STATUS_LABEL), no el enum interno.
   await logHistory({
     clientId: ticket.client_id,
     projectId: ticket.project_id,
-    event: `Ticket ${ticket.number}: estado "${status}"`,
+    event: `Solicitud ${ticket.number}: ${CLIENT_TICKET_STATUS_LABEL[status]}`,
     visibility: "client",
   });
 
