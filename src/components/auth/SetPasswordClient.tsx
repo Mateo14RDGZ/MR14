@@ -62,7 +62,7 @@ export function SetPasswordClient() {
     <div className="flex min-h-svh items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm animate-fade-in">
         <div className="mb-8 flex flex-col items-center gap-3">
-          <Logo />
+          <Logo mark size="2xl" />
           <p className="text-center text-sm text-muted">Activá tu acceso al portal de clientes</p>
         </div>
 

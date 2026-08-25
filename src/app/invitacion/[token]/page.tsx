@@ -9,7 +9,7 @@ function InfoScreen({ icon: Icon, tone, title, description }: { icon: typeof Shi
     <div className="flex min-h-svh items-center justify-center bg-background px-4">
       <div className="w-full max-w-[340px] animate-fade-in text-center">
         <div className="mb-6 flex flex-col items-center gap-3">
-          <Logo size="xl" />
+          <Logo mark size="2xl" />
         </div>
         <Icon size={28} className={`mx-auto mb-3 ${tone}`} />
         <p className="text-card-title">{title}</p>
@@ -68,7 +68,7 @@ export default async function InvitationPage({
     <div className="flex min-h-svh items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-[380px] animate-fade-in">
         <div className="mb-8 flex flex-col items-center gap-3">
-          <Logo size="xl" />
+          <Logo mark size="2xl" />
           <p className="text-center text-sm text-muted">
             {isNewClient ? (
               "Registrate como cliente de MR14"
