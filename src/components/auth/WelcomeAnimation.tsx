@@ -4,10 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Logo } from "@/components/ui/Logo";
-import { Plus } from "lucide-react";
+import { X } from "lucide-react";
 
-const HOLD_MS = 1300;
-const EXIT_MS = 220;
+// Bastante más lenta que cualquier microinteracción del resto de la app a
+// propósito: es un momento de marca puntual (una vez por sesión), no una
+// transición de UI que se repite. Los logos entran desde los costados y se
+// "encuentran" en el centro, donde aparece la X — simula la colaboración
+// entre el cliente y MR14.
+const HOLD_MS = 2600;
+const EXIT_MS = 350;
 
 export function WelcomeAnimation({ logo, name, dest }: { logo: string; name: string; dest: string }) {
   const router = useRouter();
@@ -26,22 +31,30 @@ export function WelcomeAnimation({ logo, name, dest }: { logo: string; name: str
 
   return (
     <div
-      className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background px-4 transition-opacity duration-200"
+      className="flex min-h-svh flex-col items-center justify-center gap-8 bg-background px-4 transition-opacity duration-300"
       style={{ opacity: exiting ? 0 : 1 }}
     >
-      <div className="flex animate-scale-in items-center gap-5">
+      <div className="flex items-center gap-7">
         <Image
           src={logo}
           alt=""
-          width={72}
-          height={72}
+          width={128}
+          height={128}
           unoptimized
-          className="h-[72px] w-[72px] shrink-0 rounded-full border border-border object-cover"
+          className="h-32 w-32 shrink-0 animate-welcome-left rounded-full border border-border object-cover"
         />
-        <Plus size={18} className="shrink-0 text-muted-2" />
-        <Logo mark size="xl" />
+        <X size={28} strokeWidth={2.5} className="shrink-0 animate-welcome-pop text-muted-2" />
+        <Logo mark size="3xl" className="animate-welcome-right" />
       </div>
-      <p className="animate-fade-in text-center text-sm text-muted">{name ? `Hola, ${name}` : "Bienvenido"}</p>
+      <p className="animate-welcome-text text-center text-base text-muted">
+        {name ? (
+          <>
+            Bienvenido, <span className="font-medium text-foreground">{name}</span>
+          </>
+        ) : (
+          "Bienvenido"
+        )}
+      </p>
     </div>
   );
 }

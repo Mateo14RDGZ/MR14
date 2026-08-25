@@ -8,10 +8,17 @@ export function Logo({
 }: {
   className?: string;
   mark?: boolean;
-  size?: "sm" | "md" | "lg" | "xl" | "2xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
 }) {
-  const markSize = { sm: 22, md: 32, lg: 44, xl: 60, "2xl": 112 }[size];
-  const textSize = { sm: "text-sm", md: "text-xl", lg: "text-2xl", xl: "text-3xl", "2xl": "text-4xl" }[size];
+  const markSize = { sm: 22, md: 32, lg: 44, xl: 60, "2xl": 112, "3xl": 136 }[size];
+  const textSize = {
+    sm: "text-sm",
+    md: "text-xl",
+    lg: "text-2xl",
+    xl: "text-3xl",
+    "2xl": "text-4xl",
+    "3xl": "text-5xl",
+  }[size];
 
   if (mark) {
     return (
