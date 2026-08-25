@@ -22,6 +22,16 @@ async function assertAdmin() {
 }
 
 /**
+ * Barrido de links de invitación vencidos y nunca usados. Además del
+ * cleanup diario por pg_cron (migración 0017), se llama acá para no
+ * depender solo de eso: cada vez que se genera un link nuevo es una
+ * oportunidad gratis de limpiar lo viejo.
+ */
+async function cleanupExpiredInvitations(admin: ReturnType<typeof createAdminClient>) {
+  await admin.from("client_invitations").delete().is("used_at", null).lt("expires_at", new Date().toISOString());
+}
+
+/**
  * Genera un link único de invitación (sin crear todavía ninguna cuenta). El
  * cliente lo abre, completa sus propios datos + contraseña en /invitacion/[token]
  * y ahí recién se crea el usuario automáticamente.
@@ -29,6 +39,7 @@ async function assertAdmin() {
 export async function createInvitationLinkAction(clientId: string, formData: FormData) {
   const { user } = await assertAdmin();
   const admin = createAdminClient();
+  await cleanupExpiredInvitations(admin);
 
   const roleInClient = String(formData.get("role_in_client") || "colaborador");
   const token = crypto.randomBytes(24).toString("base64url");
@@ -55,6 +66,7 @@ export async function createInvitationLinkAction(clientId: string, formData: For
 export async function createClientRegistrationLinkAction() {
   const { user } = await assertAdmin();
   const admin = createAdminClient();
+  await cleanupExpiredInvitations(admin);
 
   const token = crypto.randomBytes(24).toString("base64url");
 
