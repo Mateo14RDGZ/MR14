@@ -1,7 +1,8 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 export function Dialog({
@@ -19,6 +20,16 @@ export function Dialog({
 }) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  // Portal a document.body: si el trigger vive dentro de un header con
+  // backdrop-blur (NotificationBell en Topbar/OrgSwitcher), ese blur crea un
+  // containing block nuevo para position:fixed y el overlay queda atrapado
+  // ahí adentro (invisible/recortado) en vez de cubrir la pantalla — visto
+  // en mobile real. Portal evita depender de qué contenedor tenga cada uso.
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -32,9 +43,9 @@ export function Dialog({
     if (open) panelRef.current?.focus();
   }, [open]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/60 backdrop-blur-[2px] animate-fade-in sm:items-center sm:px-4 sm:py-8"
       onClick={onClose}
@@ -67,6 +78,7 @@ export function Dialog({
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
