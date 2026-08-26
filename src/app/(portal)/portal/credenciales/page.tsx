@@ -15,7 +15,7 @@ export default async function PortalCredentialsPage() {
     <div className="animate-fade-in space-y-6">
       <div>
         <h1 className="text-page-title">Accesos</h1>
-        <p className="mt-1 text-sm text-muted">Credenciales que MR14 te entregó.</p>
+        <p className="mt-1 text-sm text-muted">Usuarios y contraseñas que MR14 te entregó.</p>
       </div>
 
       {credentials.length === 0 ? (

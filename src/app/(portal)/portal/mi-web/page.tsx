@@ -84,7 +84,7 @@ export default async function PortalMiWebPage() {
           <Row label="Estado" value={STAGE_META[project.stage as ProjectStage]?.clientLabel ?? project.status.replace(/_/g, " ")} />
           <Row label="Dirección" value={hosting?.production_url ?? domain?.domain} />
           <Row label="Última actualización" value={formatDate(project.updated_at)} />
-          <Row label="Próxima renovación" value={formatDate(domain?.expiry_date)} />
+          {domain?.expiry_date && <Row label="Próxima renovación" value={formatDate(domain.expiry_date)} />}
         </div>
         {hosting?.production_url && (
           <a href={hosting.production_url} target="_blank" rel="noopener noreferrer">
@@ -95,9 +95,10 @@ export default async function PortalMiWebPage() {
         )}
       </Card>
 
+      {/* Todo lo técnico/secundario, plegado: no compite con lo esencial de arriba. */}
       <details className="group rounded-lg border border-border">
         <summary className="cursor-pointer list-none px-5 py-3.5 text-sm font-medium text-muted marker:content-none group-open:border-b group-open:border-border">
-          Detalles técnicos
+          Detalles
         </summary>
         <div className="space-y-3 p-5 text-sm">
           <Row label="Dominio" value={domain?.domain} />
@@ -105,36 +106,29 @@ export default async function PortalMiWebPage() {
           <Row label="Hosting" value={hosting?.platform} />
           <Row label="Fecha de publicación" value={formatDate(project.actual_delivery_date)} />
         </div>
-      </details>
-
-      {lastAudit && (
-        <Card>
-          <CardHeader>
-            <h2 className="text-card-title">Última auditoría</h2>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted">SEO</span>
-                <Badge tone={((score.seo ?? 0) >= 70 ? "success" : "warning")}>{score.seo ?? "-"}/100</Badge>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted">Accesibilidad</span>
-                <Badge tone={((score.accessibility ?? 0) >= 70 ? "success" : "warning")}>
-                  {score.accessibility ?? "-"}/100
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted">Performance estimada</span>
-                <Badge tone={((score.performance ?? 0) >= 70 ? "success" : "warning")}>
-                  {score.performance ?? "-"}/100
-                </Badge>
-              </div>
-              <p className="pt-2 text-xs text-muted-2">Analizado el {formatDate(lastAudit.created_at)}</p>
+        {lastAudit && (
+          <div className="space-y-3 border-t border-border p-5 text-sm">
+            <p className="text-xs uppercase tracking-wide text-muted-2">Última revisión del sitio</p>
+            <div className="flex items-center justify-between">
+              <span className="text-muted">SEO</span>
+              <Badge tone={((score.seo ?? 0) >= 70 ? "success" : "warning")}>{score.seo ?? "-"}/100</Badge>
             </div>
-          </CardBody>
-        </Card>
-      )}
+            <div className="flex items-center justify-between">
+              <span className="text-muted">Accesibilidad</span>
+              <Badge tone={((score.accessibility ?? 0) >= 70 ? "success" : "warning")}>
+                {score.accessibility ?? "-"}/100
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted">Velocidad</span>
+              <Badge tone={((score.performance ?? 0) >= 70 ? "success" : "warning")}>
+                {score.performance ?? "-"}/100
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-2">Analizado el {formatDate(lastAudit.created_at)}</p>
+          </div>
+        )}
+      </details>
     </div>
   );
 }

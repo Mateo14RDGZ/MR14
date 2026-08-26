@@ -17,6 +17,20 @@ const CLIENT_DOC_LABEL: Record<string, { label: string; tone: "muted" | "success
   archived: { label: "Archivado", tone: "muted" },
 };
 
+// Mismo criterio: la categoría interna (snake_case, para filtros del admin)
+// no tiene por qué mostrarse literal — "comprobante_anticipo" no dice nada.
+const CLIENT_CATEGORY_LABEL: Record<string, string> = {
+  contrato: "Contrato",
+  comprobante_anticipo: "Comprobante de anticipo",
+  comprobante_saldo: "Comprobante de saldo",
+  guia_trabajo: "Guía de trabajo",
+  factura: "Factura",
+  doc_tecnica: "Documento técnico",
+  credenciales: "Accesos",
+  entrega_final: "Entrega final",
+  otro: "Documento",
+};
+
 export default async function PortalDocumentsPage() {
   const { activeClientId } = await getPortalContext();
   const documents = await getPortalDocuments(activeClientId);
@@ -43,7 +57,9 @@ export default async function PortalDocumentsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{d.name}</p>
-                    <p className="text-xs text-muted-2">{d.category ?? "Documento"} · {formatDate(d.uploaded_at)}</p>
+                    <p className="text-xs text-muted-2">
+                      {(d.category && CLIENT_CATEGORY_LABEL[d.category]) || "Documento"} · {formatDate(d.uploaded_at)}
+                    </p>
                     {isSignedContract && (
                       <p className="mt-1 flex items-center gap-1 text-xs text-success">
                         <CheckCircle2 size={12} />

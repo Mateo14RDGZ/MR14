@@ -1,7 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { daysUntil, formatCurrency } from "@/lib/utils";
-import type { ProjectInstallment } from "@/lib/types";
 
 /**
  * Solo lo que hace falta para los KPIs principales del dashboard admin
@@ -437,20 +436,16 @@ export async function getPortalDashboardCore(clientId: string) {
     .maybeSingle();
 
   let infra: { domains: unknown[]; hosting: unknown[] } = { domains: [], hosting: [] };
-  let installments: ProjectInstallment[] = [];
   if (project) {
-    const [domains, hosting, installmentsRes] = await Promise.all([
+    const [domains, hosting] = await Promise.all([
       supabase.from("domains").select("*").eq("project_id", project.id),
       supabase.from("hosting").select("*").eq("project_id", project.id),
-      supabase.from("project_installments").select("*").eq("project_id", project.id).order("number", { ascending: true }),
     ]);
     infra = { domains: domains.data ?? [], hosting: hosting.data ?? [] };
-    installments = installmentsRes.data ?? [];
   }
 
   return {
     project,
-    installments,
     domain: (infra.domains as { domain: string; status: string | null; expiry_date: string | null; registrar: string | null }[])[0] ?? null,
     hosting: (infra.hosting as { platform: string; production_url: string | null }[])[0] ?? null,
   };

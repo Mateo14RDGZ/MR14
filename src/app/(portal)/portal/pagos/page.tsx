@@ -17,36 +17,32 @@ export default async function PortalPagosPage() {
   }
 
   const rows = installmentsWithStatus(installments, project.amount_paid);
+  const nextInstallment = rows.find((r) => r.isNext) ?? null;
+  const allPaid = project.balance <= 0;
 
   return (
     <div className="animate-fade-in space-y-6">
-      <PageHeader title="Pagos" description="Cuánto pagaste y cuánto te falta para tu proyecto." />
+      <PageHeader title="Pagos" description={`Proyecto ${project.name}`} />
 
-      <Card className="p-6 text-center sm:p-8">
-        <p className="text-caption">{project.balance > 0 ? "Pendiente" : "Estado"}</p>
-        {project.balance > 0 ? (
-          <p className="mt-1.5 text-display text-warning">{formatCurrency(project.balance, project.currency)}</p>
-        ) : (
-          <p className="mt-1.5 text-display text-success">Todo pago</p>
-        )}
-        <div className="mx-auto mt-4 flex max-w-xs items-center justify-between text-sm">
-          <div>
-            <p className="text-metric text-success">{formatCurrency(project.amount_paid, project.currency)}</p>
-            <p className="text-caption mt-0.5">pagado</p>
+      {allPaid ? (
+        <p className="flex items-center gap-1.5 px-1 text-sm font-medium text-success">
+          <CheckCircle2 size={16} /> Todo pago
+        </p>
+      ) : (
+        <Card className="p-6 sm:p-8">
+          <div className="space-y-2 text-sm">
+            <Row label="Total" value={formatCurrency(project.price, project.currency)} />
+            <Row label="Pagado" value={formatCurrency(project.amount_paid, project.currency)} tone="success" />
+            <Row label="Pendiente" value={formatCurrency(project.balance, project.currency)} tone="warning" />
+            {nextInstallment && (
+              <Row
+                label="Próximo pago"
+                value={`${formatCurrency(nextInstallment.amount, project.currency)}${nextInstallment.due_date ? ` · ${formatDate(nextInstallment.due_date)}` : ""}`}
+              />
+            )}
           </div>
-          <div className="h-8 w-px bg-border" />
-          <div>
-            <p className="text-metric">{formatCurrency(project.price, project.currency)}</p>
-            <p className="text-caption mt-0.5">precio total</p>
-          </div>
-        </div>
-        <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-surface-2">
-          <div
-            className="h-full rounded-full bg-success transition-all"
-            style={{ width: `${Math.min(100, project.price > 0 ? (project.amount_paid / project.price) * 100 : 0)}%` }}
-          />
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {rows.length > 0 && (
         <Card>
@@ -100,6 +96,16 @@ export default async function PortalPagosPage() {
           )}
         </CardBody>
       </Card>
+    </div>
+  );
+}
+
+function Row({ label, value, tone }: { label: string; value: string; tone?: "success" | "warning" }) {
+  const toneClass = tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : "";
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-muted">{label}</span>
+      <span className={`font-medium tabular-nums ${toneClass}`}>{value}</span>
     </div>
   );
 }

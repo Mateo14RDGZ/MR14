@@ -6,15 +6,19 @@ import { Card, CardBody } from "@/components/ui/Card";
 import { Input, Textarea, Select, Label, Field } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { createTicketAction } from "@/actions/tickets";
-import { TICKET_CATEGORIES } from "@/lib/types";
-
-const CLIENT_PRIORITY_OPTIONS = [
-  { value: "low", label: "No corre urgencia" },
-  { value: "normal", label: "Normal" },
-  { value: "high", label: "Es urgente" },
-  { value: "critical", label: "Es una emergencia" },
-];
 import { Paperclip } from "lucide-react";
+
+// Simplificado a 4 opciones en el idioma del cliente — las 8 categorías
+// internas (bug/content_change/new_feature/domain/hosting/email/
+// site_down/other) siguen existiendo igual, esto es solo cómo se le
+// pregunta. La prioridad no se le pregunta al cliente: es un criterio
+// interno que decide MR14.
+const CLIENT_CATEGORY_OPTIONS = [
+  { value: "content_change", label: "Cambiar algo de mi web" },
+  { value: "bug", label: "Tengo un problema" },
+  { value: "new_feature", label: "Quiero agregar algo nuevo" },
+  { value: "other", label: "Otro" },
+];
 
 export function NewTicketForm({
   clientId,
@@ -53,19 +57,9 @@ export function NewTicketForm({
           <Field className="mb-0">
             <Label>¿Qué necesitás?</Label>
             <Select name="category" defaultValue="other">
-              {TICKET_CATEGORIES.map((c) => (
+              {CLIENT_CATEGORY_OPTIONS.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field className="mb-0">
-            <Label>¿Qué tan urgente es?</Label>
-            <Select name="priority" defaultValue="normal">
-              {CLIENT_PRIORITY_OPTIONS.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
                 </option>
               ))}
             </Select>
@@ -80,7 +74,7 @@ export function NewTicketForm({
           </Field>
           <Field className="mb-0">
             <Label className="flex items-center gap-1">
-              <Paperclip size={12} /> Adjuntar archivos (opcional)
+              <Paperclip size={12} /> Adjuntar foto o archivo (opcional)
             </Label>
             <input
               type="file"

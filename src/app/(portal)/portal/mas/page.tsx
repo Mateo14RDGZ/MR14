@@ -2,13 +2,16 @@ import Link from "next/link";
 import { getPortalContext } from "@/lib/portal";
 import { getPortalDeliveryChecklist } from "@/lib/queries";
 import { signOut } from "@/actions/auth";
-import { Wallet, RefreshCw, User, LogOut, ChevronRight, KeyRound } from "lucide-react";
+import { Wallet, RefreshCw, User, LogOut, ChevronRight, KeyRound, MessageCircle } from "lucide-react";
 
 export default async function PortalMasPage() {
-  const { activeClientId } = await getPortalContext();
+  const { activeClientId, activeClient } = await getPortalContext();
   // "Accesos" solo aparece si hay algo que mostrar — no tiene sentido un
   // link a una pantalla vacía.
   const { hasDeliveredCredentials } = await getPortalDeliveryChecklist(activeClientId);
+  const whatsappHref =
+    "https://wa.me/59899000000?text=" +
+    encodeURIComponent(`Hola MR14, soy ${activeClient?.business_name}, necesito ayuda con mi proyecto.`);
 
   const links = [
     { href: "/portal/pagos", label: "Pagos", icon: Wallet },
@@ -33,6 +36,16 @@ export default async function PortalMasPage() {
             <ChevronRight size={16} className="shrink-0 text-muted-2" />
           </Link>
         ))}
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-4 py-3.5 text-sm transition-colors hover:bg-surface-2"
+        >
+          <MessageCircle size={17} className="shrink-0 text-muted-2" />
+          <span className="flex-1">Contacto general</span>
+          <ChevronRight size={16} className="shrink-0 text-muted-2" />
+        </a>
       </div>
 
       <form action={signOut}>
