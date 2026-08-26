@@ -4,6 +4,14 @@ import { useState, useTransition } from "react";
 import { Button } from "./Button";
 import { AlertTriangle } from "lucide-react";
 
+// Server actions que llaman a redirect()/notFound() de Next.js lo hacen
+// lanzando un error especial con este digest — hay que dejarlo pasar para
+// que el framework haga la navegación, no tratarlo como una falla real.
+function isFrameworkNavigationError(err: unknown): boolean {
+  const digest = (err as { digest?: string } | undefined)?.digest;
+  return typeof digest === "string" && (digest.startsWith("NEXT_REDIRECT") || digest === "NEXT_NOT_FOUND");
+}
+
 export function ConfirmButton({
   action,
   label,
@@ -76,6 +84,7 @@ export function ConfirmButton({
                       await action();
                       setOpen(false);
                     } catch (err) {
+                      if (isFrameworkNavigationError(err)) throw err;
                       setError(err instanceof Error ? err.message : "No se pudo completar la acción.");
                     }
                   })
