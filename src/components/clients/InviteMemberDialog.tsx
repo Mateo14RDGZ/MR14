@@ -43,9 +43,9 @@ export function InviteMemberDialog({
   return (
     <>
       <Button size="sm" onClick={() => setOpen(true)}>
-        <UserPlus size={14} /> Invitar cliente
+        <UserPlus size={14} /> Invitar usuario
       </Button>
-      <Dialog open={open} onClose={close} title={link ? "Enviar invitación" : "Invitar cliente al portal"}>
+      <Dialog open={open} onClose={close} title={link ? "Enviar invitación" : "Invitar usuario al portal"}>
         {!link ? (
           <form action={onSubmit} className="space-y-4">
             <Field className="mb-0">

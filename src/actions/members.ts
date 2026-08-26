@@ -57,32 +57,6 @@ export async function createInvitationLinkAction(clientId: string, formData: For
   return { link: `${appUrl}/invitacion/${token}` };
 }
 
-/**
- * Genera un link "abierto" (sin cliente todavía) para que un prospecto se
- * registre solo: completa los datos de su negocio + su contraseña, y se
- * crean la ficha del cliente y su usuario del portal en un solo paso,
- * pendientes de aprobación del admin.
- */
-export async function createClientRegistrationLinkAction() {
-  const { user } = await assertAdmin();
-  const admin = createAdminClient();
-  await cleanupExpiredInvitations(admin);
-
-  const token = crypto.randomBytes(24).toString("base64url");
-
-  const { error } = await admin.from("client_invitations").insert({
-    client_id: null,
-    token,
-    role_in_client: "owner",
-    created_by: user.id,
-  });
-
-  if (error) return { error: error.message };
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  return { link: `${appUrl}/invitacion/${token}` };
-}
-
 /** Lee una invitación (usada o no) para que la página pública decida qué mostrar. */
 export async function getInvitationByToken(token: string) {
   const admin = createAdminClient();
