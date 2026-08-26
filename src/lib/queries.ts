@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { daysUntil, formatCurrency } from "@/lib/utils";
+import type { ProjectInstallment } from "@/lib/types";
 
 /**
  * Solo lo que hace falta para los KPIs principales del dashboard admin
@@ -282,10 +283,16 @@ export async function getClientIdsWithPendingApproval(): Promise<Set<string>> {
 
 export async function getClientDetail(id: string) {
   const supabase = await createClient();
-  const [client, projects, credentials, documents, history, renewals, members, payments, requests] =
+  // Los ids de proyecto hacen falta para pedir las cuotas (project_installments
+  // no tiene client_id propio), así que projects se resuelve antes que el resto.
+  const [client, projects] = await Promise.all([
+    supabase.from("clients").select("*").eq("id", id).single(),
+    supabase.from("projects").select("*").eq("client_id", id).order("created_at", { ascending: false }),
+  ]);
+  const projectIds = (projects.data ?? []).map((p) => p.id);
+
+  const [credentials, documents, history, renewals, members, payments, requests, installments] =
     await Promise.all([
-      supabase.from("clients").select("*").eq("id", id).single(),
-      supabase.from("projects").select("*").eq("client_id", id).order("created_at", { ascending: false }),
       supabase.from("credentials").select("*").eq("client_id", id).order("last_updated", { ascending: false }),
       supabase.from("documents").select("*").eq("client_id", id).order("uploaded_at", { ascending: false }),
       supabase
@@ -298,6 +305,9 @@ export async function getClientDetail(id: string) {
       supabase.from("client_members").select("*").eq("client_id", id).order("created_at", { ascending: false }),
       supabase.from("payments").select("*").eq("client_id", id).order("paid_at", { ascending: false }),
       supabase.from("requests").select("*").eq("client_id", id).order("created_at", { ascending: false }),
+      projectIds.length > 0
+        ? supabase.from("project_installments").select("*").in("project_id", projectIds).order("number", { ascending: true })
+        : Promise.resolve({ data: [] as ProjectInstallment[] }),
     ]);
 
   return {
@@ -310,6 +320,7 @@ export async function getClientDetail(id: string) {
     members: members.data ?? [],
     payments: payments.data ?? [],
     requests: requests.data ?? [],
+    installments: installments.data ?? [],
   };
 }
 
@@ -719,18 +730,6 @@ export async function getPortalTicketSummary(clientId: string) {
     open: list.filter((t) => !["resolved", "closed"].includes(t.status)).length,
     waitingReply: list.filter((t) => t.status === "waiting_client").length,
     lastTicketNumber: list[0]?.number ?? null,
-  };
-}
-
-export async function getClientSupportSummary(clientId: string) {
-  const supabase = await createClient();
-  const { data } = await supabase.from("tickets").select("id,status,created_at").eq("client_id", clientId);
-  const list = data ?? [];
-  return {
-    total: list.length,
-    resolved: list.filter((t) => ["resolved", "closed"].includes(t.status)).length,
-    open: list.filter((t) => !["resolved", "closed"].includes(t.status)).length,
-    lastRequestDate: list.sort((a, b) => b.created_at.localeCompare(a.created_at))[0]?.created_at ?? null,
   };
 }
 
