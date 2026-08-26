@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
 import { UploadDocumentDialog } from "@/components/clients/UploadDocumentDialog";
 import { DocumentDownloadButton } from "@/components/shared/DocumentDownloadButton";
+import { RenameDocumentButton } from "@/components/clients/RenameDocumentButton";
 import { DeleteDocumentButton } from "@/components/clients/DeleteDocumentButton";
 import { DocumentStatusControl } from "@/components/clients/DocumentStatusControl";
 import type { DocumentRow } from "@/lib/types";
@@ -53,6 +54,7 @@ export function DocumentsTab({
                   signedByClient={d.signed_by_client}
                 />
                 <DocumentDownloadButton storagePath={d.storage_path} />
+                <RenameDocumentButton id={d.id} clientId={clientId} name={d.name} />
                 <DeleteDocumentButton id={d.id} storagePath={d.storage_path} clientId={clientId} />
               </div>
             </Card>

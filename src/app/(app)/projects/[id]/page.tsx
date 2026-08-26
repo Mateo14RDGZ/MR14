@@ -15,6 +15,7 @@ import {
   DatabasesSection,
 } from "@/components/projects/InfraSections";
 import { DeleteProjectButton } from "@/components/projects/DeleteProjectButton";
+import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
 import { MarkDeliveredButton } from "@/components/projects/MarkDeliveredButton";
 import { HistoryTab } from "@/components/clients/HistoryTab";
 import { PROJECT_STATUSES, PROJECT_TYPES } from "@/lib/types";
@@ -51,6 +52,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </div>
         <div className="flex items-center gap-2">
           <MarkDeliveredButton projectId={project.id} clientId={client.id} />
+          <EditProjectDialog clientId={client.id} project={project} />
           <DeleteProjectButton projectId={project.id} clientId={client.id} />
         </div>
       </div>

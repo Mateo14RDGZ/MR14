@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/Empty";
 import { RegisterPaymentDialog } from "@/components/clients/RegisterPaymentDialog";
+import { EditPaymentDialog } from "@/components/clients/EditPaymentDialog";
 import { DeletePaymentButton } from "@/components/clients/DeletePaymentButton";
 import { installmentsWithStatus } from "@/lib/installments";
 import type { Payment, ProjectInstallment } from "@/lib/types";
@@ -83,7 +84,10 @@ export function PaymentsTab({
                   {p.method || "Sin método"} · {formatDate(p.paid_at)}
                 </p>
               </div>
-              <DeletePaymentButton id={p.id} clientId={clientId} projectId={p.project_id} />
+              <div className="flex shrink-0 items-center gap-1">
+                <EditPaymentDialog clientId={clientId} payment={p} />
+                <DeletePaymentButton id={p.id} clientId={clientId} projectId={p.project_id} />
+              </div>
             </Card>
           ))}
         </div>

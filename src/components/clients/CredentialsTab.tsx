@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
 import { NewCredentialDialog } from "@/components/clients/NewCredentialDialog";
+import { EditCredentialDialog } from "@/components/clients/EditCredentialDialog";
 import { SecretField } from "@/components/shared/SecretField";
 import { DeleteCredentialButton } from "@/components/clients/DeleteCredentialButton";
 import { DeliverCredentialButton } from "@/components/clients/DeliverCredentialButton";
@@ -62,6 +63,7 @@ export function CredentialsTab({
                   {(c.visibility === "client" || c.visibility === "temporary") && (
                     <DeliverCredentialButton id={c.id} clientId={clientId} />
                   )}
+                  <EditCredentialDialog clientId={clientId} credential={c} />
                   <DeleteCredentialButton id={c.id} clientId={clientId} />
                 </div>
               </div>

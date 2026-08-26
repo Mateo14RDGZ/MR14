@@ -46,6 +46,41 @@ export async function createPaymentAction(clientId: string, projectId: string, f
   revalidatePath("/dashboard");
 }
 
+export async function updatePaymentAction(
+  id: string,
+  clientId: string,
+  projectId: string,
+  formData: FormData
+) {
+  const supabase = await createClient();
+
+  const amount = Number(formData.get("amount"));
+  if (!Number.isFinite(amount) || amount <= 0) return { error: "Ingresá un monto válido." };
+
+  const payload = {
+    amount,
+    method: String(formData.get("method") || "").trim() || null,
+    paid_at: String(formData.get("paid_at") || new Date().toISOString().slice(0, 10)),
+    notes: String(formData.get("notes") || "").trim() || null,
+  };
+
+  const { error } = await supabase.from("payments").update(payload).eq("id", id);
+  if (error) return { error: error.message };
+
+  const { data: project } = await supabase.from("projects").select("price,amount_paid").eq("id", projectId).single();
+  if (project) {
+    const newPaid = Number(project.amount_paid);
+    const status = newPaid >= Number(project.price) ? "pagado" : newPaid > 0 ? "parcial" : "pendiente";
+    await supabase.from("projects").update({ payment_status: status }).eq("id", projectId);
+  }
+
+  await logHistory({ clientId, projectId, event: "Pago editado" });
+
+  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/dashboard");
+}
+
 export async function deletePaymentAction(id: string, clientId: string, projectId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("payments").delete().eq("id", id);

@@ -12,9 +12,9 @@ export async function Topbar() {
     <header className="sticky top-0 z-30 border-b border-border bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur-md">
       {/* Fila 1: logo/buscador + acciones. En mobile el buscador baja a su propia fila
           (no entra junto al resto en ~390px) — en desktop va todo en una sola fila. */}
-      <div className="flex min-h-14 items-center gap-3 px-4 lg:min-h-16 lg:px-6">
+      <div className="flex min-h-16 items-center gap-3 px-4 lg:min-h-16 lg:px-6">
         <div className="lg:hidden">
-          <Logo mark size="lg" />
+          <Logo mark size="xl" />
         </div>
         <div className="hidden min-w-0 flex-1 max-w-sm lg:block">
           <CommandPaletteTrigger />
