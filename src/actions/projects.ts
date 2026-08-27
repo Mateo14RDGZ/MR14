@@ -165,6 +165,49 @@ export async function updateProjectAction(projectId: string, clientId: string, f
   redirect(`/projects/${projectId}`);
 }
 
+/**
+ * Reemplaza el plan de cuotas por uno nuevo (mismo precio/anticipo del
+ * proyecto, otra cantidad de cuotas). No toca "payments" ni amount_paid —
+ * eso sigue siendo lo realmente cobrado; esto es solo cómo se reparte el
+ * saldo restante en cuotas.
+ */
+export async function regenerateInstallmentsAction(projectId: string, clientId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const { data: project } = await supabase
+    .from("projects")
+    .select("price,deposit,start_date")
+    .eq("id", projectId)
+    .single();
+  if (!project) return { error: "Proyecto no encontrado." };
+
+  const count = Math.max(1, Math.min(12, Number(formData.get("installments_count")) || 1));
+  const deposit = num(formData, "deposit");
+
+  const { error: depositError } = await supabase.from("projects").update({ deposit }).eq("id", projectId);
+  if (depositError) return { error: depositError.message };
+
+  const { error: deleteError } = await supabase.from("project_installments").delete().eq("project_id", projectId);
+  if (deleteError) return { error: deleteError.message };
+
+  const installments = buildInstallmentPlan({
+    price: Number(project.price),
+    deposit,
+    count,
+    startDate: project.start_date,
+  });
+  if (installments.length > 0) {
+    const { error: insertError } = await supabase
+      .from("project_installments")
+      .insert(installments.map((i) => ({ ...i, project_id: projectId })));
+    if (insertError) return { error: insertError.message };
+  }
+
+  await logHistory({ clientId, projectId, event: `Plan de cuotas actualizado (${count} cuota${count === 1 ? "" : "s"})` });
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/clients/${clientId}`);
+}
+
 export async function updateProjectStatusAction(
   projectId: string,
   clientId: string,

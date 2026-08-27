@@ -45,8 +45,9 @@ export async function signIn(formData: FormData) {
       const params = new URLSearchParams({
         dest,
         logo: client.logo_url,
-        // Nombre real de la persona que inició sesión, no el del negocio.
-        name: membership?.name ?? "",
+        // Nombre real de la persona que inició sesión (solo el primer
+        // nombre, no el apellido), no el del negocio.
+        name: membership?.name?.trim().split(/\s+/)[0] ?? "",
       });
       redirect(`/bienvenida?${params.toString()}`);
     }

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Checklist } from "@/components/projects/Checklist";
 import { StageEditor } from "@/components/projects/StageEditor";
 import { DevLinkCard } from "@/components/projects/DevLinkCard";
+import { InstallmentsEditor } from "@/components/projects/InstallmentsEditor";
 import {
   DomainsSection,
   HostingSection,
@@ -124,10 +125,17 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <DatabasesSection projectId={project.id} clientId={client.id} databases={databases} />
       </div>
 
+      <InstallmentsEditor
+        projectId={project.id}
+        clientId={client.id}
+        currentCount={installmentRows.length}
+        deposit={project.deposit}
+      />
+
       {installmentRows.length > 0 && (
         <Card>
           <CardHeader>
-            <h2 className="text-card-title">Plan de cuotas</h2>
+            <h2 className="text-card-title">Detalle de cuotas</h2>
           </CardHeader>
           <CardBody className="space-y-0 divide-y divide-border">
             {installmentRows.map((r) => (
