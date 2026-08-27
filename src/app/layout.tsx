@@ -19,10 +19,14 @@ export const metadata: Metadata = {
     title: "MR14",
   },
   icons: {
+    // Solo los tamaños chicos (favicon real, sin fondo) — icon-192/512 son
+    // para instalar la PWA (manifest.webmanifest), no para la pestaña del
+    // navegador, y de haberlos acá el navegador puede preferir el más
+    // grande, que sí tiene fondo.
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/icon-16.png", sizes: "16x16", type: "image/png" },
       { url: "/icons/icon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [{ url: "/icons/icon-180.png", sizes: "180x180", type: "image/png" }],
   },
