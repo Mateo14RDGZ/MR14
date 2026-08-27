@@ -35,10 +35,7 @@ export default async function PortalPagosPage() {
             <Row label="Pagado" value={formatCurrency(project.amount_paid, project.currency)} tone="success" />
             <Row label="Pendiente" value={formatCurrency(project.balance, project.currency)} tone="warning" />
             {nextInstallment && (
-              <Row
-                label="Próximo pago"
-                value={`${formatCurrency(nextInstallment.amount, project.currency)}${nextInstallment.due_date ? ` · ${formatDate(nextInstallment.due_date)}` : ""}`}
-              />
+              <Row label="Próximo pago" value={formatCurrency(nextInstallment.amount, project.currency)} />
             )}
           </div>
         </Card>
@@ -60,7 +57,6 @@ export default async function PortalPagosPage() {
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{r.label || `Cuota ${r.number}`}</p>
-                    {r.due_date && <p className="text-xs text-muted-2">Vence {formatDate(r.due_date)}</p>}
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">

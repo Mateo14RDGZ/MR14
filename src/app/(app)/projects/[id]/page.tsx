@@ -148,7 +148,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{r.label || `Cuota ${r.number}`}</p>
-                    {r.due_date && <p className="text-xs text-muted-2">Vence {formatDate(r.due_date)}</p>}
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
