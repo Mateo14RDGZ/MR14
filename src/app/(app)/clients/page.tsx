@@ -135,7 +135,7 @@ export default async function ClientsPage() {
               return (
                 <Link key={c.id} href={href}>
                   <Card className="flex items-center gap-3 p-4">
-                    <Avatar name={c.business_name} size="sm" />
+                    <Avatar name={c.business_name} logoUrl={c.logo_url} size="sm" />
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-1.5 truncate font-medium">
                         <HealthDot health={healthMap.get(c.id) ?? "bien"} />
