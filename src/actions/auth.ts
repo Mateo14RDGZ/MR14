@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { firstName } from "@/lib/utils";
 
 export async function signIn(formData: FormData) {
   const email = String(formData.get("email") || "").trim();
@@ -47,7 +48,7 @@ export async function signIn(formData: FormData) {
         logo: client.logo_url,
         // Nombre real de la persona que inició sesión (solo el primer
         // nombre, no el apellido), no el del negocio.
-        name: membership?.name?.trim().split(/\s+/)[0] ?? "",
+        name: membership?.name ? firstName(membership.name) : "",
       });
       redirect(`/bienvenida?${params.toString()}`);
     }

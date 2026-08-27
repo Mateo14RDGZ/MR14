@@ -7,7 +7,7 @@ import { NextActionsPanel, computeNextActions } from "@/components/portal/NextAc
 import { PortalSecondarySection } from "@/components/portal/PortalSecondarySection";
 import { EmptyState } from "@/components/ui/Empty";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, firstName } from "@/lib/utils";
 import { STAGE_META } from "@/lib/types";
 import { FolderKanban, LifeBuoy, ExternalLink, CircleCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -40,7 +40,9 @@ export default async function PortalDashboardPage() {
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <p className="text-display">Hola, {activeClient?.contact_name || activeClient?.business_name}</p>
+        <p className="text-display">
+          Hola, {firstName(activeClient?.contact_name || activeClient?.business_name || "")}
+        </p>
         <p className="text-sm text-muted-2">{activeClient?.business_name}</p>
       </div>
 

@@ -79,6 +79,10 @@ export function timeAgo(dateStr: string | null | undefined): string {
   return `${days} día${days === 1 ? "" : "s"}`;
 }
 
+export function firstName(name: string) {
+  return name.trim().split(/\s+/)[0] ?? "";
+}
+
 export function initials(name: string) {
   return name
     .split(" ")
