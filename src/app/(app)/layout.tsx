@@ -19,9 +19,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (profile?.role !== "admin") redirect("/portal");
 
   return (
-    <div className="flex min-h-svh">
+    <div className="flex min-h-svh lg:h-svh lg:overflow-hidden">
       <Sidebar userEmail={user.email} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col lg:h-svh lg:overflow-y-auto">
         <Topbar />
         <main className="flex-1 px-4 pb-24 pt-6 lg:px-8 lg:pb-10">{children}</main>
       </div>

@@ -12,7 +12,7 @@ export function PortalSidebar({ businessName }: { businessName: string }) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden lg:sticky lg:top-0 lg:flex lg:h-svh lg:w-60 lg:shrink-0 lg:flex-col border-r border-border bg-surface">
+    <aside className="hidden lg:flex lg:h-svh lg:w-60 lg:shrink-0 lg:flex-col border-r border-border bg-surface">
       <div className="flex h-32 shrink-0 items-center justify-center px-4">
         <Logo mark size="2xl" />
       </div>

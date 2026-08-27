@@ -13,9 +13,9 @@ export default async function PortalLayout({ children }: { children: React.React
   const { memberships, activeClient, activeClientId } = await getPortalContext();
 
   return (
-    <div className="flex min-h-svh">
+    <div className="flex min-h-svh lg:h-svh lg:overflow-hidden">
       <PortalSidebar businessName={activeClient?.business_name ?? "Tu negocio"} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col lg:h-svh lg:overflow-y-auto">
         <OrgSwitcher memberships={memberships} activeClientId={activeClientId} />
         <main className="flex-1 px-4 pb-24 pt-6 lg:px-8 lg:pb-10">{children}</main>
       </div>
