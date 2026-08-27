@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
-import { getQuickReplies } from "@/lib/queries";
+import { getQuickReplies, getPaymentMethods } from "@/lib/queries";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { NotificationsToggle } from "@/components/shared/NotificationsToggle";
 import { QuickRepliesManager } from "@/components/shared/QuickRepliesManager";
+import { PaymentMethodsManager } from "@/components/shared/PaymentMethodsManager";
 
 const ENV_CHECKS = [
   "NEXT_PUBLIC_SUPABASE_URL",
@@ -22,7 +23,7 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user?.id).single();
-  const quickReplies = await getQuickReplies();
+  const [quickReplies, paymentMethods] = await Promise.all([getQuickReplies(), getPaymentMethods()]);
 
   return (
     <div className="mx-auto max-w-2xl animate-fade-in space-y-6">
@@ -50,6 +51,15 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardBody>
           <NotificationsToggle />
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <h2 className="text-card-title">Mis cuentas de banco</h2>
+        </CardHeader>
+        <CardBody>
+          <PaymentMethodsManager methods={paymentMethods} />
         </CardBody>
       </Card>
 

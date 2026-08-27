@@ -264,6 +264,22 @@ export async function getQuickReplies() {
   return data ?? [];
 }
 
+export async function getPaymentMethods() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("payment_methods").select("*").order("position", { ascending: true });
+  return data ?? [];
+}
+
+export async function getActivePaymentMethods() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("payment_methods")
+    .select("*")
+    .eq("is_active", true)
+    .order("position", { ascending: true });
+  return data ?? [];
+}
+
 /** Lista de clientes: solo las columnas que pinta /clients (la ficha completa usa getClientDetail). */
 export async function getClients() {
   const supabase = await createClient();

@@ -1,12 +1,12 @@
 import { getPortalContext } from "@/lib/portal";
-import { getPortalPaymentsData } from "@/lib/queries";
+import { getPortalPaymentsData, getActivePaymentMethods } from "@/lib/queries";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { installmentsWithStatus } from "@/lib/installments";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Wallet, CheckCircle2, Clock } from "lucide-react";
+import { Wallet, CheckCircle2, Clock, Landmark } from "lucide-react";
 
 export default async function PortalPagosPage() {
   const { activeClientId } = await getPortalContext();
@@ -19,6 +19,7 @@ export default async function PortalPagosPage() {
   const rows = installmentsWithStatus(installments, project.amount_paid);
   const nextInstallment = rows.find((r) => r.isNext) ?? null;
   const allPaid = project.balance <= 0;
+  const paymentMethods = allPaid ? [] : await getActivePaymentMethods();
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -65,6 +66,27 @@ export default async function PortalPagosPage() {
                     {r.paid ? "Pagada" : r.isNext ? "Próxima" : "Pendiente"}
                   </Badge>
                 </div>
+              </div>
+            ))}
+          </CardBody>
+        </Card>
+      )}
+
+      {paymentMethods.length > 0 && (
+        <Card>
+          <CardHeader>
+            <h2 className="flex items-center gap-2 text-card-title">
+              <Landmark size={16} className="text-accent" /> Cómo pagar
+            </h2>
+          </CardHeader>
+          <CardBody className="space-y-0 divide-y divide-border">
+            {paymentMethods.map((m) => (
+              <div key={m.id} className="py-3 text-sm first:pt-0 last:pb-0">
+                <p className="font-medium">{m.label}</p>
+                <p className="text-xs text-muted-2">{[m.bank, m.account_type, m.currency].filter(Boolean).join(" · ")}</p>
+                {m.account_holder && <p className="text-xs text-muted-2">Titular: {m.account_holder}</p>}
+                {m.account_number && <p className="text-xs text-muted-2">{m.account_number}</p>}
+                {m.notes && <p className="mt-1 text-xs text-muted-2">{m.notes}</p>}
               </div>
             ))}
           </CardBody>

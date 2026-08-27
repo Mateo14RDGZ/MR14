@@ -567,6 +567,21 @@ export interface QuickReply {
   created_at: string;
 }
 
+export interface PaymentMethod {
+  id: string;
+  label: string;
+  bank: string | null;
+  account_holder: string | null;
+  account_number: string | null;
+  account_type: string | null;
+  currency: string;
+  notes: string | null;
+  is_active: boolean;
+  position: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TaskRow {
   id: string;
   project_id: string;
