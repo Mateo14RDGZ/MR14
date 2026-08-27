@@ -13,8 +13,8 @@ export function PortalSidebar({ businessName }: { businessName: string }) {
 
   return (
     <aside className="hidden lg:flex lg:w-60 lg:shrink-0 lg:flex-col border-r border-border bg-surface">
-      <div className="flex h-16 items-center px-4">
-        <Logo mark size="lg" />
+      <div className="flex h-20 items-center px-4">
+        <Logo mark size="xl" />
       </div>
       <div className="px-4 py-3">
         <p className="text-caption">Portal de</p>
