@@ -155,24 +155,6 @@ export async function deleteClientAction(clientId: string) {
     admin.from("ticket_attachments").select("storage_path, tickets!inner(client_id)").eq("tickets.client_id", clientId),
   ]);
 
-  // Borrar primero las cuentas de Auth de los usuarios del portal de este
-  // cliente — ANTES de tocar la fila del cliente. Si alguna falla, se corta
-  // acá con un error explícito en vez de dejar el cliente a medio borrar o,
-  // peor, dejar el email "fantasma" en Auth bloqueando en silencio un alta
-  // futura con ese mismo correo (antes el error se ignoraba con .catch).
-  if (members && members.length > 0) {
-    const failedEmails: string[] = [];
-    for (const m of members) {
-      const { error: deleteUserError } = await admin.auth.admin.deleteUser(m.user_id);
-      if (deleteUserError) failedEmails.push(m.email);
-    }
-    if (failedEmails.length > 0) {
-      throw new Error(
-        `No se pudo eliminar del todo: quedaron datos vinculados a ${failedEmails.join(", ")}. El cliente no se borró.`
-      );
-    }
-  }
-
   if (documents && documents.length > 0) {
     await admin.storage.from("documents").remove(documents.map((d) => d.storage_path));
   }
@@ -182,8 +164,31 @@ export async function deleteClientAction(clientId: string) {
   // Path fijo (ver uploadClientLogoAction): no hace falta consultar si existe.
   await admin.storage.from("client-logos").remove([`${clientId}/logo`]);
 
+  // Borrar primero la fila del cliente: todo lo que cuelga de client_id (o
+  // de sus proyectos) tiene "on delete cascade" en la base, así que se lleva
+  // puesto proyectos, pagos, credenciales, documentos, tickets, solicitudes,
+  // historial, todo. Recién ahí quedan libres las cuentas de Auth de los
+  // usuarios del portal — columnas como tickets.created_by o
+  // requests.created_by referencian auth.users SIN cascade, así que borrar
+  // esas cuentas ANTES fallaba (violación de FK) apenas el usuario había
+  // creado algún ticket o solicitud, que es el caso normal.
   const { error } = await admin.from("clients").delete().eq("id", clientId);
   if (error) throw new Error(error.message);
+
+  if (members && members.length > 0) {
+    const failedEmails: string[] = [];
+    for (const m of members) {
+      const { error: deleteUserError } = await admin.auth.admin.deleteUser(m.user_id);
+      if (deleteUserError) failedEmails.push(m.email);
+    }
+    if (failedEmails.length > 0) {
+      // El cliente y todos sus datos ya se borraron en este punto — esto es
+      // solo la cuenta de Auth suelta, no bloquea ni revierte lo anterior.
+      console.error(
+        `Cliente ${clientId} eliminado, pero no se pudieron borrar estas cuentas de Auth: ${failedEmails.join(", ")}`
+      );
+    }
+  }
 
   revalidatePath("/clients");
   redirect("/clients");
