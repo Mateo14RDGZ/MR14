@@ -16,7 +16,7 @@ export async function getDashboardCore() {
     supabase.from("clients").select("id,business_name,status"),
     supabase
       .from("projects")
-      .select("id,name,status,price,deposit,balance,payment_status,client_id,clients(business_name)"),
+      .select("id,name,status,price,amount_paid,balance,payment_status,client_id,clients(business_name)"),
   ]);
 
   const clientList = clients.data ?? [];
@@ -32,7 +32,10 @@ export async function getDashboardCore() {
   const moneyPending = projectList
     .filter((p) => p.payment_status !== "pagado")
     .reduce((sum, p) => sum + Number(p.balance ?? 0), 0);
-  const moneyCollected = projectList.reduce((sum, p) => sum + Number(p.deposit ?? 0), 0);
+  // amount_paid es lo realmente cobrado (suma de "payments" que el admin
+  // registra a mano) — no el anticipo esperado del proyecto (deposit), que
+  // es solo un dato de planificación, no dinero efectivamente recibido.
+  const moneyCollected = projectList.reduce((sum, p) => sum + Number(p.amount_paid ?? 0), 0);
 
   const clientsWithPendingPayments = projectList.filter(
     (p) => p.payment_status === "pendiente" || p.payment_status === "parcial"
