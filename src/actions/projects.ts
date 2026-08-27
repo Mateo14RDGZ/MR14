@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { logHistory } from "@/lib/history";
 import { notifyUsers, getClientMemberUserIds } from "@/lib/notifications";
 import { PROJECT_STATUSES, type ProjectStatus, type ProjectType, type PaymentStatus } from "@/lib/types";
@@ -173,22 +174,26 @@ export async function updateProjectAction(projectId: string, clientId: string, f
  */
 export async function regenerateInstallmentsAction(projectId: string, clientId: string, formData: FormData) {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user?.id ?? "").single();
+  if (profile?.role !== "admin") return { error: "Acción restringida a administradores de MR14." };
 
-  const { data: project } = await supabase
+  // Client admin (service role) recién a partir de acá: evita cualquier
+  // fricción de RLS en la parte de escritura — es una acción de un solo
+  // botón que tiene que andar siempre.
+  const admin = createAdminClient();
+
+  const { data: project, error: projectError } = await admin
     .from("projects")
-    .select("price,deposit,start_date")
+    .select("price,start_date")
     .eq("id", projectId)
     .single();
-  if (!project) return { error: "Proyecto no encontrado." };
+  if (projectError || !project) return { error: projectError?.message ?? "Proyecto no encontrado." };
 
   const count = Math.max(1, Math.min(12, Number(formData.get("installments_count")) || 1));
   const deposit = num(formData, "deposit");
-
-  const { error: depositError } = await supabase.from("projects").update({ deposit }).eq("id", projectId);
-  if (depositError) return { error: depositError.message };
-
-  const { error: deleteError } = await supabase.from("project_installments").delete().eq("project_id", projectId);
-  if (deleteError) return { error: deleteError.message };
 
   const installments = buildInstallmentPlan({
     price: Number(project.price),
@@ -196,8 +201,16 @@ export async function regenerateInstallmentsAction(projectId: string, clientId: 
     count,
     startDate: project.start_date,
   });
+
+  const [{ error: depositError }, { error: deleteError }] = await Promise.all([
+    admin.from("projects").update({ deposit }).eq("id", projectId),
+    admin.from("project_installments").delete().eq("project_id", projectId),
+  ]);
+  if (depositError) return { error: depositError.message };
+  if (deleteError) return { error: deleteError.message };
+
   if (installments.length > 0) {
-    const { error: insertError } = await supabase
+    const { error: insertError } = await admin
       .from("project_installments")
       .insert(installments.map((i) => ({ ...i, project_id: projectId })));
     if (insertError) return { error: insertError.message };
