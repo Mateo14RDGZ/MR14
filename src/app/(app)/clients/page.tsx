@@ -97,7 +97,7 @@ export default async function ClientsPage() {
                     <tr key={c.id} className="group border-b border-border last:border-0">
                       <td className="p-0">
                         <Link href={href} className="flex items-center gap-3 px-5 py-3.5">
-                          <Avatar name={c.business_name} size="sm" />
+                          <Avatar name={c.business_name} logoUrl={c.logo_url} size="sm" />
                           <HealthDot health={healthMap.get(c.id) ?? "bien"} />
                           <span className="truncate font-medium">{c.business_name}</span>
                         </Link>

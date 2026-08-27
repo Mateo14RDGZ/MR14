@@ -288,7 +288,7 @@ export async function getClients() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("clients")
-    .select("id,business_name,contact_name,city,status,created_at")
+    .select("id,business_name,contact_name,city,status,logo_url,created_at")
     .order("created_at", { ascending: false });
   return data ?? [];
 }
