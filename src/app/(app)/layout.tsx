@@ -4,7 +4,6 @@ import { Sidebar } from "@/components/nav/Sidebar";
 import { BottomNav } from "@/components/nav/BottomNav";
 import { Topbar } from "@/components/nav/Topbar";
 import { CommandPalette } from "@/components/nav/CommandPalette";
-import { InactivityGuard } from "@/components/nav/InactivityGuard";
 import { InstallPrompt } from "@/components/shared/InstallPrompt";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -27,7 +26,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </div>
       <BottomNav />
       <CommandPalette />
-      <InactivityGuard />
       <InstallPrompt />
     </div>
   );
