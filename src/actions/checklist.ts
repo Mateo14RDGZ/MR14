@@ -103,6 +103,31 @@ export async function setProjectSpecialStatusAction(
   revalidatePath("/dashboard");
 }
 
+/**
+ * Saca al proyecto de mantenimiento/pausado/cancelado, volviendo al status
+ * que le corresponde por su etapa actual (stage) — la misma etapa no se
+ * toca, solo se recalcula el status para que deje de estar "congelado".
+ */
+export async function clearProjectSpecialStatusAction(projectId: string, clientId: string) {
+  const supabase = await createClient();
+  const { data: project, error: fetchError } = await supabase
+    .from("projects")
+    .select("stage")
+    .eq("id", projectId)
+    .single();
+  if (fetchError || !project) return { error: fetchError?.message ?? "Proyecto no encontrado." };
+
+  const status = STAGE_META[project.stage as ProjectStage].status;
+  const { error } = await supabase.from("projects").update({ status }).eq("id", projectId);
+  if (error) return { error: error.message };
+
+  await logHistory({ clientId, projectId, event: "Estado del proyecto: vuelve al flujo normal" });
+
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/dashboard");
+}
+
 export async function markProjectDeliveredAction(projectId: string, clientId: string) {
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);

@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { Select, Input, Label, Field } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { updateProjectStageAction, setProjectSpecialStatusAction } from "@/actions/checklist";
+import { updateProjectStageAction, setProjectSpecialStatusAction, clearProjectSpecialStatusAction } from "@/actions/checklist";
 import { STAGE_META, type ProjectStage, type ProjectStatus } from "@/lib/types";
 
 const SPECIAL_STATUSES: { value: "mantenimiento" | "pausado" | "cancelado"; label: string }[] = [
@@ -44,6 +44,14 @@ export function StageEditor({
     });
   }
 
+  function clearSpecial() {
+    startTransition(async () => {
+      const result = await clearProjectSpecialStatusAction(projectId, clientId);
+      if (result?.error) toast.error(result.error);
+      else toast.success("Proyecto vuelve al flujo normal.");
+    });
+  }
+
   const isSpecial = SPECIAL_STATUSES.some((s) => s.value === status);
 
   return (
@@ -80,7 +88,7 @@ export function StageEditor({
               size="sm"
               variant={status === s.value ? "primary" : "outline"}
               disabled={pending}
-              onClick={() => setSpecial(s.value)}
+              onClick={() => (status === s.value ? clearSpecial() : setSpecial(s.value))}
             >
               {s.label}
             </Button>
@@ -88,7 +96,8 @@ export function StageEditor({
         </div>
         {isSpecial && (
           <p className="text-caption mt-2">
-            Para volver al flujo normal, elegí una etapa arriba y actualizá.
+            Hacé clic de nuevo en &quot;{SPECIAL_STATUSES.find((s) => s.value === status)?.label}&quot; para volver al
+            flujo normal.
           </p>
         )}
       </div>
