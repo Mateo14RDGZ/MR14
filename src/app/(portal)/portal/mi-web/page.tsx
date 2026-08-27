@@ -79,6 +79,18 @@ export default async function PortalMiWebPage() {
         </div>
       )}
 
+      {hosting?.preview_url && !hosting?.production_url && (
+        <Card className="border-accent/30 bg-accent/5 p-5">
+          <p className="text-sm font-medium">Versión de desarrollo disponible</p>
+          <p className="mt-1 text-xs text-muted-2">Todavía no es la versión final — la vas a poder revisar acá mientras avanzamos.</p>
+          <a href={hosting.preview_url} target="_blank" rel="noopener noreferrer">
+            <Button variant="secondary" className="mt-3 w-full">
+              <ExternalLink size={16} /> Ver versión de desarrollo
+            </Button>
+          </a>
+        </Card>
+      )}
+
       <Card className="p-6 sm:p-8">
         <div className="space-y-3 text-sm">
           <Row label="Estado" value={STAGE_META[project.stage as ProjectStage]?.clientLabel ?? project.status.replace(/_/g, " ")} />

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Checklist } from "@/components/projects/Checklist";
 import { StageEditor } from "@/components/projects/StageEditor";
+import { DevLinkCard } from "@/components/projects/DevLinkCard";
 import {
   DomainsSection,
   HostingSection,
@@ -29,6 +30,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   if (!data || !data.client) notFound();
 
   const { project, client, domains, hosting, repositories, databases, tasks, history, installments } = data;
+  const mainHosting = hosting[0] ?? null;
   const installmentRows = installmentsWithStatus(installments, project.amount_paid);
   const [tickets, supportSummary, internalNotes] = await Promise.all([
     getAllTickets({ projectId: project.id }),
@@ -74,6 +76,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         />
         <SummaryItem label="Fecha estimada" value={formatDate(project.estimated_delivery_date)} />
       </div>
+
+      <DevLinkCard projectId={project.id} clientId={client.id} hosting={mainHosting} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
