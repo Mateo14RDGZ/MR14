@@ -77,14 +77,16 @@ export default async function PortalPagosPage() {
           <h2 className="mb-3 flex items-center gap-2 text-card-title">
             <Landmark size={16} className="text-accent" /> Cómo pagar
           </h2>
-          <div className="flex gap-3 overflow-x-auto pb-1">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {paymentMethods.map((m) => (
-              <Card key={m.id} className="w-[240px] shrink-0 p-4 text-sm">
+              <Card key={m.id} className="flex flex-col p-5 text-sm">
                 <p className="font-medium">{m.label}</p>
                 <p className="mt-1 text-xs text-muted-2">{[m.bank, m.account_type, m.currency].filter(Boolean).join(" · ")}</p>
-                {m.account_holder && <p className="text-xs text-muted-2">Titular: {m.account_holder}</p>}
-                {m.account_number && <p className="break-all text-xs text-muted-2">{m.account_number}</p>}
-                {m.notes && <p className="mt-2 text-xs text-muted-2">{m.notes}</p>}
+                {m.account_holder && <p className="mt-2 text-xs text-muted-2">Titular: {m.account_holder}</p>}
+                {m.account_number && (
+                  <p className="mt-2 break-all text-lg font-semibold tabular-nums">{m.account_number}</p>
+                )}
+                {m.notes && <p className="mt-auto pt-3 text-xs text-muted-2">{m.notes}</p>}
               </Card>
             ))}
           </div>
