@@ -77,7 +77,7 @@ export default async function PortalPagosPage() {
           <h2 className="mb-3 flex items-center gap-2 text-card-title">
             <Landmark size={16} className="text-accent" /> Cómo pagar
           </h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
             {paymentMethods.map((m) => (
               <Card key={m.id} className="flex flex-col p-5 text-sm">
                 <p className="font-medium">{m.label}</p>
