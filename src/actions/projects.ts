@@ -206,6 +206,8 @@ export async function regenerateInstallmentsAction(projectId: string, clientId: 
   await logHistory({ clientId, projectId, event: `Plan de cuotas actualizado (${count} cuota${count === 1 ? "" : "s"})` });
   revalidatePath(`/projects/${projectId}`);
   revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/portal/pagos");
+  revalidatePath("/portal");
 }
 
 export async function updateProjectStatusAction(
