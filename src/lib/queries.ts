@@ -56,11 +56,12 @@ export async function getDashboardCore() {
 /** Contenido secundario del dashboard admin: dominios por vencer + actividad reciente. */
 export async function getDashboardSecondary() {
   const supabase = await createClient();
-  const [renewals, history] = await Promise.all([
+  const [tickets, history] = await Promise.all([
     supabase
-      .from("renewals")
-      .select("id,service_name,due_date,status,client_id,clients(business_name)")
-      .order("due_date", { ascending: true }),
+      .from("tickets")
+      .select("id,number,subject,status,created_at,client_id,clients(business_name)")
+      .order("created_at", { ascending: false })
+      .limit(8),
     supabase
       .from("project_history")
       .select("id,event,created_at,client_id,clients(business_name)")
@@ -68,13 +69,8 @@ export async function getDashboardSecondary() {
       .limit(10),
   ]);
 
-  const upcomingRenewals = (renewals.data ?? [])
-    .map((r) => ({ ...r, days: daysUntil(r.due_date) }))
-    .filter((r) => r.status !== "renovado" && r.days !== null && r.days <= 30 && r.days >= 0)
-    .slice(0, 8);
-
   return {
-    upcomingRenewals,
+    ticketInbox: tickets.data ?? [],
     recentActivity: history.data ?? [],
   };
 }

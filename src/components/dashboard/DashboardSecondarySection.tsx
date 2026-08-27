@@ -1,50 +1,61 @@
 import Link from "next/link";
 import { getDashboardSecondary } from "@/lib/queries";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
-import { formatDateTime } from "@/lib/utils";
-import { Clock3, Activity, AlertTriangle } from "lucide-react";
+import { TICKET_STATUSES } from "@/lib/types";
+import { formatDateTime, timeAgo } from "@/lib/utils";
+import { Activity, LifeBuoy } from "lucide-react";
+
+const STATUS_TONE: Record<string, "muted" | "warning" | "accent" | "success"> = {
+  received: "warning",
+  reviewing: "warning",
+  in_progress: "accent",
+  waiting_client: "warning",
+  requires_quote: "warning",
+  approved: "accent",
+  resolved: "success",
+  closed: "muted",
+};
 
 /**
- * Dominios por vencer + actividad reciente del dashboard admin. Server
+ * Bandeja de tickets + actividad reciente del dashboard admin. Server
  * Component async aparte para poder streamearlo en un <Suspense> propio
  * sin bloquear los KPIs principales.
  */
 export async function DashboardSecondarySection() {
-  const { upcomingRenewals, recentActivity } = await getDashboardSecondary();
+  const { ticketInbox, recentActivity } = await getDashboardSecondary();
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Clock3 size={16} className="text-accent" />
-            <h2 className="text-card-title">Dominios que vencen pronto</h2>
+            <LifeBuoy size={16} className="text-accent" />
+            <h2 className="text-card-title">Bandeja de tickets</h2>
           </div>
-          <Link href="/renewals" className="text-xs text-accent hover:underline">
-            Ver todas
+          <Link href="/support" className="text-xs text-accent hover:underline">
+            Ver todos
           </Link>
         </CardHeader>
         <CardBody>
-          {upcomingRenewals.length === 0 ? (
-            <EmptyState
-              icon={AlertTriangle}
-              title="Sin renovaciones próximas"
-              description="No hay dominios ni servicios por vencer en los próximos 30 días."
-            />
+          {ticketInbox.length === 0 ? (
+            <EmptyState icon={LifeBuoy} title="Sin tickets todavía" />
           ) : (
             <ul className="space-y-3">
-              {upcomingRenewals.map((r) => (
-                <li key={r.id} className="flex items-center justify-between text-sm">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{r.service_name}</p>
-                    <p className="truncate text-xs text-muted-2">
-                      {(r.clients as { business_name?: string } | null)?.business_name ?? "-"}
-                    </p>
-                  </div>
-                  <span className="shrink-0 rounded-md border border-warning/30 bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">
-                    {r.days} día{r.days === 1 ? "" : "s"}
-                  </span>
+              {ticketInbox.map((t) => (
+                <li key={t.id}>
+                  <Link href={`/support/${t.id}`} className="flex items-center justify-between gap-3 text-sm hover:opacity-80">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{t.subject}</p>
+                      <p className="truncate text-xs text-muted-2">
+                        {(t.clients as { business_name?: string } | null)?.business_name ?? "-"} · hace {timeAgo(t.created_at)}
+                      </p>
+                    </div>
+                    <Badge tone={STATUS_TONE[t.status] ?? "muted"} className="shrink-0">
+                      {TICKET_STATUSES.find((s) => s.value === t.status)?.label ?? t.status}
+                    </Badge>
+                  </Link>
                 </li>
               ))}
             </ul>
