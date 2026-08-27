@@ -13,11 +13,11 @@ export function Sidebar({ userEmail }: { userEmail?: string | null }) {
   const primaryItems = NAV_ITEMS.filter((i) => i.href !== "/settings");
 
   return (
-    <aside className="hidden lg:flex lg:w-60 lg:shrink-0 lg:flex-col border-r border-border bg-surface">
-      <div className="flex h-20 items-center px-4">
-        <Logo mark size="xl" />
+    <aside className="hidden lg:sticky lg:top-0 lg:flex lg:h-svh lg:w-60 lg:shrink-0 lg:flex-col border-r border-border bg-surface">
+      <div className="flex h-32 shrink-0 items-center justify-center px-4">
+        <Logo mark size="2xl" />
       </div>
-      <nav className="flex-1 space-y-0.5 px-2.5 py-2">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2.5 py-2">
         {primaryItems.map((item) => {
           const active = pathname.startsWith(item.href);
           const Icon = item.icon;
@@ -38,7 +38,7 @@ export function Sidebar({ userEmail }: { userEmail?: string | null }) {
           );
         })}
       </nav>
-      <div className="space-y-0.5 border-t border-border px-2.5 py-2.5">
+      <div className="shrink-0 space-y-0.5 border-t border-border px-2.5 py-2.5">
         <Link
           href="/settings"
           className={cn(

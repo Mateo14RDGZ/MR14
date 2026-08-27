@@ -12,15 +12,15 @@ export function PortalSidebar({ businessName }: { businessName: string }) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden lg:flex lg:w-60 lg:shrink-0 lg:flex-col border-r border-border bg-surface">
-      <div className="flex h-20 items-center px-4">
-        <Logo mark size="xl" />
+    <aside className="hidden lg:sticky lg:top-0 lg:flex lg:h-svh lg:w-60 lg:shrink-0 lg:flex-col border-r border-border bg-surface">
+      <div className="flex h-32 shrink-0 items-center justify-center px-4">
+        <Logo mark size="2xl" />
       </div>
-      <div className="px-4 py-3">
+      <div className="shrink-0 px-4 py-3">
         <p className="text-caption">Portal de</p>
         <p className="truncate text-sm font-medium">{businessName}</p>
       </div>
-      <nav className="flex-1 space-y-0.5 px-2.5 py-2">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2.5 py-2">
         {PORTAL_NAV_ITEMS.map((item) => {
           const active = item.href === "/portal" ? pathname === "/portal" : pathname.startsWith(item.href);
           const Icon = item.icon;
@@ -41,7 +41,7 @@ export function PortalSidebar({ businessName }: { businessName: string }) {
           );
         })}
       </nav>
-      <div className="space-y-0.5 border-t border-border px-2.5 py-2.5">
+      <div className="shrink-0 space-y-0.5 border-t border-border px-2.5 py-2.5">
         <Link
           href="/portal/perfil"
           className={cn(
