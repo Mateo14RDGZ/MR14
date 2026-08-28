@@ -440,44 +440,28 @@ export function ComprobantePagoDoc({
 }
 
 export function CuentasBancoDoc({ methods }: { methods: PaymentMethod[] }) {
-  const logo = getLogoDataUri("white");
+  const logo = getLogoDataUri("black");
 
   return (
     <PdfPage>
-      {/* Misma banda de marca que el comprobante de pago — consistencia
-          visual entre todos los documentos que se comparten con clientes. */}
-      <View
-        style={{
-          marginTop: -40,
-          marginHorizontal: -40,
-          marginBottom: 24,
-          paddingHorizontal: 40,
-          paddingVertical: 22,
-          backgroundColor: colors.ink,
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          {logo && (
-            // eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, no alt prop
-            <Image src={logo} style={{ width: 44, height: 44 }} />
-          )}
-          <View>
-            <Text style={{ fontSize: 18, fontFamily: "Helvetica-Bold", color: "#fff" }}>MR14</Text>
-            <Text style={{ fontSize: 8, color: colors.accent }}>mateordgz.dev</Text>
-          </View>
-        </View>
-        <View style={{ alignItems: "flex-end" }}>
-          <Text style={{ fontSize: 13, fontFamily: "Helvetica-Bold", color: "#fff" }}>CUENTAS BANCARIAS</Text>
-          <Text style={{ fontSize: 8, color: "#c9c9cc", marginTop: 3 }}>
-            {new Intl.DateTimeFormat("es-UY", { dateStyle: "long" }).format(new Date())}
-          </Text>
-        </View>
+      {/* Solo el isotipo, grande y centrado — sin banda de color ni texto
+          "MR14" al lado, a pedido explícito (nada de dorado en este doc). */}
+      <View style={{ alignItems: "center", marginBottom: 14 }}>
+        {logo && (
+          // eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, no alt prop
+          <Image src={logo} style={{ width: 62, height: 62 }} />
+        )}
+        <Text style={{ fontSize: 15, fontFamily: "Helvetica-Bold", color: colors.ink, marginTop: 8 }}>
+          Cuentas bancarias
+        </Text>
+        <Text style={{ fontSize: 8, color: colors.muted, marginTop: 2 }}>
+          {new Intl.DateTimeFormat("es-UY", { dateStyle: "long" }).format(new Date())}
+        </Text>
       </View>
 
-      <Text style={{ fontSize: 10, color: colors.muted, marginBottom: 20 }}>
+      <View style={{ borderBottomWidth: 1, borderBottomColor: colors.border, marginBottom: 14 }} />
+
+      <Text style={{ fontSize: 10, color: colors.muted, marginBottom: 14, textAlign: "center" }}>
         Podés transferir a cualquiera de estas cuentas. Ante cualquier duda, escribinos a contacto@mateordgz.dev.
       </Text>
 
@@ -488,12 +472,20 @@ export function CuentasBancoDoc({ methods }: { methods: PaymentMethod[] }) {
             borderWidth: 1,
             borderColor: colors.border,
             borderRadius: 4,
-            marginBottom: 14,
+            marginBottom: 10,
             overflow: "hidden",
           }}
         >
-          <View style={{ backgroundColor: colors.accent, paddingVertical: 8, paddingHorizontal: 12 }}>
-            <Text style={{ fontSize: 12, fontFamily: "Helvetica-Bold", color: "#fff" }}>{m.label}</Text>
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.border,
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+            }}
+          >
+            <Text style={{ fontSize: 12, fontFamily: "Helvetica-Bold", color: colors.ink }}>{m.label}</Text>
           </View>
           <View style={styles.table}>
             <InfoRow label="Banco" value={m.bank} />
