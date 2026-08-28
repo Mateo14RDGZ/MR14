@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { installmentsWithStatus } from "@/lib/installments";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Wallet, CheckCircle2, Clock, Landmark } from "lucide-react";
+import { CopyButton } from "@/components/portal/CopyButton";
 
 export default async function PortalPagosPage() {
   const { activeClientId } = await getPortalContext();
@@ -84,7 +85,10 @@ export default async function PortalPagosPage() {
                 <p className="mt-1 text-xs text-muted-2">{[m.bank, m.account_type, m.currency].filter(Boolean).join(" · ")}</p>
                 {m.account_holder && <p className="mt-2 text-xs text-muted-2">Titular: {m.account_holder}</p>}
                 {m.account_number && (
-                  <p className="mt-2 break-all text-lg font-semibold tabular-nums">{m.account_number}</p>
+                  <div className="mt-2 flex items-center gap-1">
+                    <p className="break-all text-lg font-semibold tabular-nums">{m.account_number}</p>
+                    <CopyButton value={m.account_number} />
+                  </div>
                 )}
                 {m.notes && <p className="mt-auto pt-3 text-xs text-muted-2">{m.notes}</p>}
               </Card>
