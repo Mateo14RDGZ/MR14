@@ -5,7 +5,7 @@ import { EditPaymentDialog } from "@/components/clients/EditPaymentDialog";
 import { ComprobanteButton } from "@/components/clients/ComprobanteButton";
 import { DeletePaymentButton } from "@/components/clients/DeletePaymentButton";
 import { installmentsWithStatus } from "@/lib/installments";
-import type { Payment, ProjectInstallment } from "@/lib/types";
+import type { Payment, ProjectInstallment, PaymentMethod } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { CircleDollarSign } from "lucide-react";
 
@@ -23,11 +23,13 @@ export function PaymentsTab({
   payments,
   projects,
   installments,
+  paymentMethods,
 }: {
   clientId: string;
   payments: Payment[];
   projects: ProjectPaymentInfo[];
   installments: ProjectInstallment[];
+  paymentMethods: PaymentMethod[];
 }) {
   return (
     <div className="space-y-4">
@@ -71,7 +73,7 @@ export function PaymentsTab({
       </div>
 
       <div className="flex justify-end">
-        <RegisterPaymentDialog clientId={clientId} projects={projects} />
+        <RegisterPaymentDialog clientId={clientId} projects={projects} paymentMethods={paymentMethods} />
       </div>
       {payments.length === 0 ? (
         <EmptyState icon={CircleDollarSign} title="Sin pagos registrados" />
@@ -86,8 +88,8 @@ export function PaymentsTab({
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-1">
-                <ComprobanteButton clientId={clientId} payment={p} />
-                <EditPaymentDialog clientId={clientId} payment={p} />
+                <ComprobanteButton clientId={clientId} payment={p} paymentMethods={paymentMethods} />
+                <EditPaymentDialog clientId={clientId} payment={p} paymentMethods={paymentMethods} />
                 <DeletePaymentButton id={p.id} clientId={clientId} projectId={p.project_id} />
               </div>
             </Card>

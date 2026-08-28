@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getClientDetail, getAllTickets, getClientAudits, getClientInternalNotes } from "@/lib/queries";
+import {
+  getClientDetail,
+  getAllTickets,
+  getClientAudits,
+  getClientInternalNotes,
+  getActivePaymentMethods,
+} from "@/lib/queries";
 import { InternalNotes } from "@/components/shared/InternalNotes";
 import { TicketList } from "@/components/portal/TicketList";
 import { Tabs } from "@/components/ui/Tabs";
@@ -52,7 +58,7 @@ export default async function ClientDetailPage({
 }) {
   const { id } = await params;
   const { tab: rawTab } = await searchParams;
-  const data = await getClientDetail(id);
+  const [data, paymentMethods] = await Promise.all([getClientDetail(id), getActivePaymentMethods()]);
   if (!data.client) notFound();
 
   const { client, projects, credentials, documents, history, members, payments, requests, installments } = data;
@@ -157,7 +163,15 @@ export default async function ClientDetailPage({
           {
             id: "payments",
             label: "Pagos",
-            content: <PaymentsTab clientId={client.id} payments={payments} projects={paymentProjects} installments={installments} />,
+            content: (
+              <PaymentsTab
+                clientId={client.id}
+                payments={payments}
+                projects={paymentProjects}
+                installments={installments}
+                paymentMethods={paymentMethods}
+              />
+            ),
           },
           {
             id: "soporte",

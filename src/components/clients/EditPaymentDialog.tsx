@@ -5,11 +5,20 @@ import { toast } from "sonner";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Label, Field } from "@/components/ui/Input";
+import { PaymentMethodField } from "@/components/clients/PaymentMethodField";
 import { updatePaymentAction } from "@/actions/payments";
-import type { Payment } from "@/lib/types";
+import type { Payment, PaymentMethod } from "@/lib/types";
 import { Pencil } from "lucide-react";
 
-export function EditPaymentDialog({ clientId, payment }: { clientId: string; payment: Payment }) {
+export function EditPaymentDialog({
+  clientId,
+  payment,
+  paymentMethods,
+}: {
+  clientId: string;
+  payment: Payment;
+  paymentMethods: PaymentMethod[];
+}) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -41,10 +50,7 @@ export function EditPaymentDialog({ clientId, payment }: { clientId: string; pay
               <Input type="date" name="paid_at" defaultValue={payment.paid_at?.slice(0, 10)} />
             </Field>
           </div>
-          <Field className="mb-0">
-            <Label>Método</Label>
-            <Input name="method" defaultValue={payment.method ?? ""} placeholder="Transferencia, efectivo…" />
-          </Field>
+          <PaymentMethodField paymentMethods={paymentMethods} defaultValue={payment.method} />
           <Field className="mb-0">
             <Label>Notas</Label>
             <Textarea name="notes" rows={2} defaultValue={payment.notes ?? ""} />

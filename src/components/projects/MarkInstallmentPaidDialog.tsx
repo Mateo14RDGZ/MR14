@@ -5,8 +5,10 @@ import { toast } from "sonner";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Label, Field } from "@/components/ui/Input";
+import { PaymentMethodField } from "@/components/clients/PaymentMethodField";
 import { createPaymentAction } from "@/actions/payments";
 import { formatCurrency } from "@/lib/utils";
+import type { PaymentMethod } from "@/lib/types";
 import { CheckCircle2 } from "lucide-react";
 
 /**
@@ -22,12 +24,14 @@ export function MarkInstallmentPaidDialog({
   label,
   amountDue,
   currency,
+  paymentMethods,
 }: {
   clientId: string;
   projectId: string;
   label: string;
   amountDue: number;
   currency: string;
+  paymentMethods: PaymentMethod[];
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -64,10 +68,7 @@ export function MarkInstallmentPaidDialog({
               <Input type="date" name="paid_at" defaultValue={new Date().toISOString().slice(0, 10)} />
             </Field>
           </div>
-          <Field className="mb-0">
-            <Label>Método</Label>
-            <Input name="method" placeholder="Transferencia, efectivo…" />
-          </Field>
+          <PaymentMethodField paymentMethods={paymentMethods} />
           <Field className="mb-0">
             <Label>Notas</Label>
             <Textarea name="notes" rows={2} defaultValue={label} />

@@ -4,9 +4,9 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
-import { Input, Label, Field } from "@/components/ui/Input";
+import { PaymentMethodField } from "@/components/clients/PaymentMethodField";
 import { updatePaymentAction } from "@/actions/payments";
-import type { Payment } from "@/lib/types";
+import type { Payment, PaymentMethod } from "@/lib/types";
 import { Receipt } from "lucide-react";
 
 /**
@@ -16,7 +16,15 @@ import { Receipt } from "lucide-react";
  * pago), así que si no está cargado se pide antes de abrir el PDF, en
  * vez de generar un comprobante incompleto.
  */
-export function ComprobanteButton({ clientId, payment }: { clientId: string; payment: Payment }) {
+export function ComprobanteButton({
+  clientId,
+  payment,
+  paymentMethods,
+}: {
+  clientId: string;
+  payment: Payment;
+  paymentMethods: PaymentMethod[];
+}) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -58,10 +66,7 @@ export function ComprobanteButton({ clientId, payment }: { clientId: string; pay
           <p className="text-sm text-muted-2">
             Este pago no tiene método cargado — completalo para que el comprobante quede bien.
           </p>
-          <Field className="mb-0">
-            <Label>Método</Label>
-            <Input name="method" required autoFocus placeholder="Transferencia, efectivo…" />
-          </Field>
+          <PaymentMethodField paymentMethods={paymentMethods} />
           <Button type="submit" disabled={pending} className="w-full">
             {pending ? "Generando…" : "Guardar y generar comprobante"}
           </Button>

@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProjectDetail, getAllTickets, getProjectSupportSummary, getProjectInternalNotes } from "@/lib/queries";
+import {
+  getProjectDetail,
+  getAllTickets,
+  getProjectSupportSummary,
+  getProjectInternalNotes,
+  getActivePaymentMethods,
+} from "@/lib/queries";
 import { InternalNotes } from "@/components/shared/InternalNotes";
 import { TicketList } from "@/components/portal/TicketList";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -39,10 +45,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     installmentsCumulative += r.amount;
     return { ...r, cumulative: installmentsCumulative };
   });
-  const [tickets, supportSummary, internalNotes] = await Promise.all([
+  const [tickets, supportSummary, internalNotes, paymentMethods] = await Promise.all([
     getAllTickets({ projectId: project.id }),
     getProjectSupportSummary(project.id),
     getProjectInternalNotes(project.id),
+    getActivePaymentMethods(),
   ]);
 
   return (
@@ -116,6 +123,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                       label={r.label || `Cuota ${r.number}`}
                       amountDue={Math.max(0, r.cumulative - project.amount_paid)}
                       currency={project.currency}
+                      paymentMethods={paymentMethods}
                     />
                   )}
                 </div>
