@@ -1,9 +1,10 @@
-import { PdfPage, PdfHeader, Section, InfoRow, styles } from "./shared";
-import { Text, View } from "@react-pdf/renderer";
+import { PdfPage, PdfHeader, Section, InfoRow, styles, colors, getLogoDataUri } from "./shared";
+import { Text, View, Image } from "@react-pdf/renderer";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type {
   Client,
   Project,
+  Payment,
   DomainRow,
   HostingRow,
   RepositoryRow,
@@ -209,6 +210,141 @@ export function CredencialesDoc({
       ))}
 
       {credentials.length === 0 && <Text style={styles.value}>No se seleccionaron credenciales.</Text>}
+    </PdfPage>
+  );
+}
+
+export function ComprobantePagoDoc({
+  client,
+  project,
+  payment,
+}: {
+  client: Client;
+  project: Project;
+  payment: Payment;
+}) {
+  const receiptNumber = `MR14-${payment.id.slice(0, 8).toUpperCase()}`;
+  const balance = Math.max(0, project.price - project.amount_paid);
+  const logo = getLogoDataUri("white");
+  const concept = payment.notes || `Pago — ${project.name}`;
+
+  return (
+    <PdfPage>
+      {/* Banda superior a todo el ancho: logo grande + identidad de MR14 a la
+          izquierda, número/fecha de comprobante a la derecha — el objetivo
+          es que se lea como una factura real, no como una ficha interna. */}
+      <View
+        style={{
+          marginTop: -40,
+          marginHorizontal: -40,
+          marginBottom: 24,
+          paddingHorizontal: 40,
+          paddingVertical: 22,
+          backgroundColor: colors.ink,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          {logo && (
+            // eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, no alt prop
+            <Image src={logo} style={{ width: 44, height: 44 }} />
+          )}
+          <View>
+            <Text style={{ fontSize: 18, fontFamily: "Helvetica-Bold", color: "#fff" }}>MR14</Text>
+            <Text style={{ fontSize: 8, color: colors.accent }}>mateordgz.dev</Text>
+          </View>
+        </View>
+        <View style={{ alignItems: "flex-end" }}>
+          <Text style={{ fontSize: 13, fontFamily: "Helvetica-Bold", color: "#fff" }}>COMPROBANTE DE PAGO</Text>
+          <Text style={{ fontSize: 9, color: colors.accent, marginTop: 3 }}>{receiptNumber}</Text>
+          <Text style={{ fontSize: 8, color: "#c9c9cc", marginTop: 2 }}>{formatDate(payment.paid_at)}</Text>
+        </View>
+      </View>
+
+      {/* Facturado a: nombre del negocio del cliente en grande, como en una factura real. */}
+      <View style={{ marginBottom: 20 }}>
+        <Text style={{ ...styles.label, marginBottom: 4 }}>Facturado a</Text>
+        <Text style={{ fontSize: 16, fontFamily: "Helvetica-Bold", color: colors.ink, marginBottom: 3 }}>
+          {client.business_name}
+        </Text>
+        <Text style={{ fontSize: 9, color: colors.muted }}>
+          {[client.contact_name, client.rut || client.ci, client.email].filter(Boolean).join("  ·  ")}
+        </Text>
+      </View>
+
+      {/* Detalle, con look de tabla de factura (encabezado con fondo de color). */}
+      <View style={{ ...styles.table, marginBottom: 20 }}>
+        <View style={{ flexDirection: "row", backgroundColor: colors.accent }}>
+          <Text style={{ flex: 3, padding: 8, fontSize: 8, color: "#fff", textTransform: "uppercase" }}>Concepto</Text>
+          <Text style={{ flex: 1.4, padding: 8, fontSize: 8, color: "#fff", textTransform: "uppercase" }}>Método</Text>
+          <Text
+            style={{ flex: 1.4, padding: 8, fontSize: 8, color: "#fff", textTransform: "uppercase", textAlign: "right" }}
+          >
+            Monto
+          </Text>
+        </View>
+        <View style={styles.tableRowLast}>
+          <Text style={{ flex: 3, padding: 8, fontSize: 10 }}>{concept}</Text>
+          <Text style={{ flex: 1.4, padding: 8, fontSize: 10 }}>{payment.method || "-"}</Text>
+          <Text style={{ flex: 1.4, padding: 8, fontSize: 10, textAlign: "right", fontFamily: "Helvetica-Bold" }}>
+            {formatCurrency(payment.amount, project.currency)}
+          </Text>
+        </View>
+      </View>
+
+      {/* Total pagado, destacado — es el número que más importa acá. */}
+      <View
+        style={{
+          alignSelf: "flex-end",
+          width: 220,
+          backgroundColor: colors.ink,
+          borderRadius: 4,
+          padding: 14,
+          marginBottom: 20,
+          alignItems: "flex-end",
+        }}
+      >
+        <Text style={{ fontSize: 8, color: colors.accent, textTransform: "uppercase", marginBottom: 2 }}>
+          Total pagado
+        </Text>
+        <Text style={{ fontSize: 20, fontFamily: "Helvetica-Bold", color: "#fff" }}>
+          {formatCurrency(payment.amount, project.currency)}
+        </Text>
+      </View>
+
+      {/* Contexto del proyecto: dónde queda esto dentro del total — secundario, más chico. */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 4,
+          padding: 12,
+        }}
+      >
+        <View>
+          <Text style={styles.label}>Precio del proyecto</Text>
+          <Text style={styles.value}>{formatCurrency(project.price, project.currency)}</Text>
+        </View>
+        <View>
+          <Text style={styles.label}>Pagado a la fecha</Text>
+          <Text style={styles.value}>{formatCurrency(project.amount_paid, project.currency)}</Text>
+        </View>
+        <View>
+          <Text style={styles.label}>Saldo pendiente</Text>
+          <Text style={{ ...styles.value, fontFamily: "Helvetica-Bold" }}>
+            {balance > 0 ? formatCurrency(balance, project.currency) : "Al día"}
+          </Text>
+        </View>
+      </View>
+
+      <Text style={{ fontSize: 8, color: colors.muted, marginTop: 20 }}>
+        Gracias por confiar en MR14. Ante cualquier consulta sobre este comprobante, escribinos a contacto@mateordgz.dev.
+      </Text>
     </PdfPage>
   );
 }

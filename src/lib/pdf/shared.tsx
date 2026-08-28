@@ -1,5 +1,25 @@
-import { StyleSheet, View, Text, Page, Document } from "@react-pdf/renderer";
+import { StyleSheet, View, Text, Page, Document, Image } from "@react-pdf/renderer";
 import type { ReactNode } from "react";
+import fs from "node:fs";
+import path from "node:path";
+
+const logoCache = new Map<string, string | null>();
+function loadLogoDataUri(file: "mark-black.png" | "mark-white.png"): string | null {
+  if (logoCache.has(file)) return logoCache.get(file)!;
+  let result: string | null = null;
+  try {
+    const buf = fs.readFileSync(path.join(process.cwd(), "public/icons", file));
+    result = `data:image/png;base64,${buf.toString("base64")}`;
+  } catch {
+    result = null;
+  }
+  logoCache.set(file, result);
+  return result;
+}
+
+export function getLogoDataUri(variant: "black" | "white" = "black"): string | null {
+  return loadLogoDataUri(variant === "white" ? "mark-white.png" : "mark-black.png");
+}
 
 export const colors = {
   ink: "#111113",
@@ -29,17 +49,7 @@ export const styles = StyleSheet.create({
     borderBottomColor: colors.accent,
   },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  brandMark: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
-    backgroundColor: colors.accent,
-    color: "#fff",
-    textAlign: "center",
-    justifyContent: "center",
-    fontSize: 14,
-    fontFamily: "Helvetica-Bold",
-  },
+  brandMark: { width: 26, height: 26 },
   brandName: { fontSize: 14, fontFamily: "Helvetica-Bold" },
   docMeta: { textAlign: "right", fontSize: 8, color: colors.muted },
   title: { fontSize: 18, fontFamily: "Helvetica-Bold", marginBottom: 4 },
@@ -101,11 +111,13 @@ export const styles = StyleSheet.create({
 
 export function PdfHeader({ docTitle, subtitle }: { docTitle: string; subtitle: string }) {
   const now = new Intl.DateTimeFormat("es-UY", { dateStyle: "long", timeStyle: "short" }).format(new Date());
+  const logo = getLogoDataUri();
   return (
     <>
       <View style={styles.headerRow}>
         <View style={styles.brandRow}>
-          <Text style={styles.brandMark}>M</Text>
+          {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, no alt prop */}
+          {logo && <Image src={logo} style={styles.brandMark} />}
           <Text style={styles.brandName}>MR14</Text>
         </View>
         <View style={styles.docMeta}>
