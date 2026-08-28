@@ -108,6 +108,14 @@ export default async function PortalPagosPage() {
                     <p className="text-sm font-medium">{formatCurrency(p.amount, project.currency)}</p>
                     <p className="text-xs text-muted-2">{p.method || "Sin método"} · {formatDate(p.paid_at)}</p>
                   </div>
+                  <a
+                    href={`/api/pdf?type=comprobante&paymentId=${p.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 text-xs font-medium text-accent hover:underline"
+                  >
+                    Comprobante
+                  </a>
                 </div>
               ))}
             </div>

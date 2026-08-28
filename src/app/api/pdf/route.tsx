@@ -7,8 +7,13 @@ import {
   EntregaDoc,
   InfraestructuraDoc,
   CredencialesDoc,
+  ComprobantePagoDoc,
 } from "@/lib/pdf/templates";
-import type { Client, Project } from "@/lib/types";
+import type { Client, Project, Payment } from "@/lib/types";
+
+function formatFilenameDate(iso: string) {
+  return iso.slice(0, 10);
+}
 
 async function loadInfra(supabase: Awaited<ReturnType<typeof createClient>>, projectId: string) {
   const [domains, hosting, repositories, databases] = await Promise.all([
@@ -34,11 +39,28 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = request.nextUrl;
   const type = searchParams.get("type");
-  const clientId = searchParams.get("clientId");
-  const projectId = searchParams.get("projectId");
+  let clientId = searchParams.get("clientId");
+  let projectId = searchParams.get("projectId");
 
-  if (!type || !clientId) {
-    return NextResponse.json({ error: "Faltan parámetros type/clientId." }, { status: 400 });
+  if (!type) {
+    return NextResponse.json({ error: "Falta el parámetro type." }, { status: 400 });
+  }
+
+  // El comprobante de pago se pide por paymentId — de ahí se saca solo
+  // el cliente y el proyecto, no hace falta pasarlos aparte.
+  let payment: Payment | null = null;
+  if (type === "comprobante") {
+    const paymentId = searchParams.get("paymentId");
+    if (!paymentId) return NextResponse.json({ error: "Falta paymentId." }, { status: 400 });
+    const { data } = await supabase.from("payments").select("*").eq("id", paymentId).single();
+    if (!data) return NextResponse.json({ error: "Pago no encontrado." }, { status: 404 });
+    payment = data;
+    clientId = data.client_id;
+    projectId = data.project_id;
+  }
+
+  if (!clientId) {
+    return NextResponse.json({ error: "Falta el parámetro clientId." }, { status: 400 });
   }
 
   const { data: client } = await supabase.from("clients").select("*").eq("id", clientId).single();
@@ -47,7 +69,29 @@ export async function GET(request: NextRequest) {
   let pdfBuffer: Buffer;
   let filename = "documento-mr14.pdf";
 
-  if (type === "credenciales") {
+  if (type === "comprobante") {
+    if (!projectId || !payment) {
+      return NextResponse.json({ error: "Falta projectId." }, { status: 400 });
+    }
+    const { data: project } = await supabase.from("projects").select("*").eq("id", projectId).single();
+    if (!project) return NextResponse.json({ error: "Proyecto no encontrado." }, { status: 404 });
+
+    const [allPayments, installments] = await Promise.all([
+      supabase.from("payments").select("*").eq("project_id", projectId).order("paid_at", { ascending: false }),
+      supabase.from("project_installments").select("*").eq("project_id", projectId).order("number", { ascending: true }),
+    ]);
+
+    pdfBuffer = await renderToBuffer(
+      <ComprobantePagoDoc
+        client={client as Client}
+        project={project as Project}
+        payment={payment}
+        allPayments={allPayments.data ?? []}
+        installments={installments.data ?? []}
+      />
+    );
+    filename = `MR14-comprobante-${client.business_name}-${formatFilenameDate(payment.paid_at)}.pdf`;
+  } else if (type === "credenciales") {
     const ids = searchParams.get("ids")?.split(",").filter(Boolean) ?? [];
     let query = supabase.from("credentials").select("*").eq("client_id", clientId);
     if (ids.length > 0) query = query.in("id", ids);

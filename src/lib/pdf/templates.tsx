@@ -1,10 +1,12 @@
 import { PdfPage, PdfHeader, Section, InfoRow, styles, colors, getLogoDataUri } from "./shared";
 import { Text, View, Image } from "@react-pdf/renderer";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { installmentsWithStatus } from "@/lib/installments";
 import type {
   Client,
   Project,
   Payment,
+  ProjectInstallment,
   DomainRow,
   HostingRow,
   RepositoryRow,
@@ -218,15 +220,24 @@ export function ComprobantePagoDoc({
   client,
   project,
   payment,
+  allPayments,
+  installments,
 }: {
   client: Client;
   project: Project;
   payment: Payment;
+  /** Historial completo de pagos del proyecto (incluye este mismo pago). */
+  allPayments: Payment[];
+  installments: ProjectInstallment[];
 }) {
   const receiptNumber = `MR14-${payment.id.slice(0, 8).toUpperCase()}`;
   const balance = Math.max(0, project.price - project.amount_paid);
   const logo = getLogoDataUri("white");
   const concept = payment.notes || `Pago — ${project.name}`;
+  const priorPayments = allPayments
+    .filter((p) => p.id !== payment.id)
+    .sort((a, b) => (a.paid_at < b.paid_at ? 1 : -1));
+  const cuotas = installmentsWithStatus(installments, project.amount_paid);
 
   return (
     <PdfPage>
@@ -263,32 +274,51 @@ export function ComprobantePagoDoc({
         </View>
       </View>
 
-      {/* Facturado a: nombre del negocio del cliente en grande, como en una factura real. */}
-      <View style={{ marginBottom: 20 }}>
-        <Text style={{ ...styles.label, marginBottom: 4 }}>Facturado a</Text>
-        <Text style={{ fontSize: 16, fontFamily: "Helvetica-Bold", color: colors.ink, marginBottom: 3 }}>
-          {client.business_name}
-        </Text>
-        <Text style={{ fontSize: 9, color: colors.muted }}>
-          {[client.contact_name, client.rut || client.ci, client.email].filter(Boolean).join("  ·  ")}
-        </Text>
+      {/* Emisor / Facturado a, lado a lado — como en una factura real, que
+          siempre identifica a las dos partes de la operación. */}
+      <View style={{ flexDirection: "row", marginBottom: 20, gap: 24 }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ ...styles.label, marginBottom: 4 }}>Emisor</Text>
+          <Text style={{ fontSize: 12, fontFamily: "Helvetica-Bold", color: colors.ink, marginBottom: 3 }}>
+            Mateo Rodríguez — MR14
+          </Text>
+          <Text style={{ fontSize: 9, color: colors.muted }}>Montevideo, Uruguay</Text>
+          <Text style={{ fontSize: 9, color: colors.muted }}>contacto@mateordgz.dev</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ ...styles.label, marginBottom: 4 }}>Facturado a</Text>
+          <Text style={{ fontSize: 12, fontFamily: "Helvetica-Bold", color: colors.ink, marginBottom: 3 }}>
+            {client.business_name}
+          </Text>
+          <Text style={{ fontSize: 9, color: colors.muted }}>{client.contact_name || "-"}</Text>
+          <Text style={{ fontSize: 9, color: colors.muted }}>
+            {[client.rut || client.ci, client.email].filter(Boolean).join("  ·  ")}
+          </Text>
+          {(client.whatsapp || client.phone || client.address) && (
+            <Text style={{ fontSize: 9, color: colors.muted }}>
+              {[client.whatsapp || client.phone, client.address].filter(Boolean).join("  ·  ")}
+            </Text>
+          )}
+        </View>
       </View>
 
       {/* Detalle, con look de tabla de factura (encabezado con fondo de color). */}
       <View style={{ ...styles.table, marginBottom: 20 }}>
         <View style={{ flexDirection: "row", backgroundColor: colors.accent }}>
-          <Text style={{ flex: 3, padding: 8, fontSize: 8, color: "#fff", textTransform: "uppercase" }}>Concepto</Text>
-          <Text style={{ flex: 1.4, padding: 8, fontSize: 8, color: "#fff", textTransform: "uppercase" }}>Método</Text>
+          <Text style={{ flex: 2.6, padding: 8, fontSize: 8, color: "#fff", textTransform: "uppercase" }}>Concepto</Text>
+          <Text style={{ flex: 1.2, padding: 8, fontSize: 8, color: "#fff", textTransform: "uppercase" }}>Proyecto</Text>
+          <Text style={{ flex: 1.8, padding: 8, fontSize: 8, color: "#fff", textTransform: "uppercase" }}>Método</Text>
           <Text
-            style={{ flex: 1.4, padding: 8, fontSize: 8, color: "#fff", textTransform: "uppercase", textAlign: "right" }}
+            style={{ flex: 1.2, padding: 8, fontSize: 8, color: "#fff", textTransform: "uppercase", textAlign: "right" }}
           >
             Monto
           </Text>
         </View>
         <View style={styles.tableRowLast}>
-          <Text style={{ flex: 3, padding: 8, fontSize: 10 }}>{concept}</Text>
-          <Text style={{ flex: 1.4, padding: 8, fontSize: 10 }}>{payment.method || "-"}</Text>
-          <Text style={{ flex: 1.4, padding: 8, fontSize: 10, textAlign: "right", fontFamily: "Helvetica-Bold" }}>
+          <Text style={{ flex: 2.6, padding: 8, fontSize: 10 }}>{concept}</Text>
+          <Text style={{ flex: 1.2, padding: 8, fontSize: 10 }}>{project.name}</Text>
+          <Text style={{ flex: 1.8, padding: 8, fontSize: 10 }}>{payment.method || "-"}</Text>
+          <Text style={{ flex: 1.2, padding: 8, fontSize: 10, textAlign: "right", fontFamily: "Helvetica-Bold" }}>
             {formatCurrency(payment.amount, project.currency)}
           </Text>
         </View>
@@ -342,9 +372,68 @@ export function ComprobantePagoDoc({
         </View>
       </View>
 
-      <Text style={{ fontSize: 8, color: colors.muted, marginTop: 20 }}>
-        Gracias por confiar en MR14. Ante cualquier consulta sobre este comprobante, escribinos a contacto@mateordgz.dev.
-      </Text>
+      {cuotas.length > 0 && (
+        <View style={{ marginTop: 20 }}>
+          <Text style={styles.sectionTitle}>Plan de cuotas</Text>
+          <View style={styles.table}>
+            {cuotas.map((c, i) => (
+              <View key={c.id} style={i === cuotas.length - 1 ? styles.tableRowLast : styles.tableRow}>
+                <Text style={{ flex: 2, padding: 7, fontSize: 9 }}>{c.label || `Cuota ${c.number}`}</Text>
+                <Text style={{ flex: 1, padding: 7, fontSize: 9, textAlign: "right" }}>
+                  {formatCurrency(c.amount, project.currency)}
+                </Text>
+                <Text
+                  style={{
+                    flex: 1,
+                    padding: 7,
+                    fontSize: 9,
+                    textAlign: "right",
+                    color: c.paid ? "#2f7d4f" : colors.muted,
+                    fontFamily: c.paid ? "Helvetica-Bold" : "Helvetica",
+                  }}
+                >
+                  {c.paid ? "Paga" : c.isNext ? "Próxima" : "Pendiente"}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {priorPayments.length > 0 && (
+        <View style={{ marginTop: 20 }}>
+          <Text style={styles.sectionTitle}>Historial de pagos anteriores</Text>
+          <View style={styles.table}>
+            {priorPayments.map((p, i) => (
+              <View key={p.id} style={i === priorPayments.length - 1 ? styles.tableRowLast : styles.tableRow}>
+                <Text style={{ flex: 1.4, padding: 7, fontSize: 9 }}>{formatDate(p.paid_at)}</Text>
+                <Text style={{ flex: 2, padding: 7, fontSize: 9 }}>{p.method || "-"}</Text>
+                <Text style={{ flex: 1, padding: 7, fontSize: 9, textAlign: "right" }}>
+                  {formatCurrency(p.amount, project.currency)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      <View
+        style={{
+          marginTop: 28,
+          paddingTop: 12,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+        }}
+      >
+        <Text style={{ fontSize: 8, color: colors.muted }}>
+          Este comprobante certifica la recepción del pago indicado arriba, sujeto a la acreditación del medio de
+          pago utilizado. Conservalo como constancia.
+        </Text>
+        <Text style={{ fontSize: 8, color: colors.muted, marginTop: 4 }}>
+          Gracias por confiar en MR14. Ante cualquier consulta sobre este comprobante, escribinos a
+          contacto@mateordgz.dev.
+        </Text>
+      </View>
     </PdfPage>
   );
 }
