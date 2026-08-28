@@ -10,6 +10,7 @@ import { Checklist } from "@/components/projects/Checklist";
 import { StageEditor } from "@/components/projects/StageEditor";
 import { DevLinkCard } from "@/components/projects/DevLinkCard";
 import { InstallmentsEditor } from "@/components/projects/InstallmentsEditor";
+import { MarkInstallmentPaidDialog } from "@/components/projects/MarkInstallmentPaidDialog";
 import {
   DomainsSection,
   HostingSection,
@@ -33,6 +34,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   const { project, client, domains, hosting, repositories, databases, tasks, history, installments } = data;
   const mainHosting = hosting[0] ?? null;
   const installmentRows = installmentsWithStatus(installments, project.amount_paid);
+  let installmentsCumulative = 0;
+  const installmentRowsCum = installmentRows.map((r) => {
+    installmentsCumulative += r.amount;
+    return { ...r, cumulative: installmentsCumulative };
+  });
   const [tickets, supportSummary, internalNotes] = await Promise.all([
     getAllTickets({ projectId: project.id }),
     getProjectSupportSummary(project.id),
@@ -79,6 +85,45 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       </div>
 
       <DevLinkCard projectId={project.id} clientId={client.id} hosting={mainHosting} />
+
+      {installmentRowsCum.length > 0 && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-card-title">Detalle de cuotas</h2>
+          </CardHeader>
+          <CardBody className="space-y-0 divide-y divide-border">
+            {installmentRowsCum.map((r) => (
+              <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  {r.paid ? (
+                    <CheckCircle2 size={16} className="shrink-0 text-success" />
+                  ) : (
+                    <Clock size={16} className="shrink-0 text-muted-2" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{r.label || `Cuota ${r.number}`}</p>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-sm font-medium tabular-nums">{formatCurrency(r.amount, project.currency)}</span>
+                  <Badge tone={r.paid ? "success" : r.isNext ? "warning" : "muted"}>
+                    {r.paid ? "Pagada" : r.isNext ? "Próxima" : "Pendiente"}
+                  </Badge>
+                  {!r.paid && (
+                    <MarkInstallmentPaidDialog
+                      clientId={client.id}
+                      projectId={project.id}
+                      label={r.label || `Cuota ${r.number}`}
+                      amountDue={Math.max(0, r.cumulative - project.amount_paid)}
+                      currency={project.currency}
+                    />
+                  )}
+                </div>
+              </div>
+            ))}
+          </CardBody>
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
@@ -131,36 +176,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         currentCount={installmentRows.length}
         deposit={project.deposit}
       />
-
-      {installmentRows.length > 0 && (
-        <Card>
-          <CardHeader>
-            <h2 className="text-card-title">Detalle de cuotas</h2>
-          </CardHeader>
-          <CardBody className="space-y-0 divide-y divide-border">
-            {installmentRows.map((r) => (
-              <div key={r.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                <div className="flex items-center gap-3 min-w-0">
-                  {r.paid ? (
-                    <CheckCircle2 size={16} className="shrink-0 text-success" />
-                  ) : (
-                    <Clock size={16} className="shrink-0 text-muted-2" />
-                  )}
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{r.label || `Cuota ${r.number}`}</p>
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <span className="text-sm font-medium tabular-nums">{formatCurrency(r.amount, project.currency)}</span>
-                  <Badge tone={r.paid ? "success" : r.isNext ? "warning" : "muted"}>
-                    {r.paid ? "Pagada" : r.isNext ? "Próxima" : "Pendiente"}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </CardBody>
-        </Card>
-      )}
 
       <Card>
         <CardHeader>
