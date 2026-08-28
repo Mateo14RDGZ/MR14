@@ -7,6 +7,7 @@ import type {
   Project,
   Payment,
   ProjectInstallment,
+  PaymentMethod,
   DomainRow,
   HostingRow,
   RepositoryRow,
@@ -434,6 +435,80 @@ export function ComprobantePagoDoc({
           contacto@mateordgz.dev.
         </Text>
       </View>
+    </PdfPage>
+  );
+}
+
+export function CuentasBancoDoc({ methods }: { methods: PaymentMethod[] }) {
+  const logo = getLogoDataUri("white");
+
+  return (
+    <PdfPage>
+      {/* Misma banda de marca que el comprobante de pago — consistencia
+          visual entre todos los documentos que se comparten con clientes. */}
+      <View
+        style={{
+          marginTop: -40,
+          marginHorizontal: -40,
+          marginBottom: 24,
+          paddingHorizontal: 40,
+          paddingVertical: 22,
+          backgroundColor: colors.ink,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          {logo && (
+            // eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image, no alt prop
+            <Image src={logo} style={{ width: 44, height: 44 }} />
+          )}
+          <View>
+            <Text style={{ fontSize: 18, fontFamily: "Helvetica-Bold", color: "#fff" }}>MR14</Text>
+            <Text style={{ fontSize: 8, color: colors.accent }}>mateordgz.dev</Text>
+          </View>
+        </View>
+        <View style={{ alignItems: "flex-end" }}>
+          <Text style={{ fontSize: 13, fontFamily: "Helvetica-Bold", color: "#fff" }}>CUENTAS BANCARIAS</Text>
+          <Text style={{ fontSize: 8, color: "#c9c9cc", marginTop: 3 }}>
+            {new Intl.DateTimeFormat("es-UY", { dateStyle: "long" }).format(new Date())}
+          </Text>
+        </View>
+      </View>
+
+      <Text style={{ fontSize: 10, color: colors.muted, marginBottom: 20 }}>
+        Podés transferir a cualquiera de estas cuentas. Ante cualquier duda, escribinos a contacto@mateordgz.dev.
+      </Text>
+
+      {methods.map((m) => (
+        <View
+          key={m.id}
+          style={{
+            borderWidth: 1,
+            borderColor: colors.border,
+            borderRadius: 4,
+            marginBottom: 14,
+            overflow: "hidden",
+          }}
+        >
+          <View style={{ backgroundColor: colors.accent, paddingVertical: 8, paddingHorizontal: 12 }}>
+            <Text style={{ fontSize: 12, fontFamily: "Helvetica-Bold", color: "#fff" }}>{m.label}</Text>
+          </View>
+          <View style={styles.table}>
+            <InfoRow label="Banco" value={m.bank} />
+            <InfoRow label="Titular" value={m.account_holder} />
+            <InfoRow label="Número de cuenta / alias" value={m.account_number} />
+            <InfoRow label="Tipo de cuenta" value={m.account_type} />
+            <InfoRow label="Moneda" value={m.currency} />
+            {m.notes && <InfoRow label="Notas" value={m.notes} />}
+          </View>
+        </View>
+      ))}
+
+      {methods.length === 0 && (
+        <Text style={styles.value}>Todavía no hay cuentas bancarias cargadas.</Text>
+      )}
     </PdfPage>
   );
 }

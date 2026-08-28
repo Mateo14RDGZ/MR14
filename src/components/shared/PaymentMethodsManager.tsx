@@ -14,7 +14,7 @@ import {
   deletePaymentMethodAction,
 } from "@/actions/paymentMethods";
 import type { PaymentMethod } from "@/lib/types";
-import { Landmark, Pencil, Trash2 } from "lucide-react";
+import { Landmark, Pencil, Trash2, Share2 } from "lucide-react";
 
 function MethodForm({
   method,
@@ -105,9 +105,19 @@ export function PaymentMethodsManager({ methods }: { methods: PaymentMethod[] })
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-2">
-        Estas cuentas las ve el cliente en su portal (Pagos) cuando tiene saldo pendiente, para saber adónde transferir.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-2">
+          Estas cuentas las ve el cliente en su portal (Pagos) cuando tiene saldo pendiente, para saber adónde
+          transferir.
+        </p>
+        {methods.some((m) => m.is_active) && (
+          <a href="/api/pdf?type=cuentas-banco" target="_blank" rel="noopener noreferrer" className="shrink-0">
+            <Button size="sm" variant="secondary">
+              <Share2 size={14} /> Compartir PDF
+            </Button>
+          </a>
+        )}
+      </div>
 
       {methods.length === 0 ? (
         <EmptyState icon={Landmark} title="Sin cuentas cargadas" />

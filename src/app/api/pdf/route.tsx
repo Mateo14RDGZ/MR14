@@ -8,6 +8,7 @@ import {
   InfraestructuraDoc,
   CredencialesDoc,
   ComprobantePagoDoc,
+  CuentasBancoDoc,
 } from "@/lib/pdf/templates";
 import type { Client, Project, Payment } from "@/lib/types";
 
@@ -44,6 +45,23 @@ export async function GET(request: NextRequest) {
 
   if (!type) {
     return NextResponse.json({ error: "Falta el parámetro type." }, { status: 400 });
+  }
+
+  // Cuentas bancarias: no está atado a un cliente/proyecto, es la lista
+  // completa de cuentas activas para compartir con quien haga falta.
+  if (type === "cuentas-banco") {
+    const { data: methods } = await supabase
+      .from("payment_methods")
+      .select("*")
+      .eq("is_active", true)
+      .order("position", { ascending: true });
+    const pdfBuffer = await renderToBuffer(<CuentasBancoDoc methods={methods ?? []} />);
+    return new NextResponse(new Uint8Array(pdfBuffer), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `inline; filename="MR14-cuentas-bancarias.pdf"`,
+      },
+    });
   }
 
   // El comprobante de pago se pide por paymentId — de ahí se saca solo
