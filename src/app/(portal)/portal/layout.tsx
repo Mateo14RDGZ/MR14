@@ -16,7 +16,12 @@ export default async function PortalLayout({ children }: { children: React.React
     <div className="portal-shell flex min-h-svh lg:h-svh lg:overflow-hidden">
       <PortalSidebar businessName={activeClient?.business_name ?? "Tu negocio"} />
       <div className="flex min-w-0 flex-1 flex-col lg:h-svh lg:overflow-y-auto">
-        <OrgSwitcher memberships={memberships} activeClientId={activeClientId} />
+        <OrgSwitcher
+          memberships={memberships}
+          activeClientId={activeClientId}
+          businessName={activeClient?.business_name ?? "Tu negocio"}
+          clientLogo={activeClient?.logo_url}
+        />
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-5 sm:px-6 lg:px-10 lg:pb-12 lg:pt-8">
           {children}
         </main>

@@ -219,54 +219,125 @@ textarea {
   animation: scale-in 0.16s cubic-bezier(0.2, 0, 0.2, 1);
 }
 
-/* ---------- Animación de bienvenida post-login (único lugar que la usa) ----------
-   Deliberadamente más lenta/grande que el resto de las microinteracciones de la
-   app: es un momento puntual de marca, no una transición de UI repetida. */
-@keyframes welcome-slide-left {
-  from {
-    opacity: 0;
-    transform: translateX(-36px) scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
+/* ---------- Bienvenida del portal: una secuencia de marca breve y excepcional. ---------- */
+.welcome-stage {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(123, 143, 245, 0.12), transparent 22rem),
+    linear-gradient(180deg, #0c0f15 0%, #090a0e 100%);
 }
-.animate-welcome-left {
-  animation: welcome-slide-left 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+.welcome-stage[data-exiting] {
+  opacity: 0;
+  filter: blur(4px);
+  transform: scale(1.015);
+}
+.welcome-glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(34rem, 90vw);
+  aspect-ratio: 1;
+  border: 1px solid rgba(123, 143, 245, 0.08);
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 0 0 4rem rgba(123, 143, 245, 0.018),
+    0 0 0 9rem rgba(123, 143, 245, 0.012);
+}
+.welcome-kicker,
+.welcome-copy,
+.welcome-progress {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: welcome-rise 520ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+.welcome-kicker { animation-delay: 80ms; }
+.welcome-copy { animation-delay: 880ms; }
+.welcome-progress { animation-delay: 1080ms; }
+.welcome-brand {
+  display: flex;
+  height: 7.5rem;
+  width: 7.5rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.75rem;
+  background: rgba(20, 23, 31, 0.88);
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.28), inset 0 1px rgba(255, 255, 255, 0.05);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.welcome-brand-client {
+  animation: welcome-brand-left 680ms cubic-bezier(0.23, 1, 0.32, 1) 220ms forwards;
+}
+.welcome-brand-mr14 {
+  animation: welcome-brand-right 680ms cubic-bezier(0.23, 1, 0.32, 1) 300ms forwards;
+}
+.welcome-connection {
+  display: flex;
+  width: clamp(3.5rem, 13vw, 6.5rem);
+  align-items: center;
+  justify-content: center;
+}
+.welcome-connection span {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, rgba(123, 143, 245, 0.55));
+  transform: scaleX(0);
+  transform-origin: right;
+  animation: welcome-line 380ms cubic-bezier(0.23, 1, 0.32, 1) 650ms forwards;
+}
+.welcome-connection span:last-child {
+  background: linear-gradient(90deg, rgba(123, 143, 245, 0.55), transparent);
+  transform-origin: left;
+}
+.welcome-connection b {
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(123, 143, 245, 0.24);
+  border-radius: 999px;
+  background: #11151d;
+  color: #91a1fa;
+  font-size: 0.875rem;
+  font-weight: 500;
+  opacity: 0;
+  transform: scale(0.92);
+  animation: welcome-plus 360ms cubic-bezier(0.23, 1, 0.32, 1) 720ms forwards;
+}
+.welcome-progress span {
+  width: 0;
+  animation: welcome-progress 1.25s linear 1.08s forwards;
+}
+@keyframes welcome-rise {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes welcome-brand-left {
+  from { opacity: 0; transform: translateX(-1.5rem) scale(0.94); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes welcome-brand-right {
+  from { opacity: 0; transform: translateX(1.5rem) scale(0.94); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes welcome-line {
+  to { transform: scaleX(1); }
+}
+@keyframes welcome-plus {
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes welcome-progress {
+  to { width: 100%; }
 }
 
-@keyframes welcome-slide-right {
-  from {
-    opacity: 0;
-    transform: translateX(36px) scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-}
-.animate-welcome-right {
-  animation: welcome-slide-right 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes welcome-pop {
-  0% {
-    opacity: 0;
-    transform: scale(0.94);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-.animate-welcome-pop {
-  animation: welcome-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: 0.5s;
-}
-.animate-welcome-text {
-  animation: fade-in 0.5s ease-out both;
-  animation-delay: 0.9s;
+@media (max-width: 420px) {
+  .welcome-brand { height: 6rem; width: 6rem; border-radius: 1.4rem; }
+  .welcome-connection { width: 3.25rem; }
+  .welcome-connection span { display: none; }
 }
 
 @keyframes skeleton-pulse {
@@ -289,12 +360,17 @@ textarea {
 
   .animate-fade-in,
   .animate-scale-in,
-  .animate-welcome-left,
-  .animate-welcome-right,
-  .animate-welcome-pop,
-  .animate-welcome-text {
-    animation: none !important;
+  .welcome-kicker,
+  .welcome-copy,
+  .welcome-progress,
+  .welcome-brand,
+  .welcome-connection span,
+  .welcome-connection b,
+  .welcome-progress span {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
   }
+  .welcome-stage[data-exiting] { filter: none; transform: none; }
 
   .animate-skeleton {
     animation: none !important;
