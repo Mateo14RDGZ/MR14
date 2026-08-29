@@ -88,7 +88,7 @@ export function NextActionsPanel({ actions }: { actions: NextAction[] }) {
         <Sparkles size={15} className="text-accent" />
         <h2 className="text-sm font-semibold">Tu próximo paso</h2>
       </div>
-      <Link href={primary.href} className="group flex items-center justify-between gap-4 px-5 py-5 transition-colors hover:bg-surface-2">
+      <Link href={primary.href} className="portal-press group flex items-center justify-between gap-4 px-5 py-5 transition-colors hover:bg-surface-2">
         <p className="max-w-xl text-base font-medium leading-relaxed">{primary.text}</p>
         <span className="flex min-h-10 shrink-0 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-semibold text-background transition-transform group-active:scale-[0.98]">
           {primary.cta} <ArrowRight size={15} />
@@ -100,7 +100,7 @@ export function NextActionsPanel({ actions }: { actions: NextAction[] }) {
           <Link
             key={i}
             href={a.href}
-            className="flex min-h-12 items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-surface-2"
+            className="portal-press flex min-h-12 items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-surface-2"
           >
             <p className="text-sm text-muted">{a.text}</p>
             <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-accent">

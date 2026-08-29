@@ -262,7 +262,7 @@ textarea {
   justify-content: center;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1.75rem;
+  border-radius: 999px;
   background: rgba(20, 23, 31, 0.88);
   box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.28), inset 0 1px rgba(255, 255, 255, 0.05);
   opacity: 0;
@@ -335,9 +335,49 @@ textarea {
 }
 
 @media (max-width: 420px) {
-  .welcome-brand { height: 6rem; width: 6rem; border-radius: 1.4rem; }
+  .welcome-brand { height: 5.75rem; width: 5.75rem; }
   .welcome-connection { width: 3.25rem; }
   .welcome-connection span { display: none; }
+}
+
+/* ---------- Portal mobile: respuesta táctil breve, sin demorar la navegación. ---------- */
+.portal-press {
+  transform: translateZ(0) scale(1);
+  transition-property: transform, background-color, border-color, color;
+  transition-duration: 140ms;
+  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
+.portal-press:active {
+  transform: translateZ(0) scale(0.975);
+}
+.portal-nav-indicator {
+  opacity: 0;
+  transform: scaleX(0.45);
+  transition: opacity 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.portal-nav-indicator.is-active {
+  opacity: 1;
+  transform: scaleX(1);
+}
+.portal-nav-icon {
+  display: flex;
+  transform: translateY(0) scale(1);
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.portal-nav-icon.is-active {
+  transform: translateY(-1px) scale(1.06);
+}
+.quick-link-icon {
+  transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.portal-press:active .quick-link-icon {
+  transform: scale(0.92);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .portal-press:hover .quick-link-icon {
+    transform: translateY(-2px);
+  }
 }
 
 @keyframes skeleton-pulse {
@@ -371,6 +411,13 @@ textarea {
     animation-delay: 0ms !important;
   }
   .welcome-stage[data-exiting] { filter: none; transform: none; }
+
+  .portal-press,
+  .portal-nav-indicator,
+  .portal-nav-icon,
+  .quick-link-icon {
+    transition-duration: 1ms !important;
+  }
 
   .animate-skeleton {
     animation: none !important;

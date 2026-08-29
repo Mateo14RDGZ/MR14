@@ -26,8 +26,8 @@ export function Logo({
         src="/icons/mark-white.png"
         alt="MR14"
         width={markSize}
-        height={markSize}
-        className={cn("shrink-0 select-none", className)}
+        height={Math.round(markSize * (571 / 558))}
+        className={cn("h-auto shrink-0 select-none object-contain", className)}
         priority
       />
     );
@@ -39,8 +39,8 @@ export function Logo({
         src="/icons/mark-white.png"
         alt=""
         width={markSize}
-        height={markSize}
-        className="shrink-0"
+        height={Math.round(markSize * (571 / 558))}
+        className="h-auto shrink-0 object-contain"
         priority
       />
       <span className={cn("font-semibold tracking-tight", textSize)}>MR14</span>

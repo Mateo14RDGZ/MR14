@@ -38,7 +38,7 @@ export function WelcomeAnimation({ logo, name, dest }: { logo: string; name: str
       <button
         type="button"
         onClick={finish}
-        className="absolute right-5 top-[calc(1.25rem+env(safe-area-inset-top))] z-10 flex min-h-10 items-center gap-1.5 rounded-xl px-3 text-xs font-medium text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
+        className="portal-press absolute right-5 top-[calc(1.25rem+env(safe-area-inset-top))] z-10 flex min-h-10 items-center gap-1.5 rounded-xl px-3 text-xs font-medium text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
       >
         Omitir <ArrowRight size={14} />
       </button>
@@ -54,7 +54,7 @@ export function WelcomeAnimation({ logo, name, dest }: { logo: string; name: str
               width={120}
               height={120}
               unoptimized
-              className="h-full w-full object-contain p-3"
+              className="h-full w-full rounded-full object-contain p-2.5"
             />
           </div>
 
@@ -65,7 +65,7 @@ export function WelcomeAnimation({ logo, name, dest }: { logo: string; name: str
           </div>
 
           <div className="welcome-brand welcome-brand-mr14">
-            <Logo mark size="2xl" className="h-full w-full object-contain p-3" />
+            <Logo mark size="2xl" className="max-h-[72%] w-auto object-contain" />
           </div>
         </div>
 

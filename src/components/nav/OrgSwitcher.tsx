@@ -26,9 +26,9 @@ export async function OrgSwitcher({
 
   return (
     <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-background/80 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl lg:px-8">
-      <Link href="/portal" aria-label="Ir al inicio" className="flex min-w-0 items-center gap-2.5 lg:hidden">
+      <Link href="/portal" aria-label="Ir al inicio" className="portal-press flex min-w-0 items-center gap-2.5 lg:hidden">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-surface">
-          <Logo mark size="lg" className="h-8 w-8 object-contain" />
+          <Logo mark size="lg" className="max-h-8 w-auto" />
         </span>
         <span aria-hidden="true" className="text-xs text-muted-2">×</span>
         {clientLogo ? (
@@ -62,7 +62,7 @@ export async function OrgSwitcher({
       <Link
         href="/portal/perfil"
         aria-label="Abrir mi perfil"
-        className="flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-surface-2 lg:hidden"
+        className="portal-press flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-surface-2 lg:hidden"
       >
         <User size={18} />
       </Link>

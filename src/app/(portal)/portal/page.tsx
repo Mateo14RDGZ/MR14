@@ -74,7 +74,7 @@ export default async function PortalDashboardPage() {
           </div>
         </section>
       ) : (
-        <Link href="/portal/mi-web" className="group block">
+        <Link href="/portal/mi-web" className="portal-press group block">
           <section className="relative overflow-hidden rounded-3xl border border-accent/20 bg-[radial-gradient(circle_at_top_right,rgba(91,110,232,0.22),transparent_46%),var(--surface)] p-6 transition-colors group-hover:border-accent/40 sm:p-8">
             <div className="flex items-center gap-2 text-xs font-semibold text-accent">
               <Globe2 size={15} /> {project.name}
@@ -115,14 +115,14 @@ export default async function PortalDashboardPage() {
       </section>
 
       {ticketSummary.open > 0 && (
-        <Link href="/portal/solicitudes" className="flex min-h-12 items-center gap-3 rounded-2xl bg-surface-2 px-4 text-sm transition-colors hover:bg-surface-3">
+        <Link href="/portal/solicitudes" className="portal-press flex min-h-12 items-center gap-3 rounded-2xl bg-surface-2 px-4 text-sm transition-colors hover:bg-surface-3">
           <LifeBuoy size={17} className="text-accent" />
           <span className="flex-1">{ticketSummary.open} solicitud{ticketSummary.open === 1 ? "" : "es"} en seguimiento</span>
           <span className="text-xs font-semibold text-accent">Ver</span>
         </Link>
       )}
 
-      <Link href="/portal/renovaciones" className="flex items-center gap-3 px-1 text-sm text-muted hover:text-foreground">
+      <Link href="/portal/renovaciones" className="portal-press flex min-h-11 items-center gap-3 px-1 text-sm text-muted transition-colors hover:text-foreground">
         <RefreshCw size={15} /> Ver renovaciones y vencimientos <ArrowRight size={14} className="ml-auto" />
       </Link>
 
@@ -136,8 +136,8 @@ export default async function PortalDashboardPage() {
 
 function QuickLink({ href, icon: Icon, label, detail }: { href: string; icon: typeof Wallet; label: string; detail: string }) {
   return (
-    <Link href={href} className="group flex min-h-32 flex-col rounded-2xl border border-border bg-surface p-4 transition-[border-color,transform,background-color] hover:border-border-strong hover:bg-surface-2 active:scale-[0.98]">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent"><Icon size={19} /></div>
+    <Link href={href} className="portal-press group flex min-h-32 flex-col rounded-2xl border border-border bg-surface p-4 transition-[border-color,transform,background-color] hover:border-border-strong hover:bg-surface-2">
+      <div className="quick-link-icon flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent"><Icon size={19} /></div>
       <p className="mt-4 font-semibold">{label}</p>
       <p className="mt-1 text-xs leading-relaxed text-muted">{detail}</p>
     </Link>

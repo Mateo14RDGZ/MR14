@@ -31,13 +31,13 @@ export function PortalBottomNav() {
             href={item.href}
             onClick={() => setTapped(item.href)}
             className={cn(
-              "relative flex min-h-14 flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors duration-150",
+              "portal-nav-item relative flex min-h-14 flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors duration-150",
               active ? "text-accent" : "text-muted-2"
             )}
           >
-            {active && <span aria-hidden="true" className="absolute top-0 h-0.5 w-8 rounded-full bg-accent" />}
-            <Icon size={20} strokeWidth={active ? 2 : 1.6} />
-            {item.label}
+            <span aria-hidden="true" className={cn("portal-nav-indicator absolute top-0 h-0.5 w-8 rounded-full bg-accent", active && "is-active")} />
+            <span className={cn("portal-nav-icon", active && "is-active")}><Icon size={20} strokeWidth={active ? 2 : 1.6} /></span>
+            <span>{item.label}</span>
           </Link>
         );
       })}
