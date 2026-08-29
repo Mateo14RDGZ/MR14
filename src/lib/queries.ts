@@ -472,20 +472,16 @@ export async function getPortalDashboardCore(clientId: string) {
 /** Contenido secundario del dashboard del portal: renovaciones + historial reciente. */
 export async function getPortalSecondary(clientId: string) {
   const supabase = await createClient();
-  const [renewals, history] = await Promise.all([
-    supabase.from("renewals").select("*").eq("client_id", clientId).order("due_date", { ascending: true }),
-    supabase
-      .from("project_history")
-      .select("*")
-      .eq("client_id", clientId)
-      .eq("visibility", "client")
-      .order("created_at", { ascending: false })
-      .limit(10),
-  ]);
+  const { data: history } = await supabase
+    .from("project_history")
+    .select("*")
+    .eq("client_id", clientId)
+    .eq("visibility", "client")
+    .order("created_at", { ascending: false })
+    .limit(10);
 
   return {
-    renewals: renewals.data ?? [],
-    recentActivity: history.data ?? [],
+    recentActivity: history ?? [],
   };
 }
 

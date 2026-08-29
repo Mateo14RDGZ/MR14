@@ -1,42 +1,24 @@
-import Link from "next/link";
 import { getPortalSecondary } from "@/lib/queries";
-import { formatDateTime, daysUntil } from "@/lib/utils";
-import { Activity, RefreshCw, AlertTriangle } from "lucide-react";
+import { formatDateTime } from "@/lib/utils";
+import { Activity, ArrowRight } from "lucide-react";
 
 /**
- * Contenido secundario del dashboard del portal (renovación próxima +
- * actividad reciente, plegada). Vive en su propio Server Component async
+ * Actividad secundaria del dashboard del portal, plegada. Vive en su
+ * propio Server Component async
  * para poder streamearlo en un <Suspense> aparte y no bloquear el primer
  * render con estas queries.
  */
 export async function PortalSecondarySection({ clientId }: { clientId: string }) {
-  const { renewals, recentActivity } = await getPortalSecondary(clientId);
-
-  const upcomingRenewal = renewals.find((r) => {
-    const d = daysUntil(r.due_date);
-    return d !== null && d <= 30 && d >= 0 && r.status !== "renovado";
-  });
+  const { recentActivity } = await getPortalSecondary(clientId);
 
   return (
     <>
-      {/* Renovaciones: sin protagonismo salvo que haya una próxima a vencer. */}
-      {upcomingRenewal && (
-        <Link
-          href="/portal/renovaciones"
-          className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning-soft/20 px-4 py-3 text-sm text-warning transition-colors hover:border-warning/50"
-        >
-          <AlertTriangle size={15} className="shrink-0" />
-          <span className="flex-1">Tu dominio está por vencer</span>
-          <RefreshCw size={15} className="shrink-0" />
-        </Link>
-      )}
-
-      {/* Actividad: plegada — es información secundaria, no compite con lo esencial. */}
       {recentActivity.length > 0 && (
-        <details className="group rounded-lg border border-border">
-          <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm text-muted marker:content-none group-open:border-b group-open:border-border">
+        <details className="group rounded-2xl border border-border bg-surface/60">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm text-muted marker:content-none group-open:border-b group-open:border-border">
             <Activity size={15} className="shrink-0" />
-            Actividad reciente
+            <span className="flex-1">Últimos movimientos</span>
+            <ArrowRight size={14} className="transition-transform group-open:rotate-90" />
           </summary>
           <ul className="space-y-4 p-4">
             {recentActivity.slice(0, 5).map((h) => (

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
 import { formatCurrency, daysUntil } from "@/lib/utils";
 import type { Project } from "@/lib/types";
 
@@ -68,30 +68,48 @@ export function computeNextActions({
 export function NextActionsPanel({ actions }: { actions: NextAction[] }) {
   if (actions.length === 0) {
     return (
-      <div className="flex items-center gap-3 rounded-lg border border-success/25 bg-success-soft px-4 py-3.5">
-        <CheckCircle2 size={18} className="shrink-0 text-success" />
-        <p className="text-sm font-medium text-success">Todo está al día.</p>
+      <div className="flex items-center gap-3 rounded-2xl border border-success/20 bg-success-soft/70 px-5 py-4">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
+          <CheckCircle2 size={20} />
+        </div>
+        <div>
+          <p className="font-semibold text-success">No tenés nada pendiente</p>
+          <p className="mt-0.5 text-xs text-muted">Nosotros te avisamos cuando necesitemos algo.</p>
+        </div>
       </div>
     );
   }
 
+  const [primary, ...secondary] = actions;
+
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-surface">
-      <p className="border-b border-border px-4 py-2.5 text-label">Necesitamos algo de vos</p>
-      <div className="divide-y divide-border">
-        {actions.map((a, i) => (
+    <section className="overflow-hidden rounded-2xl border border-accent/25 bg-surface shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
+      <div className="flex items-center gap-2 border-b border-border px-5 py-3.5">
+        <Sparkles size={15} className="text-accent" />
+        <h2 className="text-sm font-semibold">Tu próximo paso</h2>
+      </div>
+      <Link href={primary.href} className="group flex items-center justify-between gap-4 px-5 py-5 transition-colors hover:bg-surface-2">
+        <p className="max-w-xl text-base font-medium leading-relaxed">{primary.text}</p>
+        <span className="flex min-h-10 shrink-0 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-semibold text-background transition-transform group-active:scale-[0.98]">
+          {primary.cta} <ArrowRight size={15} />
+        </span>
+      </Link>
+      {secondary.length > 0 && (
+        <div className="divide-y divide-border border-t border-border">
+        {secondary.map((a, i) => (
           <Link
             key={i}
             href={a.href}
-            className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-surface-2"
+            className="flex min-h-12 items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-surface-2"
           >
-            <p className="text-sm">{a.text}</p>
+            <p className="text-sm text-muted">{a.text}</p>
             <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-accent">
               {a.cta} <ArrowRight size={13} />
             </span>
           </Link>
         ))}
-      </div>
-    </div>
+        </div>
+      )}
+    </section>
   );
 }

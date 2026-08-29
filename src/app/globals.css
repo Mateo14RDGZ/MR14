@@ -88,6 +88,25 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* El portal cliente tiene una identidad más amable y menos operativa que
+   el panel interno. Conserva el modo oscuro, pero usa superficies azuladas,
+   más aire y contenedores suaves para facilitar la lectura en móvil. */
+.portal-shell {
+  --background: #0a0c11;
+  --surface: #10141b;
+  --surface-2: #171c25;
+  --surface-3: #202734;
+  --border: #222a36;
+  --border-strong: #303b4c;
+  --muted: #a6adba;
+  --muted-2: #7f8999;
+  --accent: #7b8ff5;
+  --accent-soft: rgba(123, 143, 245, 0.14);
+  background:
+    radial-gradient(circle at 72% -10%, rgba(91, 110, 232, 0.1), transparent 34rem),
+    var(--background);
+}
+
 ::selection {
   background: var(--accent);
   color: var(--accent-foreground);

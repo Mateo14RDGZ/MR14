@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { setActiveOrganizationAction } from "@/actions/members";
 import { Building2, User } from "lucide-react";
-import { signOut } from "@/actions/auth";
-import { LogOut } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { NotificationBell } from "@/components/shared/NotificationBell";
 import { getMyNotifications } from "@/lib/queries";
@@ -22,7 +20,7 @@ export async function OrgSwitcher({
   const { notifications, unreadCount } = await getMyNotifications();
 
   return (
-    <header className="sticky top-0 z-30 flex min-h-20 items-center gap-3 border-b border-border bg-background/85 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md lg:min-h-16 lg:px-6">
+    <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-background/80 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl lg:px-8">
       <div className="lg:hidden">
         <Logo mark size="xl" />
       </div>
@@ -52,15 +50,6 @@ export async function OrgSwitcher({
       >
         <User size={18} />
       </Link>
-      <form action={signOut} className="lg:hidden">
-        <button
-          type="submit"
-          aria-label="Cerrar sesión"
-          className="flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-surface-2"
-        >
-          <LogOut size={18} />
-        </button>
-      </form>
     </header>
   );
 }
