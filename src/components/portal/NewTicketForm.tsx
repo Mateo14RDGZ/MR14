@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Input, Textarea, Select, Label, Field } from "@/components/ui/Input";
@@ -23,11 +23,18 @@ const CLIENT_CATEGORY_OPTIONS = [
 export function NewTicketForm({
   clientId,
   projects,
+  initialCategory,
+  initialSubject,
+  initialDescription,
 }: {
   clientId: string;
   projects: { id: string; name: string }[];
+  initialCategory?: string;
+  initialSubject?: string;
+  initialDescription?: string;
 }) {
   const [pending, startTransition] = useTransition();
+  const [valid, setValid] = useState(Boolean(initialSubject && initialDescription && projects[0]?.id));
 
   function onSubmit(formData: FormData) {
     startTransition(async () => {
@@ -39,7 +46,11 @@ export function NewTicketForm({
   return (
     <Card>
       <CardBody>
-        <form action={onSubmit} className="space-y-4">
+        <form
+          action={onSubmit}
+          className="space-y-4"
+          onInput={(event) => setValid(event.currentTarget.checkValidity())}
+        >
           {projects.length > 1 ? (
             <Field className="mb-0">
               <Label>Proyecto</Label>
@@ -54,9 +65,9 @@ export function NewTicketForm({
           ) : (
             <input type="hidden" name="project_id" value={projects[0]?.id ?? ""} />
           )}
-          <Field className="mb-0">
+          <Field id="ticket-category" className="mb-0">
             <Label>¿Qué necesitás?</Label>
-            <Select name="category" defaultValue="other">
+            <Select name="category" defaultValue={initialCategory ?? "content_change"}>
               {CLIENT_CATEGORY_OPTIONS.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
@@ -64,20 +75,27 @@ export function NewTicketForm({
               ))}
             </Select>
           </Field>
-          <Field className="mb-0">
+          <Field id="ticket-subject" className="mb-0">
             <Label>Asunto</Label>
-            <Input name="subject" required placeholder="Ej: Cambiar horario del sábado" />
+            <Input name="subject" required placeholder="Ej: Cambiar horario del sábado" defaultValue={initialSubject} />
           </Field>
           <Field className="mb-0">
             <Label>Contanos qué necesitás</Label>
-            <Textarea name="description" required rows={5} placeholder="Con el mayor detalle posible" />
+            <Textarea
+              name="description"
+              required
+              rows={5}
+              placeholder="Con el mayor detalle posible"
+              defaultValue={initialDescription}
+            />
           </Field>
-          <Field className="mb-0">
+          <Field id="ticket-files" className="mb-0">
             <Label className="flex items-center gap-1">
               <Paperclip size={12} /> Adjuntar foto o archivo (opcional)
             </Label>
             <input
               type="file"
+              id="ticket-files"
               name="files"
               multiple
               accept="image/*,.pdf"
@@ -85,7 +103,7 @@ export function NewTicketForm({
             />
             <p className="mt-1 text-xs text-muted-2">Imágenes o PDF, hasta 10MB por archivo.</p>
           </Field>
-          <Button type="submit" size="lg" disabled={pending} className="w-full">
+          <Button type="submit" size="lg" disabled={pending || !valid} className="w-full">
             {pending ? "Enviando…" : "Enviar solicitud"}
           </Button>
         </form>

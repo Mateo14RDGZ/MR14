@@ -22,7 +22,11 @@ export async function Topbar() {
         <div className="flex-1" />
         <NotificationBell notifications={notifications} unreadCount={unreadCount} ticketBasePath="/support" />
         <form action={signOut} className="lg:hidden">
-          <button type="submit" className="flex h-10 w-10 items-center justify-center rounded-lg text-muted hover:bg-surface-2">
+          <button
+            type="submit"
+            aria-label="Cerrar sesión"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-surface-2 lg:h-9 lg:w-9"
+          >
             <LogOut size={18} />
           </button>
         </form>

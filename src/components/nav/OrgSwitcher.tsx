@@ -47,12 +47,17 @@ export async function OrgSwitcher({
       <NotificationBell notifications={notifications} unreadCount={unreadCount} ticketBasePath="/portal/solicitudes" />
       <Link
         href="/portal/perfil"
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-surface-2 lg:hidden"
+        aria-label="Abrir mi perfil"
+        className="flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-surface-2 lg:hidden"
       >
         <User size={18} />
       </Link>
       <form action={signOut} className="lg:hidden">
-        <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-surface-2">
+        <button
+          type="submit"
+          aria-label="Cerrar sesión"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-surface-2"
+        >
           <LogOut size={18} />
         </button>
       </form>

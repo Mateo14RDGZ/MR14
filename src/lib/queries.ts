@@ -53,25 +53,17 @@ export async function getDashboardCore() {
   };
 }
 
-/** Contenido secundario del dashboard admin: dominios por vencer + actividad reciente. */
+/** Contenido secundario del dashboard admin: actividad reciente. */
 export async function getDashboardSecondary() {
   const supabase = await createClient();
-  const [tickets, history] = await Promise.all([
-    supabase
-      .from("tickets")
-      .select("id,number,subject,status,created_at,client_id,clients(business_name)")
-      .order("created_at", { ascending: false })
-      .limit(8),
-    supabase
-      .from("project_history")
-      .select("id,event,created_at,client_id,clients(business_name)")
-      .order("created_at", { ascending: false })
-      .limit(10),
-  ]);
+  const { data: history } = await supabase
+    .from("project_history")
+    .select("id,event,created_at,client_id,clients(business_name)")
+    .order("created_at", { ascending: false })
+    .limit(10);
 
   return {
-    ticketInbox: tickets.data ?? [],
-    recentActivity: history.data ?? [],
+    recentActivity: history ?? [],
   };
 }
 

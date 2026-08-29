@@ -34,7 +34,15 @@ const PRIORITY_TONE: Record<string, "muted" | "warning" | "danger" | "accent"> =
 export default async function SupportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ client?: string; status?: string; category?: string; priority?: string; q?: string; new?: string }>;
+  searchParams: Promise<{
+    client?: string;
+    status?: string;
+    category?: string;
+    priority?: string;
+    q?: string;
+    new?: string;
+    view?: "attention" | "waiting" | "critical";
+  }>;
 }) {
   const params = await searchParams;
   const [tickets, metrics, clients, projects] = await Promise.all([
@@ -54,13 +62,20 @@ export default async function SupportPage({
   // Prioridad visual: lo que espera respuesta de MR14 va primero (más
   // antiguo primero, porque es lo más urgente), el resto queda por fecha
   // de creación como antes. Sin agregar ninguna métrica nueva.
-  const sortedTickets = [...tickets].sort((a, b) => {
+  const visibleTickets = tickets.filter((ticket) => {
+    if (params.view === "attention") return NEEDS_REPLY_STATUSES.has(ticket.status);
+    if (params.view === "waiting") return ticket.status === "waiting_client";
+    if (params.view === "critical") return ticket.priority === "critical";
+    return true;
+  });
+  const sortedTickets = [...visibleTickets].sort((a, b) => {
     const aWaiting = NEEDS_REPLY_STATUSES.has(a.status);
     const bWaiting = NEEDS_REPLY_STATUSES.has(b.status);
     if (aWaiting !== bWaiting) return aWaiting ? -1 : 1;
     if (aWaiting && bWaiting) return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
+  const hasFilters = Boolean(params.client || params.status || params.category || params.priority || params.q || params.view);
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -77,20 +92,34 @@ export default async function SupportPage({
         <StatCard label="Resueltos hoy" value={metrics.resolvedToday} tone="success" />
       </div>
 
+      <nav aria-label="Vistas rápidas de tickets" className="flex flex-wrap items-center gap-2">
+        <span className="mr-1 text-xs font-medium text-muted">Vistas rápidas</span>
+        <QuickView href="/support?view=attention" active={params.view === "attention"}>Requieren atención</QuickView>
+        <QuickView href="/support?view=waiting" active={params.view === "waiting"}>Esperando cliente</QuickView>
+        <QuickView href="/support?view=critical" active={params.view === "critical"}>Críticos</QuickView>
+        {hasFilters && (
+          <Link href="/support" className="ml-auto text-xs font-medium text-accent hover:underline">
+            Limpiar filtros
+          </Link>
+        )}
+      </nav>
+
       <Card className="p-4">
         <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6" method="get">
+          {params.view && <input type="hidden" name="view" value={params.view} />}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3">
               <Search size={14} className="text-muted-2" />
               <input
                 name="q"
+                aria-label="Buscar tickets por número o asunto"
                 defaultValue={params.q}
                 placeholder="Buscar por # o asunto…"
                 className="h-9 w-full bg-transparent text-sm outline-none placeholder:text-muted-2"
               />
             </div>
           </div>
-          <Select name="client" defaultValue={params.client ?? ""}>
+          <Select name="client" aria-label="Filtrar por cliente" defaultValue={params.client ?? ""}>
             <option value="">Todos los clientes</option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
@@ -98,7 +127,7 @@ export default async function SupportPage({
               </option>
             ))}
           </Select>
-          <Select name="status" defaultValue={params.status ?? ""}>
+          <Select name="status" aria-label="Filtrar por estado" defaultValue={params.status ?? ""}>
             <option value="">Todos los estados</option>
             {TICKET_STATUSES.map((s) => (
               <option key={s.value} value={s.value}>
@@ -106,7 +135,7 @@ export default async function SupportPage({
               </option>
             ))}
           </Select>
-          <Select name="category" defaultValue={params.category ?? ""}>
+          <Select name="category" aria-label="Filtrar por categoría" defaultValue={params.category ?? ""}>
             <option value="">Todas las categorías</option>
             {TICKET_CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>
@@ -114,7 +143,7 @@ export default async function SupportPage({
               </option>
             ))}
           </Select>
-          <Select name="priority" defaultValue={params.priority ?? ""}>
+          <Select name="priority" aria-label="Filtrar por prioridad" defaultValue={params.priority ?? ""}>
             <option value="">Toda prioridad</option>
             {TICKET_PRIORITIES.map((p) => (
               <option key={p.value} value={p.value}>
@@ -129,7 +158,12 @@ export default async function SupportPage({
       </Card>
 
       {sortedTickets.length === 0 ? (
-        <EmptyState icon={LifeBuoy} title="Sin tickets" description="No hay solicitudes que coincidan con estos filtros." />
+        <EmptyState
+          icon={LifeBuoy}
+          title={hasFilters ? "Sin resultados" : "Sin tickets"}
+          description={hasFilters ? "No hay solicitudes que coincidan con estos filtros." : "Los nuevos tickets aparecerán acá."}
+          action={hasFilters ? <Link href="/support" className="text-sm font-medium text-accent hover:underline">Limpiar filtros</Link> : undefined}
+        />
       ) : (
         <div className="space-y-2">
           {sortedTickets.map((t) => {
@@ -169,5 +203,19 @@ export default async function SupportPage({
         </div>
       )}
     </div>
+  );
+}
+
+function QuickView({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+        active ? "border-accent bg-accent-soft text-foreground" : "border-border text-muted hover:border-border-strong hover:text-foreground"
+      }`}
+    >
+      {children}
+    </Link>
   );
 }

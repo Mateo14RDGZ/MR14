@@ -389,7 +389,8 @@ export async function createQuoteAction(ticketId: string, formData: FormData) {
 export async function decideQuoteAction(
   quoteVersionId: string,
   ticketId: string,
-  decision: "accepted" | "rejected"
+  decision: "accepted" | "rejected",
+  reason?: string
 ) {
   const { supabase, user } = await getCurrentUserAndRole();
   if (!user) throw new Error("No autenticado.");
@@ -419,7 +420,10 @@ export async function decideQuoteAction(
     ticket_id: ticketId,
     actor_id: user.id,
     event_type: decision === "accepted" ? "quote_accepted" : "quote_rejected",
-    meta: version ? { amount: version.amount, currency: version.currency } : {},
+    meta: {
+      ...(version ? { amount: version.amount, currency: version.currency } : {}),
+      ...(reason?.trim() ? { reason: reason.trim().slice(0, 500) } : {}),
+    },
   });
 
   const { data: ticket } = await supabase.from("tickets").select("client_id, project_id, number").eq("id", ticketId).single();

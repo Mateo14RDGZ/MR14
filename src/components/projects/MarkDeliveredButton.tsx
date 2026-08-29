@@ -1,31 +1,22 @@
 "use client";
 
-import { useTransition } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/Button";
+import { ConfirmButton } from "@/components/ui/ConfirmButton";
 import { markProjectDeliveredAction } from "@/actions/checklist";
 import { CheckCircle2 } from "lucide-react";
 
 export function MarkDeliveredButton({ projectId, clientId }: { projectId: string; clientId: string }) {
-  const [pending, startTransition] = useTransition();
-
   return (
-    <Button
-      size="sm"
+    <ConfirmButton
+      action={() => markProjectDeliveredAction(projectId, clientId)}
       variant="secondary"
-      disabled={pending}
-      onClick={() =>
-        startTransition(async () => {
-          try {
-            await markProjectDeliveredAction(projectId, clientId);
-            toast.success("Proyecto marcado como entregado.");
-          } catch {
-            toast.error("No se pudo actualizar el proyecto.");
-          }
-        })
+      confirmVariant="primary"
+      label={
+        <>
+          <CheckCircle2 size={14} /> Marcar entregado
+        </>
       }
-    >
-      <CheckCircle2 size={14} /> Marcar entregado
-    </Button>
+      confirmTitle="¿Marcar proyecto como entregado?"
+      confirmDescription="El proyecto pasará al 100%, se registrará la fecha de entrega y el cliente verá el cambio en su portal."
+    />
   );
 }

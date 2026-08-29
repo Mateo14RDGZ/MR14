@@ -59,9 +59,20 @@ export function AnalyzeForm({
       <Card>
         <CardBody>
           <form onSubmit={onSubmit} className="flex flex-col gap-4 sm:flex-row sm:items-end">
-            <Field className="mb-0 flex-1">
+            <Field id="audit-url" className="mb-0 flex-1">
               <Label>URL del sitio</Label>
-              <Input name="url" placeholder="https://motocenter.com.uy" required />
+              <Input
+                name="url"
+                type="url"
+                inputMode="url"
+                autoComplete="url"
+                placeholder="https://ejemplo.com"
+                aria-describedby="audit-url-help"
+                required
+              />
+              <p id="audit-url-help" className="text-xs text-muted-2">
+                Incluí https:// al comienzo.
+              </p>
             </Field>
             {clients.length > 0 && (
               <Field className="mb-0 sm:w-56">

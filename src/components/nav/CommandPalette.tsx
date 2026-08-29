@@ -1,7 +1,7 @@
 "use client";
 
 import { Command } from "cmdk";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Users, FolderKanban, Globe, GitBranch, FileText, LifeBuoy, UserPlus, Wallet, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,9 +35,9 @@ const GROUP_LABELS: Record<SearchResult["type"], string> = {
 const GROUP_ORDER: SearchResult["type"][] = ["client", "project", "ticket", "domain", "document", "repository"];
 
 const QUICK_ACTIONS = [
-  { icon: UserPlus, label: "Nuevo cliente", href: "/clients" },
-  { icon: FolderKanban, label: "Nuevo proyecto", href: "/projects" },
-  { icon: Wallet, label: "Registrar pago", href: "/clients" },
+  { icon: UserPlus, label: "Nuevo cliente", href: "/clients/new" },
+  { icon: FolderKanban, label: "Elegir cliente para crear proyecto", href: "/clients" },
+  { icon: Wallet, label: "Elegir cliente para registrar pago", href: "/clients" },
   { icon: LifeBuoy, label: "Nuevo ticket", href: "/support?new=ticket" },
 ];
 
@@ -47,16 +47,30 @@ export function CommandPalette() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  const closePalette = useCallback(() => {
+    setOpen(false);
+    setQuery("");
+    requestAnimationFrame(() => previousFocusRef.current?.focus());
+  }, []);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setOpen((v) => !v);
+        if (open) closePalette();
+        else {
+          previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          setOpen(true);
+        }
       }
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape" && open) closePalette();
     }
-    function onOpenEvent() {
+    function onOpenEvent(event: Event) {
+      const trigger = (event as CustomEvent<{ trigger?: HTMLElement }>).detail?.trigger;
+      previousFocusRef.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
       setOpen(true);
     }
     document.addEventListener("keydown", onKeyDown);
@@ -65,7 +79,7 @@ export function CommandPalette() {
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("mr14:open-search", onOpenEvent);
     };
-  }, []);
+  }, [closePalette, open]);
 
   const runSearch = useCallback(async (q: string) => {
     if (!q.trim()) {
@@ -102,15 +116,39 @@ export function CommandPalette() {
     router.push(href);
   }
 
+  function trapFocus(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+      ) ?? []
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-[2px] pt-24 px-4 animate-fade-in"
-      onClick={() => setOpen(false)}
+      onClick={closePalette}
     >
       <Command
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Búsqueda global"
         shouldFilter={false}
         className="w-full max-w-lg overflow-hidden rounded-lg border border-border bg-surface shadow-2xl animate-scale-in"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={trapFocus}
       >
         <div className="flex items-center gap-2 border-b border-border px-4">
           <Search size={16} className="text-muted-2" />
@@ -184,7 +222,11 @@ export function CommandPalette() {
 export function CommandPaletteTrigger({ className }: { className?: string }) {
   return (
     <button
-      onClick={() => document.dispatchEvent(new Event("mr14:open-search"))}
+      type="button"
+      aria-label="Abrir búsqueda global"
+      onClick={(event) =>
+        document.dispatchEvent(new CustomEvent("mr14:open-search", { detail: { trigger: event.currentTarget } }))
+      }
       className={cn(
         "flex h-9 w-full items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 text-sm text-muted-2 transition-colors active:scale-[0.99] hover:border-border-strong",
         className

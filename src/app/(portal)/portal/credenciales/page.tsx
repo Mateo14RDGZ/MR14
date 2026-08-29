@@ -6,6 +6,8 @@ import { SecretField } from "@/components/shared/SecretField";
 import { CREDENTIAL_SERVICES } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { KeyRound } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 
 export default async function PortalCredentialsPage() {
   const { activeClientId } = await getPortalContext();
@@ -19,7 +21,16 @@ export default async function PortalCredentialsPage() {
       </div>
 
       {credentials.length === 0 ? (
-        <EmptyState icon={KeyRound} title="Todavía no tenés accesos entregados" />
+        <EmptyState
+          icon={KeyRound}
+          title="Todavía no tenés accesos entregados"
+          description="Cuando MR14 te entregue un usuario o contraseña, va a aparecer acá de forma segura."
+          action={
+            <Link href="/portal/solicitudes/nueva">
+              <Button variant="secondary">Consultar por un acceso</Button>
+            </Link>
+          }
+        />
       ) : (
         <div className="space-y-3">
           {credentials.map((c) => (

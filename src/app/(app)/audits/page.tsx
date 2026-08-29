@@ -14,8 +14,13 @@ export default async function AuditsPage() {
     <div className="animate-fade-in space-y-8">
       <PageHeader
         title="Auditorías"
-        description="Analizá cualquier sitio web y generá documentación técnica automática."
+        description="Revisá la estructura pública de un sitio antes de asociar el resultado a un cliente o proyecto."
       />
+
+      <p className="-mt-5 max-w-2xl text-xs leading-relaxed text-muted">
+        El análisis consulta únicamente información pública y no modifica el sitio. Los puntajes son una guía inicial,
+        no reemplazan una revisión manual.
+      </p>
 
       <AnalyzeForm clients={clients} projects={projectOptions} />
 

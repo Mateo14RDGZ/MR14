@@ -6,8 +6,10 @@ import { EmptyState } from "@/components/ui/Empty";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { installmentsWithStatus } from "@/lib/installments";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Wallet, CheckCircle2, Clock, Landmark } from "lucide-react";
+import { Wallet, CheckCircle2, Clock, Landmark, ArrowRight, ReceiptText } from "lucide-react";
 import { CopyButton } from "@/components/portal/CopyButton";
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 
 export default async function PortalPagosPage() {
   const { activeClientId } = await getPortalContext();
@@ -94,6 +96,24 @@ export default async function PortalPagosPage() {
               </Card>
             ))}
           </div>
+          <Card className="mt-3 p-5">
+            <div className="flex items-start gap-3">
+              <ReceiptText size={18} className="mt-0.5 shrink-0 text-accent" />
+              <div className="min-w-0 flex-1">
+                <h3 className="text-card-title">Después de transferir</h3>
+                <ol className="mt-2 space-y-1 text-sm text-muted">
+                  <li>1. Guardá el comprobante de la transferencia.</li>
+                  <li>2. Avisanos desde el portal para que podamos identificarla.</li>
+                  <li>3. Cuando MR14 la valide, el pago y su comprobante aparecerán en esta pantalla.</li>
+                </ol>
+                <Link href="/portal/solicitudes/nueva?motivo=pago">
+                  <Button className="mt-4" variant="secondary">
+                    Avisar que hice un pago <ArrowRight size={15} />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Card>
         </div>
       )}
 

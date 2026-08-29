@@ -16,7 +16,7 @@ export default async function ProjectsPage() {
     <div className="animate-fade-in space-y-6">
       <PageHeader
         title="Proyectos"
-        description={`${projects.length} proyectos en total`}
+        description={projects.length === 1 ? "1 proyecto en total" : `${projects.length} proyectos en total`}
         action={<NewProjectDialog clients={clients} />}
       />
 

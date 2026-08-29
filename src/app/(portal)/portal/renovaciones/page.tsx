@@ -18,7 +18,11 @@ export default async function PortalRenewalsPage() {
       </div>
 
       {renewals.length === 0 ? (
-        <EmptyState icon={RefreshCw} title="No tenés renovaciones próximas." />
+        <EmptyState
+          icon={RefreshCw}
+          title="No tenés renovaciones próximas"
+          description="Cuando un dominio o servicio se acerque a su vencimiento, vas a encontrar acá la fecha y su estado."
+        />
       ) : (
         <div className="space-y-3">
           {renewals.map((r) => {

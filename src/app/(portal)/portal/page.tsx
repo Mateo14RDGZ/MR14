@@ -7,7 +7,7 @@ import { NextActionsPanel, computeNextActions } from "@/components/portal/NextAc
 import { PortalSecondarySection } from "@/components/portal/PortalSecondarySection";
 import { EmptyState } from "@/components/ui/Empty";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { formatCurrency, firstName } from "@/lib/utils";
+import { firstName } from "@/lib/utils";
 import { STAGE_META } from "@/lib/types";
 import { FolderKanban, LifeBuoy, ExternalLink, CircleCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -40,9 +40,9 @@ export default async function PortalDashboardPage() {
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <p className="text-display">
+        <h1 className="text-display">
           Hola, {firstName(activeClient?.contact_name || activeClient?.business_name || "")}
-        </p>
+        </h1>
         <p className="text-sm text-muted-2">{activeClient?.business_name}</p>
       </div>
 
@@ -88,19 +88,9 @@ export default async function PortalDashboardPage() {
 
       {project && (
         <div className="space-y-2">
-          {/* Pagos: discreto si no hay nada que resolver, en vez de una card grande. */}
-          {project.balance > 0 ? (
-            <Link
-              href="/portal/pagos"
-              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface px-4 py-3 transition-colors hover:border-muted-2"
-            >
-              <div>
-                <p className="text-sm font-medium">Pagos</p>
-                <p className="text-xs text-muted-2">Pendiente: {formatCurrency(project.balance, project.currency)}</p>
-              </div>
-              <span className="shrink-0 text-xs font-medium text-accent">Ver pagos</span>
-            </Link>
-          ) : (
+          {/* El pago pendiente ya aparece como próxima acción. Si está al día,
+              se conserva una confirmación discreta sin repetir información. */}
+          {project.balance <= 0 && (
             <Link href="/portal/pagos" className="flex items-center gap-1.5 px-1 text-sm text-success">
               <CircleCheck size={14} /> Todo pago
             </Link>

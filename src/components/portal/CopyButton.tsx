@@ -17,7 +17,7 @@ export function CopyButton({ value }: { value: string }) {
       type="button"
       onClick={copy}
       title="Copiar"
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-2 transition-colors hover:bg-surface-2 hover:text-foreground"
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted-2 transition-colors hover:bg-surface-2 hover:text-foreground lg:h-9 lg:w-9"
     >
       {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
     </button>

@@ -5,8 +5,9 @@ import { toast } from "sonner";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Input, Textarea, Select } from "@/components/ui/Input";
+import { Input, Textarea, Select, Field, Label } from "@/components/ui/Input";
 import { ConfirmButton } from "@/components/ui/ConfirmButton";
+import { Dialog } from "@/components/ui/Dialog";
 import { NewProjectDialog } from "@/components/clients/NewProjectDialog";
 import {
   addTicketMessageAction,
@@ -31,7 +32,7 @@ import {
   type TicketQuoteVersion,
   type QuickReply,
 } from "@/lib/types";
-import { formatCurrency, formatDateTime, daysUntil, timeAgo } from "@/lib/utils";
+import { formatCurrency, formatDate, formatDateTime, daysUntil, timeAgo } from "@/lib/utils";
 import { Paperclip, Send, FileDown, Clock, Sparkles } from "lucide-react";
 
 const NEEDS_REPLY_STATUSES = new Set(["received", "reviewing", "requires_quote"]);
@@ -465,7 +466,23 @@ function QuoteCard({
   version: TicketQuoteVersion;
 }) {
   const [pending, startTransition] = useTransition();
+  const [decision, setDecision] = useState<"accepted" | "rejected" | null>(null);
+  const [reason, setReason] = useState("");
   const decided = Boolean(version.decided_at);
+
+  function submitDecision() {
+    if (!decision) return;
+    startTransition(async () => {
+      try {
+        await decideQuoteAction(version.id, ticketId, decision, reason);
+        toast.success(decision === "accepted" ? "Presupuesto aceptado." : "Presupuesto rechazado.");
+        setDecision(null);
+        setReason("");
+      } catch {
+        toast.error("No pudimos registrar tu decisión. Intentá nuevamente.");
+      }
+    });
+  }
 
   return (
     <Card>
@@ -481,41 +498,76 @@ function QuoteCard({
         {version.notes && <p className="text-xs text-muted-2">{version.notes}</p>}
         {role === "client" && !decided && quote.status === "pending" && (
           <div className="flex gap-2 pt-2">
-            <Button
-              size="sm"
-              disabled={pending}
-              onClick={() =>
-                startTransition(async () => {
-                  try {
-                    await decideQuoteAction(version.id, ticketId, "accepted");
-                    toast.success("Presupuesto aceptado.");
-                  } catch {
-                    toast.error("No se pudo procesar.");
-                  }
-                })
-              }
-            >
-              Aceptar
+            <Button size="sm" disabled={pending} onClick={() => setDecision("accepted")}>
+              Aceptar presupuesto
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={pending}
-              onClick={() =>
-                startTransition(async () => {
-                  try {
-                    await decideQuoteAction(version.id, ticketId, "rejected");
-                    toast.success("Presupuesto rechazado.");
-                  } catch {
-                    toast.error("No se pudo procesar.");
-                  }
-                })
-              }
-            >
-              Rechazar
+            <Button size="sm" variant="outline" disabled={pending} onClick={() => setDecision("rejected")}>
+              Rechazar presupuesto
             </Button>
           </div>
         )}
+        <Dialog
+          open={decision !== null}
+          onClose={() => {
+            if (pending) return;
+            setDecision(null);
+            setReason("");
+          }}
+          title={decision === "accepted" ? "Confirmar presupuesto" : "Rechazar presupuesto"}
+          className="max-w-md"
+        >
+          <div className="space-y-4">
+            <div className="rounded-lg border border-border bg-surface-2 p-4">
+              <p className="text-sm">{version.description}</p>
+              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <dt className="text-caption">Monto</dt>
+                  <dd className="font-semibold">{formatCurrency(version.amount, version.currency)}</dd>
+                </div>
+                <div>
+                  <dt className="text-caption">Plazo estimado</dt>
+                  <dd>{version.estimated_days ? `${version.estimated_days} días` : "Sin definir"}</dd>
+                </div>
+                <div className="col-span-2">
+                  <dt className="text-caption">Válido hasta</dt>
+                  <dd>{version.valid_until ? formatDate(version.valid_until) : "Sin vencimiento informado"}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <p className="text-sm text-muted">
+              {decision === "accepted"
+                ? "Al confirmar, MR14 recibirá tu aprobación y la solicitud pasará a trabajo aprobado."
+                : "MR14 recibirá el rechazo y podrá revisar el alcance o preparar una nueva versión."}
+            </p>
+
+            {decision === "rejected" && (
+              <Field className="mb-0">
+                <Label>Motivo (opcional)</Label>
+                <Textarea
+                  value={reason}
+                  onChange={(event) => setReason(event.target.value)}
+                  rows={3}
+                  maxLength={500}
+                  placeholder="Contanos qué habría que revisar"
+                />
+              </Field>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setDecision(null)} disabled={pending}>
+                Volver
+              </Button>
+              <Button variant={decision === "accepted" ? "primary" : "danger"} onClick={submitDecision} disabled={pending}>
+                {pending
+                  ? "Guardando…"
+                  : decision === "accepted"
+                    ? "Aceptar presupuesto"
+                    : "Rechazar presupuesto"}
+              </Button>
+            </div>
+          </div>
+        </Dialog>
         {decided && (
           <p className="pt-1 text-xs text-muted-2">
             {version.decision === "accepted" ? "Aceptado" : "Rechazado"} el {formatDateTime(version.decided_at)}

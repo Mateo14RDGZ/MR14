@@ -4,9 +4,15 @@ import { getPortalProjectsForSelect } from "@/lib/queries";
 import { NewTicketForm } from "@/components/portal/NewTicketForm";
 import { ArrowLeft } from "lucide-react";
 
-export default async function NewTicketPage() {
+export default async function NewTicketPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ motivo?: string }>;
+}) {
+  const params = await searchParams;
   const { activeClientId } = await getPortalContext();
   const projects = await getPortalProjectsForSelect(activeClientId);
+  const isPaymentNotice = params.motivo === "pago";
 
   return (
     <div className="mx-auto max-w-lg animate-fade-in">
@@ -15,7 +21,13 @@ export default async function NewTicketPage() {
       </Link>
       <h1 className="mb-1 text-page-title">Solicitar soporte</h1>
       <p className="mb-6 text-sm text-muted">Contanos qué necesitás y te respondemos a la brevedad.</p>
-      <NewTicketForm clientId={activeClientId} projects={projects} />
+      <NewTicketForm
+        clientId={activeClientId}
+        projects={projects}
+        initialCategory={isPaymentNotice ? "other" : undefined}
+        initialSubject={isPaymentNotice ? "Comprobante de pago" : undefined}
+        initialDescription={isPaymentNotice ? "Realicé una transferencia y quiero informar el pago. Adjunto el comprobante." : undefined}
+      />
     </div>
   );
 }

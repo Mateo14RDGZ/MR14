@@ -27,7 +27,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl animate-fade-in space-y-6">
-      <PageHeader title="Configuración" description="Información de la cuenta y del entorno." />
+      <PageHeader title="Configuración" description="Administrá tu cuenta y las preferencias de trabajo." />
 
       <Card>
         <CardHeader>
@@ -72,21 +72,26 @@ export default async function SettingsPage() {
         </CardBody>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <h2 className="text-card-title">Estado del entorno</h2>
-        </CardHeader>
-        <CardBody className="space-y-2 text-sm">
+      <details className="group rounded-lg border border-border bg-surface">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-card-title marker:hidden">
+          Diagnóstico técnico
+          <span className="text-xs font-normal text-muted group-open:hidden">Mostrar</span>
+          <span className="hidden text-xs font-normal text-muted group-open:inline">Ocultar</span>
+        </summary>
+        <div className="space-y-2 border-t border-border px-5 py-4 text-sm">
+          <p className="mb-3 text-xs text-muted">
+            Variables necesarias para que las integraciones y notificaciones funcionen correctamente.
+          </p>
           {ENV_CHECKS.map((key) => (
-            <div key={key} className="flex items-center justify-between">
-              <span className="font-mono text-xs text-muted">{key}</span>
+            <div key={key} className="flex flex-wrap items-center justify-between gap-2">
+              <span className="break-all font-mono text-xs text-muted">{key}</span>
               <Badge tone={process.env[key] ? "success" : "danger"}>
                 {process.env[key] ? "Configurada" : "Falta"}
               </Badge>
             </div>
           ))}
-        </CardBody>
-      </Card>
+        </div>
+      </details>
 
       <Card>
         <CardHeader>

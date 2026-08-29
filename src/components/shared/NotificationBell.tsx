@@ -67,10 +67,11 @@ export function NotificationBell({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="relative flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-surface-2"
+        aria-label={unreadCount > 0 ? `Abrir notificaciones, ${unreadCount} sin leer` : "Abrir notificaciones"}
+        className="relative flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-surface-2 lg:h-9 lg:w-9"
       >
         <Bell size={18} />
-        {unreadCount > 0 && <span className="absolute right-1.5 top-1.5 flex h-2 w-2 rounded-full bg-danger" />}
+        {unreadCount > 0 && <span aria-hidden="true" className="absolute right-2 top-2 flex h-2 w-2 rounded-full bg-danger lg:right-1.5 lg:top-1.5" />}
       </button>
 
       <Dialog open={open} onClose={() => setOpen(false)} title="Notificaciones" className="max-w-sm">

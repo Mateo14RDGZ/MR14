@@ -27,6 +27,7 @@ import { DeleteProjectButton } from "@/components/projects/DeleteProjectButton";
 import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
 import { MarkDeliveredButton } from "@/components/projects/MarkDeliveredButton";
 import { HistoryTab } from "@/components/clients/HistoryTab";
+import { Tabs } from "@/components/ui/Tabs";
 import { PROJECT_STATUSES, PROJECT_TYPES } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { installmentsWithStatus } from "@/lib/installments";
@@ -51,6 +52,207 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     getProjectInternalNotes(project.id),
     getActivePaymentMethods(),
   ]);
+  const remainingTasks = tasks.filter((task) => !task.is_done).length;
+
+  const projectTabs = [
+    {
+      id: "resumen",
+      label: "Resumen",
+      content: (
+        <div className="space-y-6">
+          <DevLinkCard projectId={project.id} clientId={client.id} hosting={mainHosting} />
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <CardBody className="space-y-4">
+                {project.description && <p className="text-sm text-muted">{project.description}</p>}
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  <Info label="Precio" value={formatCurrency(project.price, project.currency)} />
+                  <Info label="Pagado" value={formatCurrency(project.amount_paid, project.currency)} tone="success" />
+                  <Info label="Estado de pago" value={project.payment_status} />
+                  <Info label="Inicio" value={formatDate(project.start_date)} />
+                  <Info label="Entrega real" value={formatDate(project.actual_delivery_date)} />
+                  <Info label="Moneda" value={project.currency} />
+                </div>
+                {project.notes && (
+                  <div className="border-t border-border pt-4">
+                    <p className="mb-1 text-xs uppercase tracking-wide text-muted-2">Notas</p>
+                    <p className="whitespace-pre-line text-sm text-muted">{project.notes}</p>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <h2 className="text-card-title">Etapa del proyecto</h2>
+                <p className="mt-0.5 text-caption">Actualizá el estado y dejá claro el próximo paso.</p>
+              </CardHeader>
+              <CardBody>
+                <StageEditor
+                  projectId={project.id}
+                  clientId={client.id}
+                  stage={project.stage}
+                  status={project.status}
+                  nextStep={project.next_step}
+                />
+              </CardBody>
+            </Card>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "pagos",
+      label: "Pagos",
+      count: installmentRowsCum.filter((row) => !row.paid).length,
+      content: (
+        <div className="space-y-6">
+          {installmentRowsCum.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <h2 className="text-card-title">Detalle de cuotas</h2>
+              </CardHeader>
+              <CardBody className="space-y-0 divide-y divide-border">
+                {installmentRowsCum.map((row) => (
+                  <div key={row.id} className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                    <div className="flex min-w-0 items-center gap-3">
+                      {row.paid ? (
+                        <CheckCircle2 size={16} className="shrink-0 text-success" />
+                      ) : (
+                        <Clock size={16} className="shrink-0 text-muted-2" />
+                      )}
+                      <p className="truncate text-sm font-medium">{row.label || `Cuota ${row.number}`}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="text-sm font-medium tabular-nums">{formatCurrency(row.amount, project.currency)}</span>
+                      <Badge tone={row.paid ? "success" : row.isNext ? "warning" : "muted"}>
+                        {row.paid ? "Pagada" : row.isNext ? "Próxima" : "Pendiente"}
+                      </Badge>
+                      {!row.paid && (
+                        <MarkInstallmentPaidDialog
+                          clientId={client.id}
+                          projectId={project.id}
+                          label={row.label || `Cuota ${row.number}`}
+                          amountDue={Math.max(0, row.cumulative - project.amount_paid)}
+                          currency={project.currency}
+                          paymentMethods={paymentMethods}
+                        />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </CardBody>
+            </Card>
+          ) : (
+            <Card className="p-5 text-sm text-muted">Este proyecto todavía no tiene un plan de cuotas.</Card>
+          )}
+
+          <InstallmentsEditor
+            projectId={project.id}
+            clientId={client.id}
+            currentCount={installmentRows.length}
+            deposit={project.deposit}
+          />
+        </div>
+      ),
+    },
+    {
+      id: "entrega",
+      label: "Entrega",
+      count: remainingTasks,
+      content: (
+        <div className="space-y-6">
+          <Card>
+            <CardBody className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-card-title">Cierre del proyecto</h2>
+                <p className="mt-1 text-sm text-muted">
+                  Completá el checklist y marcá la entrega cuando el proyecto esté realmente listo.
+                </p>
+              </div>
+              {project.status === "entregado" ? (
+                <span className="flex items-center gap-2 text-sm font-medium text-success">
+                  <CheckCircle2 size={16} /> Proyecto entregado
+                </span>
+              ) : (
+                <MarkDeliveredButton projectId={project.id} clientId={client.id} />
+              )}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h2 className="text-card-title">Checklist de entrega</h2>
+            </CardHeader>
+            <CardBody>
+              <Checklist projectId={project.id} clientId={client.id} tasks={tasks} />
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h2 className="text-card-title">Documentación</h2>
+            </CardHeader>
+            <CardBody className="flex flex-wrap gap-2">
+              <PdfLink type="ficha-tecnica" clientId={client.id} projectId={project.id} label="Ficha técnica" />
+              <PdfLink type="entrega" clientId={client.id} projectId={project.id} label="Entrega del proyecto" />
+              <PdfLink type="infraestructura" clientId={client.id} projectId={project.id} label="Infraestructura" />
+            </CardBody>
+          </Card>
+        </div>
+      ),
+    },
+    {
+      id: "infraestructura",
+      label: "Infraestructura",
+      content: (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <DomainsSection projectId={project.id} clientId={client.id} domains={domains} />
+          <HostingSection projectId={project.id} clientId={client.id} hosting={hosting} />
+          <RepositoriesSection projectId={project.id} clientId={client.id} repositories={repositories} />
+          <DatabasesSection projectId={project.id} clientId={client.id} databases={databases} />
+        </div>
+      ),
+    },
+    {
+      id: "actividad",
+      label: "Actividad",
+      count: supportSummary.open,
+      content: (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader className="flex items-center justify-between gap-3">
+              <h2 className="text-card-title">Tickets</h2>
+              <span className="text-xs text-muted-2">
+                {supportSummary.open} abiertos · {supportSummary.resolved} resueltos
+              </span>
+            </CardHeader>
+            <CardBody>
+              <TicketList tickets={tickets} basePath="/support" />
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h2 className="text-card-title">Historial del proyecto</h2>
+            </CardHeader>
+            <CardBody>
+              <HistoryTab history={history} />
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h2 className="text-card-title">Notas internas</h2>
+            </CardHeader>
+            <CardBody>
+              <InternalNotes notes={internalNotes} clientId={client.id} projectId={project.id} />
+            </CardBody>
+          </Card>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="mx-auto max-w-5xl animate-fade-in space-y-6">
@@ -67,7 +269,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <p className="mt-1 text-sm text-muted">{PROJECT_TYPES.find((t) => t.value === project.type)?.label}</p>
         </div>
         <div className="flex items-center gap-2">
-          <MarkDeliveredButton projectId={project.id} clientId={client.id} />
           <EditProjectDialog clientId={client.id} project={project} />
           <DeleteProjectButton projectId={project.id} clientId={client.id} />
         </div>
@@ -91,149 +292,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <SummaryItem label="Fecha estimada" value={formatDate(project.estimated_delivery_date)} />
       </div>
 
-      <DevLinkCard projectId={project.id} clientId={client.id} hosting={mainHosting} />
-
-      {installmentRowsCum.length > 0 && (
-        <Card>
-          <CardHeader>
-            <h2 className="text-card-title">Detalle de cuotas</h2>
-          </CardHeader>
-          <CardBody className="space-y-0 divide-y divide-border">
-            {installmentRowsCum.map((r) => (
-              <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                <div className="flex items-center gap-3 min-w-0">
-                  {r.paid ? (
-                    <CheckCircle2 size={16} className="shrink-0 text-success" />
-                  ) : (
-                    <Clock size={16} className="shrink-0 text-muted-2" />
-                  )}
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{r.label || `Cuota ${r.number}`}</p>
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <span className="text-sm font-medium tabular-nums">{formatCurrency(r.amount, project.currency)}</span>
-                  <Badge tone={r.paid ? "success" : r.isNext ? "warning" : "muted"}>
-                    {r.paid ? "Pagada" : r.isNext ? "Próxima" : "Pendiente"}
-                  </Badge>
-                  {!r.paid && (
-                    <MarkInstallmentPaidDialog
-                      clientId={client.id}
-                      projectId={project.id}
-                      label={r.label || `Cuota ${r.number}`}
-                      amountDue={Math.max(0, r.cumulative - project.amount_paid)}
-                      currency={project.currency}
-                      paymentMethods={paymentMethods}
-                    />
-                  )}
-                </div>
-              </div>
-            ))}
-          </CardBody>
-        </Card>
-      )}
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardBody className="space-y-4">
-            {project.description && <p className="text-sm text-muted">{project.description}</p>}
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <Info label="Precio" value={formatCurrency(project.price, project.currency)} />
-              <Info label="Pagado" value={formatCurrency(project.amount_paid, project.currency)} tone="success" />
-              <Info label="Estado de pago" value={project.payment_status} />
-              <Info label="Inicio" value={formatDate(project.start_date)} />
-              <Info label="Entrega real" value={formatDate(project.actual_delivery_date)} />
-              <Info label="Moneda" value={project.currency} />
-            </div>
-            {project.notes && (
-              <div className="border-t border-border pt-4">
-                <p className="mb-1 text-xs uppercase tracking-wide text-muted-2">Notas</p>
-                <p className="whitespace-pre-line text-sm text-muted">{project.notes}</p>
-              </div>
-            )}
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <h2 className="text-card-title">Etapa del proyecto</h2>
-            <p className="mt-0.5 text-caption">Acá se actualiza el estado y el próximo paso.</p>
-          </CardHeader>
-          <CardBody>
-            <StageEditor
-              projectId={project.id}
-              clientId={client.id}
-              stage={project.stage}
-              status={project.status}
-              nextStep={project.next_step}
-            />
-          </CardBody>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <DomainsSection projectId={project.id} clientId={client.id} domains={domains} />
-        <HostingSection projectId={project.id} clientId={client.id} hosting={hosting} />
-        <RepositoriesSection projectId={project.id} clientId={client.id} repositories={repositories} />
-        <DatabasesSection projectId={project.id} clientId={client.id} databases={databases} />
-      </div>
-
-      <InstallmentsEditor
-        projectId={project.id}
-        clientId={client.id}
-        currentCount={installmentRows.length}
-        deposit={project.deposit}
-      />
-
-      <Card>
-        <CardHeader>
-          <h2 className="text-card-title">Checklist de entrega</h2>
-        </CardHeader>
-        <CardBody>
-          <Checklist projectId={project.id} clientId={client.id} tasks={tasks} />
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <h2 className="text-card-title">Documentación</h2>
-        </CardHeader>
-        <CardBody className="flex flex-wrap gap-2">
-          <PdfLink type="ficha-tecnica" clientId={client.id} projectId={project.id} label="Ficha técnica" />
-          <PdfLink type="entrega" clientId={client.id} projectId={project.id} label="Entrega del proyecto" />
-          <PdfLink type="infraestructura" clientId={client.id} projectId={project.id} label="Infraestructura" />
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex items-center justify-between">
-          <h2 className="text-card-title">Tickets</h2>
-          <span className="text-xs text-muted-2">
-            {supportSummary.total} tickets totales · {supportSummary.open} abiertos · {supportSummary.resolved} resueltos
-          </span>
-        </CardHeader>
-        <CardBody>
-          <TicketList tickets={tickets} basePath="/support" />
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <h2 className="text-card-title">Historial del proyecto</h2>
-        </CardHeader>
-        <CardBody>
-          <HistoryTab history={history} />
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <h2 className="text-card-title">Notas internas</h2>
-        </CardHeader>
-        <CardBody>
-          <InternalNotes notes={internalNotes} clientId={client.id} projectId={project.id} />
-        </CardBody>
-      </Card>
+      <Tabs tabs={projectTabs} defaultTab="resumen" />
     </div>
   );
 }

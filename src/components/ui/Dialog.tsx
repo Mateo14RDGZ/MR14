@@ -20,6 +20,9 @@ export function Dialog({
 }) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
   // Portal a document.body: si el trigger vive dentro de un header con
   // backdrop-blur (NotificationBell en Topbar/OrgSwitcher), ese blur crea un
   // containing block nuevo para position:fixed y el overlay queda atrapado
@@ -32,15 +35,49 @@ export function Dialog({
   }, []);
 
   useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    if (open) document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
-    if (open) panelRef.current?.focus();
+    if (!open) return;
+
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const panel = panelRef.current;
+    const focusableSelector =
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const firstFocusable = contentRef.current?.querySelector<HTMLElement>(focusableSelector);
+    (firstFocusable ?? panel)?.focus();
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (e.key !== "Tab" || !panel) return;
+
+      const focusable = Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector));
+      if (focusable.length === 0) {
+        e.preventDefault();
+        panel.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      previousFocusRef.current?.focus();
+    };
   }, [open]);
 
   if (!open || !mounted) return null;
@@ -74,7 +111,10 @@ export function Dialog({
             <X size={18} />
           </button>
         </div>
-        <div className="max-h-[75vh] overflow-y-auto p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+        <div
+          ref={contentRef}
+          className="max-h-[75vh] overflow-y-auto p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
+        >
           {children}
         </div>
       </div>

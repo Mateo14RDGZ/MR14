@@ -13,10 +13,10 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-xs gap-1.5",
-  md: "h-9 px-3.5 text-sm gap-2",
+  sm: "h-9 px-3 text-xs gap-1.5",
+  md: "h-10 px-3.5 text-sm gap-2",
   lg: "h-11 px-5 text-sm gap-2",
-  icon: "h-10 w-10",
+  icon: "h-11 w-11",
 };
 
 export const Button = forwardRef<
