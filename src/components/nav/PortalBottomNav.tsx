@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MOBILE_BOTTOM_NAV_ITEMS } from "./portal-nav-items";
 import { cn } from "@/lib/utils";
@@ -13,12 +14,20 @@ function isActiveFor(href: string, pathname: string) {
 
 export function PortalBottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   // Ver BottomNav: feedback inmediato al tocar, porque la navegación real
   // depende de una respuesta del servidor.
   const [tapped, setTapped] = useState<string | null>(null);
   useEffect(() => {
     setTapped(null);
   }, [pathname]);
+
+  // Estas son las cuatro rutas más frecuentes del portal. Precargarlas al
+  // quedar libre el navegador hace que los cambios de sección se sientan
+  // inmediatos incluso en conexiones móviles medias.
+  useEffect(() => {
+    MOBILE_BOTTOM_NAV_ITEMS.forEach((item) => router.prefetch(item.href));
+  }, [router]);
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-lg border-t border-border bg-surface/95 px-2 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] lg:hidden">
@@ -30,6 +39,8 @@ export function PortalBottomNav() {
             key={item.href}
             href={item.href}
             onClick={() => setTapped(item.href)}
+            onPointerDown={() => router.prefetch(item.href)}
+            aria-current={active ? "page" : undefined}
             className={cn(
               "portal-nav-item relative flex min-h-14 flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors duration-150",
               active ? "text-accent" : "text-muted-2"

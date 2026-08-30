@@ -13,16 +13,8 @@ export function PortalSidebar({ businessName }: { businessName: string }) {
 
   return (
     <aside className="hidden border-r border-border bg-surface/80 lg:flex lg:h-svh lg:w-64 lg:shrink-0 lg:flex-col">
-      <div className="flex h-24 shrink-0 items-center px-5">
-        <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-2">
-            <Logo mark size="lg" className="max-h-8 w-auto" />
-          </span>
-          <div className="min-w-0">
-            <p className="text-lg font-semibold tracking-[-0.03em] text-foreground">MR14</p>
-            <p className="text-[11px] text-muted-2">Portal de clientes</p>
-          </div>
-        </div>
+      <div className="flex h-28 shrink-0 items-center justify-center px-5">
+        <Logo mark size="2xl" className="max-h-20 w-auto" />
       </div>
       <div className="mx-3 shrink-0 rounded-xl bg-surface-2 px-3.5 py-3">
         <p className="text-caption">Estás viendo</p>

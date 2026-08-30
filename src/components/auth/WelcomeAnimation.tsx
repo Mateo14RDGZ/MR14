@@ -54,7 +54,7 @@ export function WelcomeAnimation({ logo, name, dest }: { logo: string; name: str
               width={120}
               height={120}
               unoptimized
-              className="h-full w-full rounded-full object-contain p-2.5"
+              className="h-full w-full object-contain p-4 sm:p-5"
             />
           </div>
 
