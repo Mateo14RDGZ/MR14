@@ -1,11 +1,11 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import Image from "next/image";
 import { toast } from "sonner";
 import { uploadClientLogoAction } from "@/actions/clients";
 import { Avatar } from "@/components/ui/Avatar";
 import { Pencil } from "lucide-react";
+import { ClientLogo } from "@/components/ui/ClientLogo";
 
 /**
  * Avatar del cliente: muestra el logo si ya lo subieron, o las iniciales
@@ -51,13 +51,10 @@ export function ClientLogoUpload({
       className="group relative shrink-0 rounded-full disabled:opacity-60"
     >
       {preview ? (
-        <Image
+        <ClientLogo
           src={preview}
-          alt=""
-          width={56}
-          height={56}
-          unoptimized
-          className="h-14 w-14 shrink-0 rounded-full border border-border object-cover"
+          size={56}
+          className="h-14 w-14 border border-border"
         />
       ) : (
         <Avatar name={businessName} size="lg" />

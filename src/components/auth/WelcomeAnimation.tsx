@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Logo } from "@/components/ui/Logo";
+import { ClientLogo } from "@/components/ui/ClientLogo";
 import { ArrowRight } from "lucide-react";
 
 // Bastante más lenta que cualquier microinteracción del resto de la app a
@@ -48,13 +48,11 @@ export function WelcomeAnimation({ logo, name, dest }: { logo: string; name: str
 
         <div className="welcome-brands mt-8 flex items-center justify-center">
           <div className="welcome-brand welcome-brand-client">
-            <Image
+            <ClientLogo
               src={logo}
               alt="Logo de tu negocio"
-              width={120}
-              height={120}
-              unoptimized
-              className="h-full w-full object-contain p-4 sm:p-5"
+              size={120}
+              className="h-full w-full"
             />
           </div>
 

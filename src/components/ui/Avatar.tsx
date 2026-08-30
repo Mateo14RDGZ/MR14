@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { initials } from "@/lib/utils";
+import { ClientLogo } from "@/components/ui/ClientLogo";
 
 const PX = { sm: 32, md: 40, lg: 56 };
 
@@ -19,13 +19,10 @@ export function Avatar({
 
   if (logoUrl) {
     return (
-      <Image
+      <ClientLogo
         src={logoUrl}
-        alt=""
-        width={PX[size]}
-        height={PX[size]}
-        className={cn("shrink-0 rounded-full object-cover bg-surface-2", dims, className)}
-        unoptimized
+        size={PX[size]}
+        className={cn("bg-surface-2", dims, className)}
       />
     );
   }
