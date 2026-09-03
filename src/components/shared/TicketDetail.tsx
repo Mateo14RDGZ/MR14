@@ -209,7 +209,7 @@ export function TicketDetail({
           <Card>
             <CardBody className="space-y-3">
               <p className="text-sm text-muted">
-                Este ticket fue marcado como resuelto. Si necesitás reabrirlo, tenés{" "}
+                Esta solicitud fue marcada como resuelta. Si necesitás reabrirla, tenés{" "}
                 {daysToReopen !== null ? `${daysToReopen} días` : "un plazo limitado"}.
               </p>
               <div className="flex gap-2">
@@ -230,7 +230,7 @@ export function TicketDetail({
               {events.map((e) => (
                 <li key={e.id} className="relative text-xs">
                   <div className="absolute -left-[19px] top-1 h-1.5 w-1.5 rounded-full bg-muted-2" />
-                  <p className="text-foreground">{eventLabel(e, creator)}</p>
+                  <p className="text-foreground">{eventLabel(e, creator, role)}</p>
                   <p className="text-muted-2">{formatDateTime(e.created_at)}</p>
                 </li>
               ))}
@@ -242,7 +242,7 @@ export function TicketDetail({
   );
 }
 
-function eventLabel(e: TicketEvent, creator?: { full_name: string | null; role: string } | null) {
+function eventLabel(e: TicketEvent, creator: { full_name: string | null; role: string } | null | undefined, role: "admin" | "client") {
   if (e.event_type === "created") {
     if (creator?.role === "admin") return "MR14 creó esta solicitud.";
     return `${creator?.full_name || "El cliente"} creó esta solicitud.`;
@@ -256,8 +256,8 @@ function eventLabel(e: TicketEvent, creator?: { full_name: string | null; role: 
     quote_accepted: "Presupuesto aceptado",
     quote_rejected: "Presupuesto rechazado",
     assigned: "Reasignado",
-    closed: "Ticket cerrado",
-    reopened: "Ticket reabierto",
+    closed: role === "client" ? "Solicitud cerrada" : "Ticket cerrado",
+    reopened: role === "client" ? "Solicitud reabierta" : "Ticket reabierto",
   };
   return map[e.event_type] ?? e.event_type;
 }
@@ -629,11 +629,11 @@ function ClientCloseButton({ ticketId }: { ticketId: string }) {
   return (
     <ConfirmButton
       action={() => closeTicketAction(ticketId)}
-      label="Cerrar ticket"
+      label="Cerrar solicitud"
       variant="secondary"
       size="sm"
-      confirmTitle="¿Cerrar ticket?"
-      confirmDescription="Podés reabrirlo dentro del plazo indicado si necesitás algo más sobre esto."
+      confirmTitle="¿Cerrar solicitud?"
+      confirmDescription="Podés reabrirla dentro del plazo indicado si necesitás algo más sobre esto."
     />
   );
 }
@@ -645,7 +645,7 @@ function ClientReopenButton({ ticketId }: { ticketId: string }) {
       label="Reabrir"
       variant="outline"
       size="sm"
-      confirmTitle="¿Reabrir ticket?"
+      confirmTitle="¿Reabrir solicitud?"
       confirmDescription="MR14 será notificado para retomar tu solicitud."
     />
   );

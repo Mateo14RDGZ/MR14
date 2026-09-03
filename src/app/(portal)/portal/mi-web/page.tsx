@@ -115,7 +115,7 @@ export default async function PortalMiWebPage() {
         <div className="space-y-3 p-5 text-sm">
           <Row label="Dominio" value={domain?.domain} />
           <Row label="SSL / HTTPS" value={hosting?.production_url?.startsWith("https") ? "Activo" : "No disponible"} />
-          <Row label="Hosting" value={hosting?.platform} />
+          <Row label="Proveedor" value={hosting?.platform} />
           <Row label="Fecha de publicación" value={formatDate(project.actual_delivery_date)} />
         </div>
         {lastAudit && (
