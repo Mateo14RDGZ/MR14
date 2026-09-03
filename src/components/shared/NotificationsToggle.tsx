@@ -86,8 +86,7 @@ export function NotificationsToggle() {
   if (!supported) {
     return (
       <p className="text-sm text-muted">
-        Tu navegador no soporta notificaciones push. En iPhone, instalá MR14 en la pantalla de inicio primero
-        (Safari → Compartir → Agregar a inicio) y abrila desde ahí.
+        Para recibir avisos en iPhone, abrí esta página en Safari, tocá Compartir y elegí “Agregar a inicio”.
       </p>
     );
   }
@@ -95,7 +94,7 @@ export function NotificationsToggle() {
   return (
     <div className="flex items-center justify-between gap-3">
       <p className="text-sm text-muted">
-        {subscribed ? "Vas a recibir notificaciones aunque tengas la app cerrada." : "Activá los avisos para enterarte al instante, aunque no tengas la app abierta."}
+        {subscribed ? "Te avisaremos cuando Mateo responda o haya algo importante." : "Activá los avisos para saber cuándo Mateo responde o necesita algo de vos."}
       </p>
       <Button
         type="button"
@@ -106,7 +105,7 @@ export function NotificationsToggle() {
         className="shrink-0"
       >
         {subscribed ? <BellOff size={14} /> : <Bell size={14} />}
-        {pending ? "..." : subscribed ? "Desactivar" : "Activar notificaciones"}
+        {pending ? "Guardando…" : subscribed ? "Desactivar avisos" : "Activar avisos"}
       </Button>
     </div>
   );

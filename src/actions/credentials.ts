@@ -136,7 +136,7 @@ export async function deliverCredentialAction(id: string, clientId: string) {
     userIds: clientMemberIds,
     type: "credential_delivered",
     title: "Nuevo acceso disponible",
-    body: `MR14 te entregó el acceso: ${label}`,
+    body: `${label} está guardado de forma segura en Mis accesos.`,
     url: "/portal/credenciales",
   });
 

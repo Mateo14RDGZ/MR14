@@ -1,11 +1,8 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { getPortalContext } from "@/lib/portal";
 import { getPortalDashboardCore, getPortalTicketSummary } from "@/lib/queries";
 import { NextActionsPanel, computeNextActions } from "@/components/portal/NextActions";
-import { PortalSecondarySection } from "@/components/portal/PortalSecondarySection";
 import { EmptyState } from "@/components/ui/Empty";
-import { Skeleton } from "@/components/ui/Skeleton";
 import { firstName } from "@/lib/utils";
 import { STAGE_META } from "@/lib/types";
 import {
@@ -140,10 +137,6 @@ export default async function PortalDashboardPage() {
         <RefreshCw size={15} /> Ver renovaciones y vencimientos <ArrowRight size={14} className="ml-auto" />
       </Link>
 
-      {/* Contenido secundario: se streamea aparte, no bloquea el resto del dashboard. */}
-      <Suspense fallback={<PortalSecondaryFallback />}>
-        <PortalSecondarySection clientId={activeClientId} />
-      </Suspense>
     </div>
   );
 }
@@ -158,6 +151,3 @@ function QuickLink({ href, icon: Icon, label, detail }: { href: string; icon: ty
   );
 }
 
-function PortalSecondaryFallback() {
-  return <Skeleton className="h-11 w-full rounded-lg" />;
-}

@@ -188,7 +188,7 @@ export async function addTicketMessageAction(ticketId: string, formData: FormDat
     await notifyUsers({
       userIds: clientMemberIds,
       type: "ticket_message",
-      title: `MR14 respondió tu ticket ${ticket.number}`,
+      title: "Mateo te respondió",
       body,
       ticketId,
       url: `/portal/solicitudes/${ticketId}`,
@@ -256,8 +256,8 @@ export async function updateTicketStatusAction(ticketId: string, status: TicketS
     await notifyUsers({
       userIds: clientMemberIds,
       type: status === "waiting_client" ? "ticket_needs_client_reply" : "ticket_resolved",
-      title: status === "waiting_client" ? `Necesitamos info tuya en ${ticket.number}` : `Ticket ${ticket.number} resuelto`,
-      body: status === "waiting_client" ? "MR14 te pidió más información sobre tu solicitud." : "Tu solicitud fue marcada como resuelta.",
+      title: status === "waiting_client" ? "Mateo necesita tu respuesta" : "Tu consulta fue resuelta",
+      body: status === "waiting_client" ? "Abrí la consulta para responderle." : "Podés revisar la respuesta o avisar si todavía necesitás ayuda.",
       ticketId,
       url: status === "waiting_client" ? `/portal/solicitudes/${ticketId}#responder` : `/portal/solicitudes/${ticketId}`,
     });
@@ -376,7 +376,7 @@ export async function createQuoteAction(ticketId: string, formData: FormData) {
   await notifyUsers({
     userIds: clientMemberIds,
     type: "quote_received",
-    title: `Nuevo presupuesto para ${ticket.number}`,
+    title: "Tenés un presupuesto para revisar",
     body: description,
     ticketId,
     url: `/portal/solicitudes/${ticketId}`,

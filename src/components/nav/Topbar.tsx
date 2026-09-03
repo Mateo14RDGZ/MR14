@@ -20,7 +20,7 @@ export async function Topbar() {
           <CommandPaletteTrigger />
         </div>
         <div className="flex-1" />
-        <NotificationBell notifications={notifications} unreadCount={unreadCount} ticketBasePath="/support" />
+        <NotificationBell notifications={notifications} unreadCount={unreadCount} ticketBasePath="/support" audience="admin" />
         <form action={signOut} className="lg:hidden">
           <button
             type="submit"

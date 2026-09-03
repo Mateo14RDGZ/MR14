@@ -229,12 +229,10 @@ export async function updateProjectStatusAction(
   status: ProjectStatus
 ) {
   const supabase = await createClient();
-  const { data: project, error } = await supabase
+  const { error } = await supabase
     .from("projects")
     .update({ status })
-    .eq("id", projectId)
-    .select("name")
-    .single();
+    .eq("id", projectId);
   if (error) throw new Error(error.message);
   await logHistory({ clientId, projectId, event: `Estado del proyecto: "${status}"` });
 
@@ -243,8 +241,8 @@ export async function updateProjectStatusAction(
   await notifyUsers({
     userIds: clientMemberIds,
     type: "project_updated",
-    title: `Tu proyecto cambió de estado: ${statusLabel}`,
-    body: project?.name ?? undefined,
+    title: "Hay novedades sobre tu web",
+    body: `Nuevo estado: ${statusLabel}. Tocá para ver los detalles.`,
     url: "/portal",
   });
 

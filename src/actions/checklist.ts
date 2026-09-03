@@ -57,12 +57,10 @@ export async function updateProjectStageAction(
   const next_step = String(formData.get("next_step") || "").trim() || null;
   const meta = STAGE_META[stage];
 
-  const { data: project, error } = await supabase
+  const { error } = await supabase
     .from("projects")
     .update({ stage, progress_percent: meta.progress, status: meta.status, next_step })
-    .eq("id", projectId)
-    .select("name")
-    .single();
+    .eq("id", projectId);
   if (error) return { error: error.message };
 
   // visibility "client": esto lo lee el cliente en su propio historial — va
@@ -74,8 +72,8 @@ export async function updateProjectStageAction(
   await notifyUsers({
     userIds: clientMemberIds,
     type: "project_updated",
-    title: `Tu proyecto avanzó: ${meta.clientLabel}`,
-    body: project?.name ? `${project.name} · ${meta.progress}% completado` : `${meta.progress}% completado`,
+    title: "Tu web sigue avanzando",
+    body: `${meta.clientLabel}. Tocá para ver cómo va.`,
     url: "/portal",
   });
 
@@ -131,12 +129,10 @@ export async function clearProjectSpecialStatusAction(projectId: string, clientI
 export async function markProjectDeliveredAction(projectId: string, clientId: string) {
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
-  const { data: project, error } = await supabase
+  const { error } = await supabase
     .from("projects")
     .update({ status: "entregado", stage: "entregado", progress_percent: 100, actual_delivery_date: today })
-    .eq("id", projectId)
-    .select("name")
-    .single();
+    .eq("id", projectId);
   if (error) throw new Error(error.message);
   await logHistory({ clientId, projectId, event: "Proyecto marcado como entregado" });
 
@@ -144,8 +140,8 @@ export async function markProjectDeliveredAction(projectId: string, clientId: st
   await notifyUsers({
     userIds: clientMemberIds,
     type: "project_updated",
-    title: "¡Tu proyecto fue entregado!",
-    body: project?.name ?? undefined,
+    title: "Tu web ya está pronta",
+    body: "Podés abrirla y revisar toda la información desde el portal.",
     url: "/portal",
   });
 

@@ -58,7 +58,7 @@ export async function OrgSwitcher({
         </form>
       )}
       <div className="flex-1" />
-      <NotificationBell notifications={notifications} unreadCount={unreadCount} ticketBasePath="/portal/solicitudes" />
+      <NotificationBell notifications={notifications} unreadCount={unreadCount} ticketBasePath="/portal/solicitudes" audience="client" />
       <Link
         href="/portal/perfil"
         aria-label="Abrir mi perfil"
