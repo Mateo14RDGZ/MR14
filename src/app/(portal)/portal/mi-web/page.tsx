@@ -33,7 +33,7 @@ export default async function PortalMiWebPage() {
     <div className="animate-fade-in space-y-6">
       <div>
         <h1 className="text-page-title">Mi web</h1>
-        <p className="mt-1 text-sm text-muted">Información pública de tu sitio, sin detalles técnicos internos.</p>
+        <p className="mt-1 text-base leading-relaxed text-muted">Revisá el estado de tu página y abrila cuando quieras.</p>
       </div>
 
       {isDelivered && checklist && (
@@ -44,7 +44,7 @@ export default async function PortalMiWebPage() {
           <CardBody className="space-y-4">
             <ul className="space-y-2 text-sm">
               <ChecklistItem done={Boolean(hosting?.production_url)} label="Web publicada" />
-              <ChecklistItem done={Boolean(domain?.domain)} label="Dominio configurado" />
+              <ChecklistItem done={Boolean(domain?.domain)} label="Dirección de la web preparada" />
               <ChecklistItem done={checklist.hasDocuments} label="Documentos disponibles" />
               <ChecklistItem done={checklist.hasDeliveredCredentials} label="Accesos entregados" />
               <ChecklistItem done={paymentDone} label="Pago completado" />
@@ -53,7 +53,7 @@ export default async function PortalMiWebPage() {
               {hosting?.production_url && (
                 <a href={hosting.production_url} target="_blank" rel="noopener noreferrer" className="flex-1">
                   <Button className="w-full">
-                    <ExternalLink size={16} /> Abrir web
+                    <ExternalLink size={16} /> Ver mi web
                   </Button>
                 </a>
               )}
@@ -63,8 +63,8 @@ export default async function PortalMiWebPage() {
                 </Button>
               </Link>
             </div>
-            <p className="text-xs text-muted-2">
-              Tu proyecto está entregado. Desde ahora podés gestionar cambios, consultas técnicas y nuevas funcionalidades mediante Solicitudes.
+            <p className="text-sm leading-relaxed text-muted">
+              Si querés cambiar algo o tenés una duda, podés escribirle a Mateo desde Ayuda.
             </p>
           </CardBody>
         </Card>
@@ -74,18 +74,18 @@ export default async function PortalMiWebPage() {
         <div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning-soft px-4 py-3 text-sm text-warning">
           <AlertTriangle size={16} className="shrink-0" />
           <p className="flex-1">
-            Dominio próximo a vencer: {domainDays} día{domainDays === 1 ? "" : "s"}.
+            La dirección de tu web debe renovarse dentro de {domainDays} día{domainDays === 1 ? "" : "s"}.
           </p>
         </div>
       )}
 
       {hosting?.preview_url && !hosting?.production_url && (
         <Card className="border-accent/30 bg-accent/5 p-5">
-          <p className="text-sm font-medium">Versión de desarrollo disponible</p>
-          <p className="mt-1 text-xs text-muted-2">Todavía no es la versión final — la vas a poder revisar acá mientras avanzamos.</p>
+          <p className="text-base font-medium">Hay una nueva versión para revisar</p>
+          <p className="mt-1 text-sm text-muted">Todavía no es la versión final. Podés verla y contarnos qué te parece.</p>
           <a href={hosting.preview_url} target="_blank" rel="noopener noreferrer">
             <Button variant="secondary" className="mt-3 w-full">
-              <ExternalLink size={16} /> Ver versión de desarrollo
+              <ExternalLink size={16} /> Revisar la nueva versión
             </Button>
           </a>
         </Card>
@@ -108,9 +108,9 @@ export default async function PortalMiWebPage() {
       </Card>
 
       {/* Todo lo técnico/secundario, plegado: no compite con lo esencial de arriba. */}
-      <details className="group rounded-lg border border-border">
+      <details className="group rounded-xl border border-border">
         <summary className="cursor-pointer list-none px-5 py-3.5 text-sm font-medium text-muted marker:content-none group-open:border-b group-open:border-border">
-          Detalles
+          Ver información técnica
         </summary>
         <div className="space-y-3 p-5 text-sm">
           <Row label="Dominio" value={domain?.domain} />

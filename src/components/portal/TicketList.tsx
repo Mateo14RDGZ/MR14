@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/Empty";
-import { TICKET_CATEGORIES, TICKET_STATUSES, CLIENT_TICKET_STATUS_LABEL, type Ticket } from "@/lib/types";
+import { TICKET_STATUSES, CLIENT_TICKET_STATUS_LABEL, type Ticket } from "@/lib/types";
 
 type TicketListItem = Pick<Ticket, "id" | "number" | "subject" | "category" | "status" | "created_at">;
 import { formatDate } from "@/lib/utils";
@@ -34,27 +34,27 @@ export function TicketList({
   basePath: string;
   clientView?: boolean;
 }) {
-  const [tab, setTab] = useState<"open" | "resolved" | "all">("open");
+  const [tab, setTab] = useState<"open" | "resolved">("open");
 
   const filtered = tickets.filter((t) => {
     if (tab === "open") return OPEN_STATUSES.includes(t.status);
     if (tab === "resolved") return !OPEN_STATUSES.includes(t.status);
-    return true;
+    return !OPEN_STATUSES.includes(t.status);
   });
 
   return (
     <div>
       <div className="mb-4 flex gap-1 border-b border-border">
-        {(["open", "resolved", "all"] as const).map((t) => (
+        {(["open", "resolved"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
-              "border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
+              "min-h-12 flex-1 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors sm:flex-none",
               tab === t ? "border-accent text-accent" : "border-transparent text-muted hover:text-foreground"
             )}
           >
-            {t === "open" ? "Abiertos" : t === "resolved" ? "Resueltos" : "Todos"}
+            {t === "open" ? "Esperando respuesta" : "Terminadas"}
           </button>
         ))}
       </div>
@@ -62,7 +62,8 @@ export function TicketList({
       {filtered.length === 0 ? (
         <EmptyState
           icon={LifeBuoy}
-          title={tab === "open" ? "No tenés solicitudes abiertas." : "Sin solicitudes en esta categoría."}
+          title={tab === "open" ? "No tenés consultas pendientes" : "Todavía no hay consultas terminadas"}
+          description={tab === "open" ? "Cuando le escribas a Mateo, vas a poder seguir la respuesta desde acá." : undefined}
         />
       ) : (
         <div className="space-y-2">
@@ -71,10 +72,9 @@ export function TicketList({
               <Card className="p-4 transition-colors hover:border-muted-2">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs font-mono text-muted-2">#{t.number}</p>
-                    <p className="truncate font-medium">{t.subject}</p>
-                    <p className="text-xs text-muted-2">
-                      {TICKET_CATEGORIES.find((c) => c.value === t.category)?.label} · {formatDate(t.created_at)}
+                    <p className="truncate text-base font-medium">{t.subject}</p>
+                    <p className="mt-1 text-sm text-muted">
+                      Enviada el {formatDate(t.created_at)}
                     </p>
                   </div>
                   <Badge tone={STATUS_TONE[t.status]}>

@@ -3,10 +3,11 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Card, CardBody } from "@/components/ui/Card";
-import { Input, Textarea, Select, Label, Field } from "@/components/ui/Input";
+import { Textarea, Select, Label, Field } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { createTicketAction } from "@/actions/tickets";
-import { Paperclip } from "lucide-react";
+import { FileImage, HelpCircle, Lightbulb, Paperclip, PencilLine, TriangleAlert } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Simplificado a 4 opciones en el idioma del cliente — las 8 categorías
 // internas (bug/content_change/new_feature/domain/hosting/email/
@@ -14,10 +15,10 @@ import { Paperclip } from "lucide-react";
 // pregunta. La prioridad no se le pregunta al cliente: es un criterio
 // interno que decide MR14.
 const CLIENT_CATEGORY_OPTIONS = [
-  { value: "content_change", label: "Cambiar algo de mi web" },
-  { value: "bug", label: "Tengo un problema" },
-  { value: "new_feature", label: "Quiero agregar algo nuevo" },
-  { value: "other", label: "Otro" },
+  { value: "content_change", label: "Quiero cambiar algo", hint: "Textos, fotos u horarios", icon: PencilLine },
+  { value: "bug", label: "Algo no funciona", hint: "Un error o problema en la web", icon: TriangleAlert },
+  { value: "new_feature", label: "Quiero agregar algo", hint: "Una idea o función nueva", icon: Lightbulb },
+  { value: "other", label: "Tengo una consulta", hint: "Cualquier otra duda", icon: HelpCircle },
 ];
 
 export function NewTicketForm({
@@ -34,7 +35,11 @@ export function NewTicketForm({
   initialDescription?: string;
 }) {
   const [pending, startTransition] = useTransition();
-  const [valid, setValid] = useState(Boolean(initialSubject && initialDescription && projects[0]?.id));
+  const [category, setCategory] = useState(initialCategory ?? "content_change");
+  const [description, setDescription] = useState(initialDescription ?? "");
+  const [fileCount, setFileCount] = useState(0);
+  const valid = Boolean(description.trim() && projects[0]?.id);
+  const subject = initialSubject || CLIENT_CATEGORY_OPTIONS.find((item) => item.value === category)?.label || "Consulta";
 
   function onSubmit(formData: FormData) {
     startTransition(async () => {
@@ -46,11 +51,7 @@ export function NewTicketForm({
   return (
     <Card>
       <CardBody>
-        <form
-          action={onSubmit}
-          className="space-y-4"
-          onInput={(event) => setValid(event.currentTarget.checkValidity())}
-        >
+        <form action={onSubmit} className="space-y-6">
           {projects.length > 1 ? (
             <Field className="mb-0">
               <Label>Proyecto</Label>
@@ -65,33 +66,53 @@ export function NewTicketForm({
           ) : (
             <input type="hidden" name="project_id" value={projects[0]?.id ?? ""} />
           )}
-          <Field id="ticket-category" className="mb-0">
-            <Label>¿Qué necesitás?</Label>
-            <Select name="category" defaultValue={initialCategory ?? "content_change"}>
-              {CLIENT_CATEGORY_OPTIONS.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field id="ticket-subject" className="mb-0">
-            <Label>Asunto</Label>
-            <Input name="subject" required placeholder="Ej: Cambiar horario del sábado" defaultValue={initialSubject} />
+          <Field className="mb-0">
+            <Label className="mb-3 text-sm text-foreground">1. Elegí una opción</Label>
+            <input type="hidden" name="category" value={category} />
+            <input type="hidden" name="subject" value={subject} />
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {CLIENT_CATEGORY_OPTIONS.map((item) => {
+                const Icon = item.icon;
+                const selected = category === item.value;
+                return (
+                  <button
+                    key={item.value}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => setCategory(item.value)}
+                    className={cn(
+                      "portal-press flex min-h-20 items-center gap-3 rounded-xl border p-3 text-left",
+                      selected ? "border-accent bg-accent-soft" : "border-border bg-surface-2 hover:border-border-strong"
+                    )}
+                  >
+                    <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full", selected ? "bg-accent text-white" : "bg-surface-3 text-muted")}>
+                      <Icon size={19} />
+                    </span>
+                    <span>
+                      <span className="block text-sm font-semibold">{item.label}</span>
+                      <span className="mt-0.5 block text-xs leading-snug text-muted">{item.hint}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </Field>
           <Field className="mb-0">
-            <Label>Contanos qué necesitás</Label>
+            <Label className="mb-2 text-sm text-foreground">2. Contanos qué necesitás</Label>
             <Textarea
               name="description"
               required
-              rows={5}
-              placeholder="Con el mayor detalle posible"
-              defaultValue={initialDescription}
+              rows={6}
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="Por ejemplo: quiero cambiar el horario que aparece en mi página…"
+              className="min-h-36 text-base leading-relaxed"
             />
+            <p className="mt-2 text-sm text-muted">Escribí como te salga. Nosotros te ayudamos a resolverlo.</p>
           </Field>
           <Field id="ticket-files" className="mb-0">
-            <Label className="flex items-center gap-1">
-              <Paperclip size={12} /> Adjuntar foto o archivo (opcional)
+            <Label className="mb-2 flex items-center gap-1.5 text-sm text-foreground">
+              <Paperclip size={15} /> 3. Agregar una foto (opcional)
             </Label>
             <input
               type="file"
@@ -99,13 +120,17 @@ export function NewTicketForm({
               name="files"
               multiple
               accept="image/*,.pdf"
-              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-xs file:font-medium"
+              onChange={(event) => setFileCount(event.target.files?.length ?? 0)}
+              className="sr-only"
             />
-            <p className="mt-1 text-xs text-muted-2">Imágenes o PDF, hasta 10MB por archivo.</p>
+            <label htmlFor="ticket-files" className="portal-press flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-surface-2 px-4 text-sm font-medium hover:border-border-strong">
+              <FileImage size={18} /> {fileCount > 0 ? `${fileCount} archivo${fileCount === 1 ? "" : "s"} elegido${fileCount === 1 ? "" : "s"}` : "Elegir foto o archivo"}
+            </label>
           </Field>
           <Button type="submit" size="lg" disabled={pending || !valid} className="w-full">
-            {pending ? "Enviando…" : "Enviar solicitud"}
+            {pending ? "Enviando…" : "Enviar a Mateo"}
           </Button>
+          <p className="text-center text-sm text-muted">Te avisaremos cuando Mateo responda.</p>
         </form>
       </CardBody>
     </Card>

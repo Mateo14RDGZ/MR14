@@ -102,7 +102,7 @@ export function TicketDetail({
         <Card>
           <CardHeader className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="font-mono text-xs text-muted-2">#{ticket.number}</p>
+              {role === "admin" && <p className="font-mono text-xs text-muted-2">#{ticket.number}</p>}
               <h1 className="text-card-title">{ticket.subject}</h1>
             </div>
             <div className="flex items-center gap-2">
@@ -117,16 +117,16 @@ export function TicketDetail({
             </div>
           </CardHeader>
           <CardBody>
-            <p className="mb-1 text-xs text-muted-2">
+            {role === "admin" && <p className="mb-1 text-xs text-muted-2">
               {clientName}
-              {role === "admin" && NEEDS_REPLY_STATUSES.has(ticket.status) && (
+              {NEEDS_REPLY_STATUSES.has(ticket.status) && (
                 <span className="text-warning"> · Sin responder hace {timeAgo(ticket.updated_at)}</span>
               )}
-            </p>
-            <p className="mb-1 text-xs text-muted-2">
+            </p>}
+            {role === "admin" && <p className="mb-1 text-xs text-muted-2">
               {projectName} · {TICKET_CATEGORIES.find((c) => c.value === ticket.category)?.label}
-            </p>
-            <p className="whitespace-pre-line break-words text-sm text-muted">{ticket.description}</p>
+            </p>}
+            <p className="whitespace-pre-line break-words text-base leading-relaxed text-muted">{ticket.description}</p>
             {generalAttachments.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {generalAttachments.map((a) => (
@@ -154,17 +154,17 @@ export function TicketDetail({
 
         <Card>
           <CardHeader>
-            <h2 className="text-card-title">Conversación</h2>
+            <h2 className="text-card-title">{role === "client" ? "Mensajes con Mateo" : "Conversación"}</h2>
           </CardHeader>
           <CardBody className="space-y-0 divide-y divide-border">
             {messages.length === 0 && <p className="pb-4 text-sm text-muted-2">Sin mensajes todavía.</p>}
             {messages.map((m) => (
               <div key={m.id} className="py-4 first:pt-0 last:pb-0">
                 <div className="mb-1.5 flex items-baseline gap-2">
-                  <span className="text-sm font-medium">{m.author_role === "admin" ? "MR14" : "Cliente"}</span>
+                  <span className="text-sm font-medium">{m.author_role === "admin" ? (role === "client" ? "Mateo" : "MR14") : (role === "client" ? "Vos" : "Cliente")}</span>
                   <span className="text-xs text-muted-2">{formatDateTime(m.created_at)}</span>
                 </div>
-                <p className="whitespace-pre-line break-words text-sm text-muted">{m.body}</p>
+                <p className="whitespace-pre-line break-words text-base leading-relaxed text-muted">{m.body}</p>
                 {(attachmentsByMessage.get(m.id) ?? []).length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {(attachmentsByMessage.get(m.id) ?? []).map((a) => (
@@ -208,8 +208,8 @@ export function TicketDetail({
         {role === "client" && ticket.status === "resolved" && (
           <Card>
             <CardBody className="space-y-3">
-              <p className="text-sm text-muted">
-                Este ticket fue marcado como resuelto. Si necesitás reabrirlo, tenés{" "}
+              <p className="text-base leading-relaxed text-muted">
+                Mateo marcó esta consulta como resuelta. Si todavía necesitás ayuda, podés retomarla durante{" "}
                 {daysToReopen !== null ? `${daysToReopen} días` : "un plazo limitado"}.
               </p>
               <div className="flex gap-2">
@@ -220,7 +220,7 @@ export function TicketDetail({
           </Card>
         )}
 
-        <Card>
+        <Card className={role === "client" ? "hidden lg:block" : undefined}>
           <CardHeader className="flex items-center gap-2">
             <Clock size={14} className="text-muted" />
             <h2 className="text-card-title">Historial</h2>
@@ -325,17 +325,18 @@ function ReplyForm({ ticketId, quickReplies = [] }: { ticketId: string; quickRep
         value={body}
         onChange={(e) => setBody(e.target.value)}
         rows={3}
-        placeholder="Escribí tu respuesta…"
+        placeholder="Escribile a Mateo…"
+        className="min-h-28 text-base leading-relaxed"
         required
       />
-      <div className="flex items-center justify-between gap-2">
-        <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm text-muted">
           <Paperclip size={13} />
           <span>Adjuntar</span>
           <input type="file" name="files" multiple accept="image/*,.pdf" className="hidden" />
         </label>
-        <Button type="submit" size="sm" disabled={pending}>
-          <Send size={13} /> {pending ? "Enviando…" : "Enviar"}
+        <Button type="submit" size="lg" disabled={pending || !body.trim()} className="w-full sm:w-auto">
+          <Send size={15} /> {pending ? "Enviando…" : "Enviar respuesta"}
         </Button>
       </div>
     </form>
@@ -615,7 +616,7 @@ function AdminCloseButton({ ticketId }: { ticketId: string }) {
   return (
     <ConfirmButton
       action={() => updateTicketStatusAction(ticketId, "closed")}
-      label="Cerrar ticket"
+      label="Ya está resuelto"
       variant="secondary"
       size="sm"
       className="w-full"
@@ -632,8 +633,8 @@ function ClientCloseButton({ ticketId }: { ticketId: string }) {
       label="Cerrar ticket"
       variant="secondary"
       size="sm"
-      confirmTitle="¿Cerrar ticket?"
-      confirmDescription="Podés reabrirlo dentro del plazo indicado si necesitás algo más sobre esto."
+      confirmTitle="¿Ya está resuelto?"
+      confirmDescription="La consulta se guardará como terminada. Podés retomarla durante el plazo indicado si necesitás algo más."
     />
   );
 }
@@ -642,11 +643,11 @@ function ClientReopenButton({ ticketId }: { ticketId: string }) {
   return (
     <ConfirmButton
       action={() => reopenTicketAction(ticketId)}
-      label="Reabrir"
+      label="Todavía necesito ayuda"
       variant="outline"
       size="sm"
-      confirmTitle="¿Reabrir ticket?"
-      confirmDescription="MR14 será notificado para retomar tu solicitud."
+      confirmTitle="¿Querés retomar esta consulta?"
+      confirmDescription="Mateo recibirá un aviso para seguir ayudándote."
     />
   );
 }

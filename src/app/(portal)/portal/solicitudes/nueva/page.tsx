@@ -20,7 +20,7 @@ export default async function NewTicketPage({
         <ArrowLeft size={14} /> Ayuda
       </Link>
       <h1 className="mb-1 text-page-title">¿En qué te ayudamos?</h1>
-      <p className="mb-6 text-sm text-muted">Contanos qué necesitás. Vas a poder seguir la respuesta desde el portal.</p>
+      <p className="mb-6 text-base leading-relaxed text-muted">Elegí el motivo y escribinos con tus palabras. No necesitás saber ningún término técnico.</p>
       <NewTicketForm
         clientId={activeClientId}
         projects={projects}

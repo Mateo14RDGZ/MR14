@@ -26,11 +26,11 @@ export default async function PortalPagosPage() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      <PageHeader title="Pagos" description={`Proyecto ${project.name}`} />
+      <PageHeader title="Pagos" description="Acá podés ver cuánto pagaste y si queda algo pendiente." />
 
       {allPaid ? (
         <p className="flex items-center gap-1.5 px-1 text-sm font-medium text-success">
-          <CheckCircle2 size={16} /> Todo pago
+          <CheckCircle2 size={18} /> Está todo pago. No necesitás hacer nada.
         </p>
       ) : (
         <Card className="p-6 sm:p-8">
@@ -48,7 +48,7 @@ export default async function PortalPagosPage() {
       {rows.length > 0 && (
         <Card>
           <CardHeader>
-            <h2 className="text-card-title">Plan de cuotas</h2>
+            <h2 className="text-card-title">Detalle de los pagos</h2>
           </CardHeader>
           <CardBody className="space-y-0 divide-y divide-border">
             {rows.map((r) => (
@@ -100,15 +100,15 @@ export default async function PortalPagosPage() {
             <div className="flex items-start gap-3">
               <ReceiptText size={18} className="mt-0.5 shrink-0 text-accent" />
               <div className="min-w-0 flex-1">
-                <h3 className="text-card-title">Después de transferir</h3>
+                <h3 className="text-card-title">¿Ya hiciste la transferencia?</h3>
                 <ol className="mt-2 space-y-1 text-sm text-muted">
-                  <li>1. Guardá el comprobante de la transferencia.</li>
-                  <li>2. Avisanos desde el portal para que podamos identificarla.</li>
-                  <li>3. Cuando MR14 la valide, el pago y su comprobante aparecerán en esta pantalla.</li>
+                  <li>1. Guardá una foto o el archivo del comprobante.</li>
+                  <li>2. Tocá el botón de abajo y adjuntalo.</li>
+                  <li>3. Te avisaremos cuando el pago quede registrado.</li>
                 </ol>
                 <Link href="/portal/solicitudes/nueva?motivo=pago">
                   <Button className="mt-4" variant="secondary">
-                    Avisar que hice un pago <ArrowRight size={15} />
+                    Enviar comprobante <ArrowRight size={15} />
                   </Button>
                 </Link>
               </div>

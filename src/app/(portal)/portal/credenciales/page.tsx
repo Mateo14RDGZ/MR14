@@ -17,7 +17,7 @@ export default async function PortalCredentialsPage() {
     <div className="animate-fade-in space-y-6">
       <div>
         <h1 className="text-page-title">Accesos</h1>
-        <p className="mt-1 text-sm text-muted">Usuarios y contraseñas que MR14 te entregó.</p>
+        <p className="mt-1 text-base leading-relaxed text-muted">Acá guardamos los usuarios y contraseñas de tus servicios para que no tengas que recordarlos.</p>
       </div>
 
       {credentials.length === 0 ? (
@@ -27,7 +27,7 @@ export default async function PortalCredentialsPage() {
           description="Cuando MR14 te entregue un usuario o contraseña, va a aparecer acá de forma segura."
           action={
             <Link href="/portal/solicitudes/nueva">
-              <Button variant="secondary">Consultar por un acceso</Button>
+              <Button variant="secondary" size="lg">Preguntarle a Mateo</Button>
             </Link>
           }
         />

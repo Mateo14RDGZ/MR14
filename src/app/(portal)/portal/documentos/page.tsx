@@ -39,7 +39,7 @@ export default async function PortalDocumentsPage() {
     <div className="animate-fade-in space-y-6">
       <div>
         <h1 className="text-page-title">Documentos</h1>
-        <p className="mt-1 text-sm text-muted">Contratos, comprobantes y documentación compartida por MR14.</p>
+        <p className="mt-1 text-base leading-relaxed text-muted">Tus contratos, comprobantes y otros archivos importantes están guardados acá.</p>
       </div>
 
       {documents.length === 0 ? (

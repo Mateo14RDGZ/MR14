@@ -11,14 +11,14 @@ export default async function PortalRequestsPage() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="space-y-4 sm:flex sm:items-center sm:justify-between sm:gap-3 sm:space-y-0">
         <div>
           <h1 className="text-page-title">Ayuda</h1>
-          <p className="mt-1 max-w-md text-sm text-muted">Pedí un cambio, avisá un problema o hacenos una consulta.</p>
+          <p className="mt-1 max-w-md text-base leading-relaxed text-muted">Escribile a Mateo para pedir un cambio, avisar un problema o hacer una consulta.</p>
         </div>
         <Link href="/portal/solicitudes/nueva">
-          <Button size="sm">
-            <Plus size={14} /> Pedir ayuda
+          <Button size="lg" className="w-full sm:w-auto">
+            <Plus size={17} /> Escribirle a Mateo
           </Button>
         </Link>
       </div>

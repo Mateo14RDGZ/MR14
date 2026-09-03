@@ -74,7 +74,7 @@ export function NextActionsPanel({ actions }: { actions: NextAction[] }) {
         </div>
         <div>
           <p className="font-semibold text-success">No tenés nada pendiente</p>
-          <p className="mt-0.5 text-xs text-muted">Nosotros te avisamos cuando necesitemos algo.</p>
+          <p className="mt-1 text-sm text-muted">Está todo bien. Nosotros te avisamos cuando necesitemos algo.</p>
         </div>
       </div>
     );

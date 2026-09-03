@@ -13,15 +13,15 @@ export default async function PortalRenewalsPage() {
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <h1 className="text-page-title">Renovaciones</h1>
-        <p className="mt-1 text-sm text-muted">Dominio y servicios asociados a tu proyecto.</p>
+        <h1 className="text-page-title">Próximos vencimientos</h1>
+        <p className="mt-1 text-base leading-relaxed text-muted">Te avisamos con tiempo cuando haya que renovar algo de tu web.</p>
       </div>
 
       {renewals.length === 0 ? (
         <EmptyState
           icon={RefreshCw}
-          title="No tenés renovaciones próximas"
-          description="Cuando un dominio o servicio se acerque a su vencimiento, vas a encontrar acá la fecha y su estado."
+          title="No hay vencimientos próximos"
+          description="Está todo al día. Te avisaremos cuando necesitemos que revises algo."
         />
       ) : (
         <div className="space-y-3">
