@@ -260,11 +260,6 @@ textarea {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-  background: rgba(20, 23, 31, 0.88);
-  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.28), inset 0 1px rgba(255, 255, 255, 0.05);
   opacity: 0;
   will-change: transform, opacity;
 }

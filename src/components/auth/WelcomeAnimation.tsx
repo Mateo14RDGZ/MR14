@@ -63,7 +63,7 @@ export function WelcomeAnimation({ logo, name, dest }: { logo: string; name: str
           </div>
 
           <div className="welcome-brand welcome-brand-mr14">
-            <Logo mark size="2xl" className="max-h-[72%] w-auto object-contain" />
+            <Logo mark size="2xl" className="h-full w-full object-contain" />
           </div>
         </div>
 
