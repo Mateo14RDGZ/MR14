@@ -11,11 +11,13 @@ export function ClientLogo({
   alt = "",
   size,
   className,
+  priority = false,
 }: {
   src: string;
   alt?: string;
   size: number;
   className?: string;
+  priority?: boolean;
 }) {
   return (
     <Image
@@ -24,6 +26,7 @@ export function ClientLogo({
       width={size}
       height={size}
       unoptimized
+      priority={priority}
       className={cn("aspect-square shrink-0 rounded-full object-cover", className)}
     />
   );

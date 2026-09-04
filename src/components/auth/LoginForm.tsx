@@ -2,6 +2,7 @@ import { signIn } from "@/actions/auth";
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, Field } from "@/components/ui/Input";
+import { ClearWelcomeSession } from "@/components/auth/ClearWelcomeSession";
 
 export function LoginForm({
   basePath,
@@ -28,6 +29,7 @@ export function LoginForm({
 
   return (
     <div className="flex min-h-svh items-center justify-center bg-background px-4">
+      <ClearWelcomeSession />
       <div className="w-full max-w-[340px] animate-fade-in">
         {/* Solo la marca: el nombre ya lo lleva el alt de la imagen. */}
         <div className="mb-10 flex flex-col items-center gap-4">

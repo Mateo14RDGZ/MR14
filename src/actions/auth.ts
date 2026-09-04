@@ -35,17 +35,18 @@ export async function signIn(formData: FormData) {
   if (profile?.role !== "admin") {
     const { data: membership } = await supabase
       .from("client_members")
-      .select("name, clients(logo_url)")
+      .select("name, client_id, clients(logo_url)")
       .eq("user_id", data.user.id)
       .eq("status", "active")
       .limit(1)
       .maybeSingle();
 
     const client = (membership?.clients ?? null) as unknown as { logo_url: string | null } | null;
-    if (client?.logo_url) {
+    if (client?.logo_url && membership?.client_id) {
       const params = new URLSearchParams({
         dest,
         logo: client.logo_url,
+        clientId: membership.client_id,
         // Nombre real de la persona que inició sesión (solo el primer
         // nombre, no el apellido), no el del negocio.
         name: membership?.name ? firstName(membership.name) : "",
