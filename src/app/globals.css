@@ -2,22 +2,22 @@
 
 :root {
   /* Superficies */
-  --background: #09090b;
-  --surface: #0f0f12;
-  --surface-2: #17171b;
-  --surface-3: #1e1e23;
-  --border: #232328;
-  --border-strong: #2e2e35;
+  --background: #f7f7fa;
+  --surface: #ffffff;
+  --surface-2: #f1f1f5;
+  --surface-3: #e8e8ef;
+  --border: #e1e1e8;
+  --border-strong: #cacbd5;
 
   /* Texto */
-  --foreground: #f5f5f6;
-  --muted: #9c9ca6;
-  --muted-2: #85858f;
+  --foreground: #171218;
+  --muted: #5f5b66;
+  --muted-2: #716d78;
 
   /* Acento único (uso moderado: enlaces, foco, indicadores, nav activo) */
-  --accent: #5b6ee8;
+  --accent: #6257c8;
   --accent-foreground: #ffffff;
-  --accent-soft: rgba(91, 110, 232, 0.12);
+  --accent-soft: rgba(98, 87, 200, 0.1);
 
   /* Estados (uso moderado: badge/borde/icono, nunca fondos completos) */
   --danger: #ef4a52;
@@ -47,7 +47,7 @@
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-geist);
 }
 
 * {
@@ -55,7 +55,7 @@
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 /* Protección final: la causa real de cualquier overflow horizontal debe
@@ -92,18 +92,18 @@ body {
    el panel interno. Conserva el modo oscuro, pero usa superficies azuladas,
    más aire y contenedores suaves para facilitar la lectura en móvil. */
 .portal-shell {
-  --background: #0a0c11;
-  --surface: #10141b;
-  --surface-2: #171c25;
-  --surface-3: #202734;
-  --border: #222a36;
-  --border-strong: #303b4c;
-  --muted: #a6adba;
-  --muted-2: #7f8999;
-  --accent: #7b8ff5;
-  --accent-soft: rgba(123, 143, 245, 0.14);
+  --background: #f8f8fb;
+  --surface: #ffffff;
+  --surface-2: #f1f1f6;
+  --surface-3: #e8e8f0;
+  --border: #e2e2ea;
+  --border-strong: #cccdd8;
+  --muted: #5f5c68;
+  --muted-2: #74717d;
+  --accent: #6257c8;
+  --accent-soft: rgba(98, 87, 200, 0.1);
   background:
-    radial-gradient(circle at 72% -10%, rgba(91, 110, 232, 0.1), transparent 34rem),
+    radial-gradient(circle at 72% -10%, rgba(98, 87, 200, 0.08), transparent 34rem),
     var(--background);
 }
 
@@ -124,7 +124,7 @@ body {
   border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-2);
+  background: #b2b3be;
 }
 
 /* Foco visible consistente en toda la app (no se elimina, se estiliza) */

@@ -23,7 +23,7 @@ export function Logo({
   if (mark) {
     return (
       <Image
-        src="/icons/mark-white.png"
+        src="/icons/mark-black.png"
         alt="MR14"
         width={markSize}
         height={Math.round(markSize * (571 / 558))}
@@ -36,7 +36,7 @@ export function Logo({
   return (
     <div className={cn("flex items-center gap-2.5 select-none", className)}>
       <Image
-        src="/icons/mark-white.png"
+        src="/icons/mark-black.png"
         alt=""
         width={markSize}
         height={Math.round(markSize * (571 / 558))}

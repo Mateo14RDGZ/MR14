@@ -11,11 +11,12 @@ type WelcomePhase = "entering" | "drawing" | "settled" | "exiting" | "completed"
 const SETTLED_MS = 400;
 const EXIT_MS = 380;
 
-export function WelcomeAnimation({ clientId, logo, name, dest }: {
+export function WelcomeAnimation({ clientId, logo, name, dest, variant = "client" }: {
   clientId: string;
-  logo: string;
+  logo?: string;
   name: string;
   dest: string;
+  variant?: "client" | "admin";
 }) {
   const router = useRouter();
   const [phase, setPhase] = useState<WelcomePhase>("entering");
@@ -76,18 +77,24 @@ export function WelcomeAnimation({ clientId, logo, name, dest }: {
       </button>
 
       <div className="welcome-content relative z-[1] w-full max-w-xl text-center">
-        <p className="welcome-kicker text-xs font-semibold uppercase tracking-[0.22em] text-[#6257c8]">Tu espacio digital</p>
+        <p className="welcome-kicker text-xs font-semibold uppercase tracking-[0.22em] text-[#6257c8]">
+          {variant === "admin" ? "Panel MR14" : "Tu espacio digital"}
+        </p>
 
-        <div className="welcome-brands mt-8 flex items-center justify-center">
-          <div className="welcome-brand welcome-brand-client">
-            <ClientLogo src={logo} alt="Logo de tu negocio" size={120} className="h-full w-full" priority />
-          </div>
+        <div className="welcome-brands mt-8 flex items-center justify-center" data-variant={variant}>
+          {variant === "client" && logo ? (
+            <>
+              <div className="welcome-brand welcome-brand-client">
+                <ClientLogo src={logo} alt="Logo de tu negocio" size={120} className="h-full w-full" priority />
+              </div>
 
-          <div aria-hidden="true" className="welcome-connection">
-            <span />
-            <b>+</b>
-            <span />
-          </div>
+              <div aria-hidden="true" className="welcome-connection">
+                <span />
+                <b>+</b>
+                <span />
+              </div>
+            </>
+          ) : null}
 
           <div className="welcome-brand welcome-brand-mr14">
             <MR14AnimatedLogo className="h-[115%] w-[115%] max-w-none" animate onComplete={handleLogoComplete} />

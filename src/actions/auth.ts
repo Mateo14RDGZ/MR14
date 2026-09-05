@@ -22,16 +22,25 @@ export async function signIn(formData: FormData) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, full_name")
     .eq("id", data.user.id)
     .single();
 
   const defaultNext = profile?.role === "admin" ? "/dashboard" : "/portal";
   const dest = requestedNext || defaultNext;
 
-  // Solo el cliente tiene animación de bienvenida (es su logo, no tiene
-  // sentido para el login del admin). Si todavía no cargó un logo, se salta
-  // directo al destino — no hay nada que animar con un solo isotipo.
+  if (profile?.role === "admin") {
+    const params = new URLSearchParams({
+      dest,
+      clientId: `admin:${data.user.id}`,
+      mode: "admin",
+      name: profile.full_name ? firstName(profile.full_name) : "",
+    });
+    redirect(`/bienvenida?${params.toString()}`);
+  }
+
+  // En clientes, la bienvenida combina ambas marcas. Si todavía no cargaron
+  // un logo, se continúa directo al portal.
   if (profile?.role !== "admin") {
     const { data: membership } = await supabase
       .from("client_members")

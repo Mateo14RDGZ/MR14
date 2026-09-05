@@ -10,14 +10,23 @@ function safeDest(dest?: string) {
 export default async function BienvenidaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ dest?: string; logo?: string; name?: string; clientId?: string }>;
+  searchParams: Promise<{ dest?: string; logo?: string; name?: string; clientId?: string; mode?: string }>;
 }) {
   const params = await searchParams;
   const dest = safeDest(params.dest);
 
   // Si por algún motivo llegan sin logo (link directo, etc.), no hay nada
   // que animar: seguir de largo al destino.
-  if (!params.logo || !params.clientId) redirect(dest);
+  const isAdmin = params.mode === "admin";
+  if (!params.clientId || (!isAdmin && !params.logo)) redirect(dest);
 
-  return <WelcomeAnimation clientId={params.clientId} logo={params.logo} name={params.name ?? ""} dest={dest} />;
+  return (
+    <WelcomeAnimation
+      clientId={params.clientId}
+      logo={params.logo}
+      name={params.name ?? ""}
+      dest={dest}
+      variant={isAdmin ? "admin" : "client"}
+    />
+  );
 }
