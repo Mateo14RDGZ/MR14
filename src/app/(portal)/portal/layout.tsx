@@ -7,6 +7,7 @@ import { InstallPrompt } from "@/components/shared/InstallPrompt";
 import { PendingApprovalScreen } from "@/components/portal/PendingApprovalScreen";
 import { getClientBrandTokens } from "@/lib/brand-color-server";
 import { BrandTheme } from "@/components/branding/BrandTheme";
+import { PortalPaletteArrival } from "@/components/branding/PortalPaletteArrival";
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const pending = await checkPendingApproval();
@@ -18,6 +19,7 @@ export default async function PortalLayout({ children }: { children: React.React
   return (
     <BrandTheme theme={theme}>
     <div style={theme as React.CSSProperties} className="portal-shell flex min-h-svh lg:h-svh lg:overflow-hidden">
+      <PortalPaletteArrival clientId={activeClientId} />
       <PortalSidebar businessName={activeClient?.business_name ?? "Tu negocio"} />
       <div className="flex min-w-0 flex-1 flex-col lg:h-svh lg:overflow-y-auto">
         <OrgSwitcher

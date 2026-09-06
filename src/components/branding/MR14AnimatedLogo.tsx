@@ -8,6 +8,7 @@ type MR14AnimatedLogoProps = {
   animate?: boolean;
   onComplete?: () => void;
   title?: string;
+  durationMs?: number;
 };
 
 type LogoStroke = {
@@ -65,12 +66,14 @@ export function MR14AnimatedLogo({
   animate = true,
   onComplete,
   title = "MR14",
+  durationMs = 2720,
 }: MR14AnimatedLogoProps) {
   const reduceMotion = usePrefersReducedMotion();
   const shouldDraw = animate && !reduceMotion;
   const instanceId = useId().replace(/:/g, "");
   const shineId = `mr14-shine-${instanceId}`;
   const shineMaskId = `mr14-shine-mask-${instanceId}`;
+  const durationScale = durationMs / 2720;
 
   useEffect(() => {
     if (!shouldDraw) onComplete?.();
@@ -113,7 +116,10 @@ export function MR14AnimatedLogo({
               pathLength={1}
               strokeDasharray={1}
               strokeDashoffset={1}
-              style={{ "--draw-delay": `${stroke.delay}s`, "--draw-duration": `${stroke.duration}s` } as CSSProperties}
+              style={{
+                "--draw-delay": `${stroke.delay * durationScale}s`,
+                "--draw-duration": `${stroke.duration * durationScale}s`,
+              } as CSSProperties}
             />
           </mask>
         ))}
@@ -121,7 +127,7 @@ export function MR14AnimatedLogo({
 
       {shouldDraw ? (
         <>
-          <g aria-hidden="true" className="mr14-traced-logo">
+          <g aria-hidden="true" className="mr14-traced-logo" style={{ animationDuration: `${2120 * durationScale}ms` }}>
             {LOGO_STROKES.map((stroke) => (
               <LogoImage
                 key={stroke.id}
@@ -130,7 +136,7 @@ export function MR14AnimatedLogo({
               />
             ))}
           </g>
-          <g aria-hidden="true" className="mr14-final-logo">
+          <g aria-hidden="true" className="mr14-final-logo" style={{ animationDuration: `${2120 * durationScale}ms` }}>
             <LogoImage />
           </g>
           <rect
@@ -141,6 +147,7 @@ export function MR14AnimatedLogo({
             height="768"
             fill={`url(#${shineId})`}
             mask={`url(#${shineMaskId})`}
+            style={{ animationDuration: `${durationMs}ms` }}
             onAnimationEnd={onComplete}
           />
         </>

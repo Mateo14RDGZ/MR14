@@ -44,13 +44,13 @@ export async function signIn(formData: FormData) {
   if (profile?.role !== "admin") {
     const { data: membership } = await supabase
       .from("client_members")
-      .select("name, client_id, clients(logo_url)")
+      .select("name, client_id, clients(logo_url, brand_color)")
       .eq("user_id", data.user.id)
       .eq("status", "active")
       .limit(1)
       .maybeSingle();
 
-    const client = (membership?.clients ?? null) as unknown as { logo_url: string | null } | null;
+    const client = (membership?.clients ?? null) as unknown as { logo_url: string | null; brand_color: string | null } | null;
     if (client?.logo_url && membership?.client_id) {
       const params = new URLSearchParams({
         dest,
@@ -60,6 +60,7 @@ export async function signIn(formData: FormData) {
         // nombre, no el apellido), no el del negocio.
         name: membership?.name ? firstName(membership.name) : "",
       });
+      if (client.brand_color) params.set("color", client.brand_color);
       redirect(`/bienvenida?${params.toString()}`);
     }
   }
