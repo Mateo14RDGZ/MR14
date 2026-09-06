@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Input, Textarea, Select, Label, Field } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { CLIENT_STATUSES, type Client } from "@/lib/types";
+import { ClientBrandField } from "./ClientBrandField";
 
 type ActionResult = { error?: string } | undefined;
 
@@ -48,6 +49,7 @@ export function ClientForm({
       </section>
 
       {/* El resto se puede completar después — no hace falta para dar de alta al cliente. */}
+      <ClientBrandField value={client?.brand_color} />
       <details className="group rounded-lg border border-border" open={Boolean(client)}>
         <summary className="cursor-pointer list-none px-5 py-3.5 text-sm font-medium text-muted marker:content-none group-open:border-b group-open:border-border">
           Información adicional (opcional)

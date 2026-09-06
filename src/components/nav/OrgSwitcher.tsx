@@ -5,6 +5,7 @@ import { Logo } from "@/components/ui/Logo";
 import { NotificationBell } from "@/components/shared/NotificationBell";
 import { getMyNotifications } from "@/lib/queries";
 import { ClientLogo } from "@/components/ui/ClientLogo";
+import { OrganizationSelect } from "./OrganizationSelect";
 
 interface Membership {
   client_id: string;
@@ -43,18 +44,8 @@ export async function OrgSwitcher({
       {memberships.length > 1 && (
         <form action={setActiveOrganizationAction} className="flex items-center gap-2">
           <Building2 size={15} className="hidden text-muted-2 lg:block" />
-          <select
-            name="client_id"
-            defaultValue={activeClientId}
-            onChange={(e) => e.currentTarget.form?.requestSubmit()}
-            className="h-9 rounded-lg border border-border bg-surface-2 px-2 text-sm outline-none focus:border-accent"
-          >
-            {memberships.map((m) => (
-              <option key={m.client_id} value={m.client_id}>
-                {m.clients?.business_name ?? "Negocio"}
-              </option>
-            ))}
-          </select>
+          <OrganizationSelect activeClientId={activeClientId}
+            clients={memberships.map((m) => ({ id: m.client_id, name: m.clients?.business_name ?? "Negocio" }))} />
         </form>
       )}
       <div className="flex-1" />

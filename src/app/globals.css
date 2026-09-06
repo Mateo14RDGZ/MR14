@@ -16,6 +16,7 @@
 
   /* Acento único (uso moderado: enlaces, foco, indicadores, nav activo) */
   --accent: #6257c8;
+  --accent-hover: #554bb7;
   --accent-foreground: #ffffff;
   --accent-soft: rgba(98, 87, 200, 0.1);
 
@@ -39,6 +40,7 @@
   --color-muted: var(--muted);
   --color-muted-2: var(--muted-2);
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-soft: var(--accent-soft);
   --color-danger: var(--danger);
@@ -88,11 +90,9 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* El portal cliente tiene una identidad más amable y menos operativa que
-   el panel interno. Conserva el modo oscuro, pero usa superficies azuladas,
-   más aire y contenedores suaves para facilitar la lectura en móvil. */
+/* White surfaces with one client-specific accent, supplied by the layout. */
 .portal-shell {
-  --background: #f8f8fb;
+  --background: #ffffff;
   --surface: #ffffff;
   --surface-2: #f1f1f6;
   --surface-3: #e8e8f0;
@@ -100,11 +100,7 @@ body {
   --border-strong: #cccdd8;
   --muted: #5f5c68;
   --muted-2: #74717d;
-  --accent: #6257c8;
-  --accent-soft: rgba(98, 87, 200, 0.1);
-  background:
-    radial-gradient(circle at 72% -10%, rgba(98, 87, 200, 0.08), transparent 34rem),
-    var(--background);
+  background: var(--background);
 }
 
 ::selection {

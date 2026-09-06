@@ -37,7 +37,7 @@ export function PortalSidebar({ businessName }: { businessName: string }) {
                   : "text-muted hover:bg-surface-2/60 hover:text-foreground"
               )}
             >
-              <Icon size={17} strokeWidth={1.75} className={active ? "text-foreground" : "text-muted-2"} />
+              <Icon size={17} strokeWidth={1.75} className={active ? "text-accent" : "text-muted-2"} />
               {item.label}
             </Link>
           );

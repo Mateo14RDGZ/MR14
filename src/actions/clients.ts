@@ -6,6 +6,21 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logHistory } from "@/lib/history";
 import type { ClientStatus } from "@/lib/types";
+import { validBrandColor } from "@/lib/brand-color";
+
+async function requireAdmin() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Iniciá sesión para continuar.");
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  if (profile?.role !== "admin") throw new Error("Acción restringida a administradores de MR14.");
+  return supabase;
+}
+
+function invalidBrandColor(formData: FormData) {
+  const color = str(formData, "brand_color");
+  return color !== null && !validBrandColor(color);
+}
 
 function str(fd: FormData, key: string): string | null {
   const v = fd.get(key);
@@ -21,6 +36,7 @@ function buildClientPayload(formData: FormData) {
   }
 
   return {
+    brand_color: str(formData, "brand_color"),
     business_name: str(formData, "business_name") ?? "Sin nombre",
     contact_name: str(formData, "contact_name"),
     ci: str(formData, "ci"),
@@ -42,7 +58,8 @@ function buildClientPayload(formData: FormData) {
 }
 
 export async function createClientAction(formData: FormData) {
-  const supabase = await createClient();
+  const supabase = await requireAdmin();
+  if (invalidBrandColor(formData)) return { error: "Elegí un color válido para el panel." };
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -64,7 +81,8 @@ export async function createClientAction(formData: FormData) {
 }
 
 export async function updateClientAction(clientId: string, formData: FormData) {
-  const supabase = await createClient();
+  const supabase = await requireAdmin();
+  if (invalidBrandColor(formData)) return { error: "Elegí un color válido para el panel." };
   const payload = buildClientPayload(formData);
 
   const { data: prev } = await supabase
@@ -87,6 +105,7 @@ export async function updateClientAction(clientId: string, formData: FormData) {
 
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/clients");
+  revalidatePath("/portal", "layout");
   redirect(`/clients/${clientId}`);
 }
 
@@ -103,7 +122,7 @@ export async function updateClientStatusAction(clientId: string, status: ClientS
 const LOGO_BUCKET = "client-logos";
 
 export async function uploadClientLogoAction(clientId: string, formData: FormData) {
-  const supabase = await createClient();
+  const supabase = await requireAdmin();
   const file = formData.get("file") as File | null;
   if (!file || file.size === 0) return { error: "Seleccioná una imagen." };
   if (!file.type.startsWith("image/")) return { error: "El archivo debe ser una imagen." };
@@ -128,6 +147,7 @@ export async function uploadClientLogoAction(clientId: string, formData: FormDat
   if (error) return { error: error.message };
 
   revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/portal", "layout");
   return { success: true, logo_url };
 }
 

@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
+import { useBrandTheme } from "@/components/branding/BrandTheme";
 
 export function Dialog({
   open,
@@ -19,6 +20,7 @@ export function Dialog({
   className?: string;
 }) {
   const titleId = useId();
+  const brandTheme = useBrandTheme();
   const panelRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -84,6 +86,7 @@ export function Dialog({
 
   return createPortal(
     <div
+      style={brandTheme}
       className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/60 backdrop-blur-[2px] animate-fade-in sm:items-center sm:px-4 sm:py-8"
       onClick={onClose}
     >

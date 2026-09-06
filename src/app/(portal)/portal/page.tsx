@@ -73,7 +73,7 @@ export default async function PortalDashboardPage() {
         </section>
       ) : (
         <Link href="/portal/mi-web" className="portal-press group block">
-          <section className="relative overflow-hidden rounded-3xl border border-accent/20 bg-[radial-gradient(circle_at_top_right,rgba(91,110,232,0.22),transparent_46%),var(--surface)] p-6 transition-colors group-hover:border-accent/40 sm:p-8">
+          <section className="relative overflow-hidden rounded-3xl border border-accent/20 bg-surface p-6 transition-colors group-hover:border-accent/40 sm:p-8">
             <div className="flex items-center gap-2 text-xs font-semibold text-accent">
               <Globe2 size={15} /> {project.name}
             </div>

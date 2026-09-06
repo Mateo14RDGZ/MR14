@@ -401,6 +401,7 @@ export interface AppNotification {
 }
 
 export interface Client {
+  brand_color?: string | null;
   id: string;
   business_name: string;
   contact_name: string | null;

@@ -5,15 +5,19 @@ import { OrgSwitcher } from "@/components/nav/OrgSwitcher";
 import { InactivityGuard } from "@/components/nav/InactivityGuard";
 import { InstallPrompt } from "@/components/shared/InstallPrompt";
 import { PendingApprovalScreen } from "@/components/portal/PendingApprovalScreen";
+import { getClientBrandTokens } from "@/lib/brand-color-server";
+import { BrandTheme } from "@/components/branding/BrandTheme";
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const pending = await checkPendingApproval();
   if (pending) return <PendingApprovalScreen />;
 
   const { memberships, activeClient, activeClientId } = await getPortalContext();
+  const theme = await getClientBrandTokens({ ...activeClient, id: activeClientId });
 
   return (
-    <div className="portal-shell flex min-h-svh lg:h-svh lg:overflow-hidden">
+    <BrandTheme theme={theme}>
+    <div style={theme as React.CSSProperties} className="portal-shell flex min-h-svh lg:h-svh lg:overflow-hidden">
       <PortalSidebar businessName={activeClient?.business_name ?? "Tu negocio"} />
       <div className="flex min-w-0 flex-1 flex-col lg:h-svh lg:overflow-y-auto">
         <OrgSwitcher
@@ -30,5 +34,6 @@ export default async function PortalLayout({ children }: { children: React.React
       <InactivityGuard />
       <InstallPrompt />
     </div>
+    </BrandTheme>
   );
 }
