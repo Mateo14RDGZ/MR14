@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { setActiveOrganizationAction } from "@/actions/members";
 import { Building2, User } from "lucide-react";
-import { Logo } from "@/components/ui/Logo";
 import { NotificationBell } from "@/components/shared/NotificationBell";
 import { getMyNotifications } from "@/lib/queries";
 import { ClientLogo } from "@/components/ui/ClientLogo";
@@ -26,20 +25,15 @@ export async function OrgSwitcher({
   const { notifications, unreadCount } = await getMyNotifications();
 
   return (
-    <header className="sticky top-0 z-30 flex min-h-20 items-center gap-3 border-b border-border bg-background/80 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl lg:min-h-16 lg:px-8">
-      <Link href="/portal" aria-label="Ir al inicio" className="portal-press flex min-w-0 items-center gap-2.5 lg:hidden">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border bg-surface">
-          <Logo mark size="lg" className="max-h-9 w-auto" />
-        </span>
-        <span aria-hidden="true" className="text-xs text-muted-2">×</span>
+    <header className="portal-mobile-header sticky top-0 z-30 flex min-h-[4.75rem] items-center gap-2 border-b border-border bg-background/90 px-[clamp(0.75rem,4vw,1.25rem)] pt-[env(safe-area-inset-top)] backdrop-blur-xl lg:min-h-16 lg:gap-3 lg:px-8">
+      <Link href="/portal" aria-label={`Ir al inicio de ${businessName}`} className="portal-press flex shrink-0 items-center lg:hidden">
         {clientLogo ? (
-          <ClientLogo src={clientLogo} size={44} className="h-11 w-11 border border-border bg-white" />
+          <ClientLogo src={clientLogo} alt={businessName} size={56} priority className="h-[clamp(3rem,14vw,3.5rem)] w-[clamp(3rem,14vw,3.5rem)]" />
         ) : (
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent">
+          <span className="flex h-[clamp(3rem,14vw,3.5rem)] w-[clamp(3rem,14vw,3.5rem)] shrink-0 items-center justify-center rounded-full bg-accent-soft text-base font-semibold text-accent">
             {businessName.slice(0, 1).toUpperCase()}
           </span>
         )}
-        <span className="hidden truncate text-xs font-medium text-muted min-[390px]:block">{businessName}</span>
       </Link>
       {memberships.length > 1 && (
         <form action={setActiveOrganizationAction} className="flex items-center gap-2">
@@ -49,14 +43,16 @@ export async function OrgSwitcher({
         </form>
       )}
       <div className="flex-1" />
-      <NotificationBell notifications={notifications} unreadCount={unreadCount} ticketBasePath="/portal/solicitudes" audience="client" />
-      <Link
-        href="/portal/perfil"
-        aria-label="Abrir mi perfil"
-        className="portal-press flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-surface-2 lg:hidden"
-      >
-        <User size={18} />
-      </Link>
+      <div className="flex shrink-0 items-center gap-1 min-[360px]:gap-2">
+        <NotificationBell notifications={notifications} unreadCount={unreadCount} ticketBasePath="/portal/solicitudes" audience="client" />
+        <Link
+          href="/portal/perfil"
+          aria-label="Abrir mi perfil"
+          className="portal-press flex h-11 w-11 items-center justify-center rounded-xl text-muted hover:bg-surface-2 lg:hidden"
+        >
+          <User size={19} />
+        </Link>
+      </div>
     </header>
   );
 }

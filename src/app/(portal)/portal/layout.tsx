@@ -15,10 +15,16 @@ export default async function PortalLayout({ children }: { children: React.React
 
   const { memberships, activeClient, activeClientId } = await getPortalContext();
   const theme = await getClientBrandTokens({ ...activeClient, id: activeClientId });
+  const portalTheme = {
+    ...theme,
+    "--brand-accent": theme["--accent"],
+    "--brand-accent-hover": theme["--accent-hover"],
+    "--brand-accent-soft": theme["--accent-soft"],
+  } as React.CSSProperties;
 
   return (
     <BrandTheme theme={theme}>
-    <div style={theme as React.CSSProperties} className="portal-shell flex min-h-svh lg:h-svh lg:overflow-hidden">
+    <div style={portalTheme} className="portal-shell flex min-h-svh lg:h-svh lg:overflow-hidden">
       <PortalPaletteArrival clientId={activeClientId} />
       <PortalSidebar businessName={activeClient?.business_name ?? "Tu negocio"} />
       <div className="flex min-w-0 flex-1 flex-col lg:h-svh lg:overflow-y-auto">

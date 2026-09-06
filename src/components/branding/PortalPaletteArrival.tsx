@@ -23,7 +23,7 @@ export function PortalPaletteArrival({ clientId }: { clientId: string }) {
     setActive(true);
     const timer = window.setTimeout(() => {
       setActive(false);
-    }, 900);
+    }, 1100);
     return () => window.clearTimeout(timer);
   }, [clientId]);
 
