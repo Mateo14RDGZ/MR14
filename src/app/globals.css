@@ -426,90 +426,20 @@ textarea {
   .welcome-connection span { display: none; }
 }
 
-/* The splash palette lands once on the portal after sign-in. */
-@property --accent {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #486581;
-}
-@property --accent-hover {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #3d566e;
-}
-@property --accent-soft {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #edf0f3;
-}
+/* One transparent wave reveals the client accents from top to bottom. */
 .palette-arrival-wave {
-  --palette-origin-x: 2.5rem;
-  --palette-origin-y: calc(env(safe-area-inset-top) + 2.4rem);
   position: fixed;
-  inset: 0;
+  inset: 0 0 auto;
+  height: 80px;
   z-index: 60;
   pointer-events: none;
   opacity: 0;
-  clip-path: circle(0 at var(--palette-origin-x) var(--palette-origin-y));
-  background:
-    radial-gradient(circle at var(--palette-origin-x) var(--palette-origin-y), color-mix(in srgb, var(--brand-accent) 24%, white) 0, var(--brand-accent-soft) 42%, white 78%);
+  color: var(--brand-accent, var(--accent));
 }
-.palette-arrival-wave[data-active="true"] {
-  animation: palette-arrival-wave 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.palette-arrival-wave::after {
-  content: "";
-  position: absolute;
-  left: var(--palette-origin-x);
-  top: var(--palette-origin-y);
-  width: 4.25rem;
-  height: 4.25rem;
-  border: 1px solid var(--brand-accent);
-  border-radius: 999px;
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.7);
-}
-.palette-arrival-wave[data-active="true"]::after {
-  animation: palette-arrival-ring 760ms cubic-bezier(0.16, 1, 0.3, 1) 70ms both;
-}
-.portal-shell:has(.palette-arrival-wave[data-active="true"]) {
-  animation: palette-accent-settle 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-.portal-shell:has(.palette-arrival-wave[data-active="true"]) .portal-mobile-header {
-  animation: palette-header-settle 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-@keyframes palette-arrival-wave {
-  0% { opacity: 0.94; clip-path: circle(0 at var(--palette-origin-x) var(--palette-origin-y)); }
-  54% { opacity: 0.58; clip-path: circle(88vmax at var(--palette-origin-x) var(--palette-origin-y)); }
-  100% { opacity: 0; clip-path: circle(150vmax at var(--palette-origin-x) var(--palette-origin-y)); }
-}
-@keyframes palette-arrival-ring {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.72); }
-  24% { opacity: 0.62; }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(8); }
-}
-@keyframes palette-accent-settle {
-  0%, 24% {
-    --accent: #716d73;
-    --accent-hover: #5f5b61;
-    --accent-soft: #f1f0f1;
-  }
-  76%, 100% {
-    --accent: var(--brand-accent);
-    --accent-hover: var(--brand-accent-hover);
-    --accent-soft: var(--brand-accent-soft);
-  }
-}
-@keyframes palette-header-settle {
-  0%, 24% { border-color: var(--border); background-color: var(--background); }
-  58% { border-color: color-mix(in srgb, var(--brand-accent) 42%, var(--border)); background-color: var(--brand-accent-soft); }
-  100% { border-color: var(--border); background-color: color-mix(in srgb, var(--background) 90%, transparent); }
-}
-@media (min-width: 1024px) {
-  .palette-arrival-wave {
-    --palette-origin-x: 7.5rem;
-    --palette-origin-y: 4.5rem;
-  }
+.palette-arrival-wave svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* ---------- Portal mobile: respuesta táctil breve, sin demorar la navegación. ---------- */
@@ -589,12 +519,7 @@ textarea {
     animation-duration: 1ms !important;
     animation-delay: 0ms !important;
   }
-  .palette-arrival-wave,
-  .palette-arrival-wave::after,
-  .portal-shell:has(.palette-arrival-wave[data-active="true"]),
-  .portal-shell:has(.palette-arrival-wave[data-active="true"]) .portal-mobile-header {
-    animation: none !important;
-  }
+  .palette-arrival-wave { display: none; }
   .welcome-stage[data-phase="exiting"],
   .welcome-stage[data-phase="completed"] { transform: none; }
 
