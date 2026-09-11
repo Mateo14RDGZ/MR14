@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Select, Field, Label } from "@/components/ui/Input";
-import { ConfirmButton } from "@/components/ui/ConfirmButton";
+import { TicketActions } from "./TicketActions";
+import { TicketLiveUpdates } from "./TicketLiveUpdates";
+import { TicketAttachments } from "./TicketAttachments";
 import { Dialog } from "@/components/ui/Dialog";
 import { NewProjectDialog } from "@/components/clients/NewProjectDialog";
 import {
@@ -15,8 +17,6 @@ import {
   updateTicketPriorityAction,
   createQuoteAction,
   decideQuoteAction,
-  closeTicketAction,
-  reopenTicketAction,
   getTicketAttachmentUrlAction,
 } from "@/actions/tickets";
 import {
@@ -32,8 +32,8 @@ import {
   type TicketQuoteVersion,
   type QuickReply,
 } from "@/lib/types";
-import { formatCurrency, formatDate, formatDateTime, daysUntil, timeAgo } from "@/lib/utils";
-import { Paperclip, Send, FileDown, Clock, Sparkles } from "lucide-react";
+import { formatCurrency, formatDate, formatDateTime, timeAgo } from "@/lib/utils";
+import { Send, FileDown, Clock, Sparkles } from "lucide-react";
 
 const NEEDS_REPLY_STATUSES = new Set(["received", "reviewing", "requires_quote"]);
 
@@ -94,16 +94,16 @@ export function TicketDetail({
 
   const latestQuote = quotes[0];
   const latestVersion = latestQuote?.ticket_quote_versions?.slice().sort((a, b) => b.version - a.version)[0];
-  const daysToReopen = ticket.reopen_deadline ? daysUntil(ticket.reopen_deadline) : null;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
-      <div className="space-y-6 lg:col-span-2">
+    <div className={`grid gap-6 ${role === "admin" ? "lg:grid-cols-3" : "mx-auto max-w-3xl"}`}>
+      <TicketLiveUpdates ticketId={ticket.id} updatedAt={ticket.updated_at} />
+      <div className={`min-w-0 space-y-6 ${role === "admin" ? "lg:col-span-2" : ""}`}>
         <Card>
           <CardHeader className="flex flex-wrap items-center justify-between gap-2">
             <div>
               {role === "admin" && <p className="font-mono text-xs text-muted-2">#{ticket.number}</p>}
-              <h1 className="text-card-title">{ticket.subject}</h1>
+              <h1 className="break-words text-lg font-semibold leading-snug">{ticket.subject}</h1>
             </div>
             <div className="flex items-center gap-2">
               <Badge tone={STATUS_TONE[ticket.status]}>
@@ -127,6 +127,7 @@ export function TicketDetail({
               {projectName} · {TICKET_CATEGORIES.find((c) => c.value === ticket.category)?.label}
             </p>}
             <p className="whitespace-pre-line break-words text-base leading-relaxed text-muted">{ticket.description}</p>
+            <div className="mt-5 border-t border-border pt-4"><TicketActions ticketId={ticket.id} status={ticket.status} role={role} /></div>
             {generalAttachments.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {generalAttachments.map((a) => (
@@ -137,16 +138,7 @@ export function TicketDetail({
           </CardBody>
         </Card>
 
-        {role === "client" && ticket.status === "waiting_client" && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning/30 bg-warning-soft px-4 py-3">
-            <p className="text-sm font-medium text-warning">Necesitamos tu respuesta.</p>
-            <a href="#responder">
-              <Button size="sm" variant="secondary">
-                Responder
-              </Button>
-            </a>
-          </div>
-        )}
+
 
         {latestVersion && (
           <QuoteCard ticketId={ticket.id} clientId={ticket.client_id} role={role} quote={latestQuote} version={latestVersion} />
@@ -156,11 +148,11 @@ export function TicketDetail({
           <CardHeader>
             <h2 className="text-card-title">{role === "client" ? "Mensajes con Mateo" : "Conversación"}</h2>
           </CardHeader>
-          <CardBody className="space-y-0 divide-y divide-border">
-            {messages.length === 0 && <p className="pb-4 text-sm text-muted-2">Sin mensajes todavía.</p>}
+          <CardBody className="space-y-4">
+            {messages.length === 0 && <p className="pb-4 text-sm text-muted-2">Tu consulta ya está enviada. Las respuestas aparecerán acá.</p>}
             {messages.map((m) => (
-              <div key={m.id} className="py-4 first:pt-0 last:pb-0">
-                <div className="mb-1.5 flex items-baseline gap-2">
+              <div key={m.id} className={`max-w-[95%] rounded-2xl p-4 ${m.author_role === role ? "ml-auto bg-accent-soft" : "border border-border bg-surface-2"}`}>
+                <div className="mb-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
                   <span className="text-sm font-medium">{m.author_role === "admin" ? (role === "client" ? "Mateo" : "MR14") : (role === "client" ? "Vos" : "Cliente")}</span>
                   <span className="text-xs text-muted-2">{formatDateTime(m.created_at)}</span>
                 </div>
@@ -174,16 +166,16 @@ export function TicketDetail({
                 )}
               </div>
             ))}
-            {!["closed"].includes(ticket.status) && (
+            {!["closed", "resolved"].includes(ticket.status) && (
               <div id="responder" className="scroll-mt-20 pt-4 first:pt-0">
-                <ReplyForm ticketId={ticket.id} quickReplies={role === "admin" ? quickReplies : []} />
+                <ReplyForm role={role} ticketId={ticket.id} quickReplies={role === "admin" ? quickReplies : []} />
               </div>
             )}
           </CardBody>
         </Card>
       </div>
 
-      <div className="space-y-6">
+      <div className={role === "admin" ? "min-w-0 space-y-6" : "hidden"}>
         {role === "admin" && ticket.category === "new_feature" && (
           <div className="flex items-center gap-2 rounded-lg border border-accent/25 bg-accent-soft px-3 py-2 text-xs text-accent">
             <Sparkles size={14} className="shrink-0" />
@@ -197,30 +189,18 @@ export function TicketDetail({
               <h2 className="text-card-title">Gestión</h2>
             </CardHeader>
             <CardBody className="space-y-4">
-              <StatusSelect ticketId={ticket.id} current={ticket.status} />
-              <PrioritySelect ticketId={ticket.id} current={ticket.priority} />
+              <StatusSelect key={ticket.status} ticketId={ticket.id} current={ticket.status} />
+              <PrioritySelect key={ticket.priority} ticketId={ticket.id} current={ticket.priority} />
               <CreateQuoteDialog ticketId={ticket.id} />
-              {ticket.status !== "closed" && <AdminCloseButton ticketId={ticket.id} />}
+
             </CardBody>
           </Card>
         )}
 
-        {role === "client" && ticket.status === "resolved" && (
-          <Card>
-            <CardBody className="space-y-3">
-              <p className="text-base leading-relaxed text-muted">
-                Mateo marcó esta consulta como resuelta. Si todavía necesitás ayuda, podés retomarla durante{" "}
-                {daysToReopen !== null ? `${daysToReopen} días` : "un plazo limitado"}.
-              </p>
-              <div className="flex gap-2">
-                <ClientCloseButton ticketId={ticket.id} />
-                <ClientReopenButton ticketId={ticket.id} />
-              </div>
-            </CardBody>
-          </Card>
-        )}
 
-        <Card className={role === "client" ? "hidden lg:block" : undefined}>
+
+        <details className={role === "client" ? "hidden" : "rounded-xl border border-border bg-surface p-4"}>
+          <summary className="cursor-pointer text-sm font-medium">Ver historial de la consulta</summary><Card className="mt-3 border-0 shadow-none">
           <CardHeader className="flex items-center gap-2">
             <Clock size={14} className="text-muted" />
             <h2 className="text-card-title">Historial</h2>
@@ -236,7 +216,7 @@ export function TicketDetail({
               ))}
             </ol>
           </CardBody>
-        </Card>
+        </Card></details>
       </div>
     </div>
   );
@@ -268,77 +248,67 @@ function AttachmentChip({ attachment }: { attachment: TicketAttachment }) {
     <button
       type="button"
       disabled={pending}
-      onClick={() =>
+      onClick={() => {
+        const viewer = window.open("about:blank", "_blank");
+        if (viewer) viewer.opener = null;
         startTransition(async () => {
           try {
             const url = await getTicketAttachmentUrlAction(attachment.storage_path);
-            window.open(url, "_blank", "noopener,noreferrer");
+            if (viewer) viewer.location.replace(url);
+            else window.location.assign(url);
           } catch {
+            viewer?.close();
             toast.error("No se pudo abrir el archivo.");
           }
-        })
-      }
-      className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-muted hover:border-accent hover:text-accent"
+        });
+      }}
+      className="flex min-h-11 max-w-full items-center gap-1.5 break-all rounded-lg border border-border bg-surface px-3 py-2 text-left text-sm text-muted hover:border-accent hover:text-accent"
     >
       <FileDown size={12} /> {attachment.name}
     </button>
   );
 }
 
-function ReplyForm({ ticketId, quickReplies = [] }: { ticketId: string; quickReplies?: QuickReply[] }) {
+function ReplyForm({ ticketId, role, quickReplies = [] }: { ticketId: string; role: "admin" | "client"; quickReplies?: QuickReply[] }) {
   const [pending, startTransition] = useTransition();
   const [body, setBody] = useState("");
+  const [attachmentKey, setAttachmentKey] = useState(0);
+  const form = useRef<HTMLFormElement>(null);
 
   function onSubmit(formData: FormData) {
     formData.set("body", body);
     startTransition(async () => {
-      const result = await addTicketMessageAction(ticketId, formData);
-      if (result?.error) toast.error(result.error);
-      else {
+      try {
+        const result = await addTicketMessageAction(ticketId, formData);
+        if (result?.error) { toast.error(result.error); return; }
         setBody("");
-        toast.success("Respuesta enviada.");
-      }
+        form.current?.reset();
+        setAttachmentKey(key => key + 1);
+        if (result?.warning) toast.warning(result.warning);
+        else toast.success(formData.get("intent") === "resolve" ? "Respuesta enviada y consulta resuelta." : "Mensaje enviado.");
+      } catch { toast.error("No se pudo enviar. Tu mensaje sigue acá para reintentarlo."); }
     });
   }
 
   return (
-    <form action={onSubmit} className="space-y-2">
-      {quickReplies.length > 0 && (
-        <Select
-          defaultValue=""
-          onChange={(e) => {
-            if (e.target.value) setBody(e.target.value);
-            e.target.value = "";
-          }}
-          className="h-9 text-xs"
-        >
-          <option value="">Respuesta rápida…</option>
-          {quickReplies.map((q) => (
-            <option key={q.id} value={q.text}>
-              {q.text}
-            </option>
-          ))}
-        </Select>
-      )}
-      <Textarea
-        name="body"
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        rows={3}
-        placeholder="Escribile a Mateo…"
-        className="min-h-28 text-base leading-relaxed"
-        required
-      />
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm text-muted">
-          <Paperclip size={13} />
-          <span>Adjuntar</span>
-          <input type="file" name="files" multiple accept="image/*,.pdf" className="hidden" />
-        </label>
-        <Button type="submit" size="lg" disabled={pending || !body.trim()} className="w-full sm:w-auto">
-          <Send size={15} /> {pending ? "Enviando…" : "Enviar respuesta"}
+    <form ref={form} action={onSubmit} className="space-y-4">
+      {quickReplies.length > 0 && <Select aria-label="Usar una respuesta guardada" defaultValue="" disabled={pending}
+        onChange={event => { if (event.target.value) setBody(event.target.value); event.target.value = ""; }}>
+        <option value="">Usar una respuesta guardada…</option>
+        {quickReplies.map(reply => <option key={reply.id} value={reply.text}>{reply.text}</option>)}
+      </Select>}
+      <label htmlFor="ticket-reply" className="block text-base font-medium">{role === "client" ? "Escribile a Mateo" : "Tu respuesta al cliente"}</label>
+      <Textarea id="ticket-reply" name="body" value={body} onChange={event => setBody(event.target.value)}
+        readOnly={pending} maxLength={10000} rows={4} placeholder={role === "client" ? "Contale qué necesitás o cómo te fue…" : "Escribí tu respuesta…"}
+        className="min-h-28 text-base leading-relaxed" required />
+      <TicketAttachments key={attachmentKey} disabled={pending} />
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button type="submit" name="intent" value="reply" disabled={pending || !body.trim()} className="min-h-12 flex-1">
+          <Send size={17} /> {pending ? "Enviando…" : "Enviar mensaje"}
         </Button>
+        {role === "admin" && <Button type="submit" name="intent" value="resolve" variant="secondary" disabled={pending || !body.trim()} className="min-h-12 flex-1">Enviar y resolver</Button>}
       </div>
+      {role === "admin" && <p className="text-xs leading-relaxed text-muted">Enviar mensaje deja la consulta esperando al cliente. “Enviar y resolver” también la marca como terminada.</p>}
     </form>
   );
 }
@@ -610,44 +580,4 @@ function QuoteCard({
 
 function quotes_status_label(status: string) {
   return { pending: "pendiente", accepted: "aceptado", rejected: "rechazado", superseded: "reemplazado" }[status] ?? status;
-}
-
-function AdminCloseButton({ ticketId }: { ticketId: string }) {
-  return (
-    <ConfirmButton
-      action={() => updateTicketStatusAction(ticketId, "closed")}
-      label="Ya está resuelto"
-      variant="secondary"
-      size="sm"
-      className="w-full"
-      confirmTitle="¿Cerrar este ticket?"
-      confirmDescription="Marcalo como cerrado cuando ya resolviste lo que pedía el cliente. Se puede reabrir después si hace falta."
-    />
-  );
-}
-
-function ClientCloseButton({ ticketId }: { ticketId: string }) {
-  return (
-    <ConfirmButton
-      action={() => closeTicketAction(ticketId)}
-      label="Cerrar ticket"
-      variant="secondary"
-      size="sm"
-      confirmTitle="¿Ya está resuelto?"
-      confirmDescription="La consulta se guardará como terminada. Podés retomarla durante el plazo indicado si necesitás algo más."
-    />
-  );
-}
-
-function ClientReopenButton({ ticketId }: { ticketId: string }) {
-  return (
-    <ConfirmButton
-      action={() => reopenTicketAction(ticketId)}
-      label="Todavía necesito ayuda"
-      variant="outline"
-      size="sm"
-      confirmTitle="¿Querés retomar esta consulta?"
-      confirmDescription="Mateo recibirá un aviso para seguir ayudándote."
-    />
-  );
 }

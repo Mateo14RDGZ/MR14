@@ -4,6 +4,7 @@ import { getPortalTickets } from "@/lib/queries";
 import { TicketList } from "@/components/portal/TicketList";
 import { Button } from "@/components/ui/Button";
 import { Plus } from "lucide-react";
+import { NotificationsToggle } from "@/components/shared/NotificationsToggle";
 
 export default async function PortalRequestsPage() {
   const { activeClientId } = await getPortalContext();
@@ -24,6 +25,7 @@ export default async function PortalRequestsPage() {
       </div>
 
       <TicketList tickets={tickets} basePath="/portal/solicitudes" clientView />
+      <NotificationsToggle />
     </div>
   );
 }

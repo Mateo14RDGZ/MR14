@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { NotificationsToggle } from "@/components/shared/NotificationsToggle";
+import { TicketLiveUpdates } from "@/components/shared/TicketLiveUpdates";
 import { getAllTickets, getSupportDashboardData, getClientsForSelect, getAllProjects } from "@/lib/queries";
 import { StatCard, Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -41,7 +43,7 @@ export default async function SupportPage({
     priority?: string;
     q?: string;
     new?: string;
-    view?: "attention" | "waiting" | "critical";
+    view?: "attention" | "waiting" | "critical" | "done" | "all";
   }>;
 }) {
   const params = await searchParams;
@@ -63,6 +65,8 @@ export default async function SupportPage({
   // antiguo primero, porque es lo más urgente), el resto queda por fecha
   // de creación como antes. Sin agregar ninguna métrica nueva.
   const visibleTickets = tickets.filter((ticket) => {
+    if (params.view === "done") return ["resolved", "closed"].includes(ticket.status);
+    if (!params.view && !params.status) return !["resolved", "closed"].includes(ticket.status);
     if (params.view === "attention") return NEEDS_REPLY_STATUSES.has(ticket.status);
     if (params.view === "waiting") return ticket.status === "waiting_client";
     if (params.view === "critical") return ticket.priority === "critical";
@@ -79,11 +83,13 @@ export default async function SupportPage({
 
   return (
     <div className="animate-fade-in space-y-6">
+      <TicketLiveUpdates />
       <PageHeader
         title="Tickets"
-        description="Bandeja de tickets de todos los clientes."
+        description="Respondé, seguí el trabajo y cerrá las consultas desde acá."
         action={<NewTicketDialog clients={clients} projects={projectOptions} autoOpen={params.new === "ticket"} />}
       />
+      <NotificationsToggle audience="admin" />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Abiertos" value={metrics.open} />
@@ -93,10 +99,12 @@ export default async function SupportPage({
       </div>
 
       <nav aria-label="Vistas rápidas de tickets" className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-xs font-medium text-muted">Vistas rápidas</span>
+        <QuickView href="/support" active={!params.view}>En curso</QuickView>
         <QuickView href="/support?view=attention" active={params.view === "attention"}>Requieren atención</QuickView>
         <QuickView href="/support?view=waiting" active={params.view === "waiting"}>Esperando cliente</QuickView>
         <QuickView href="/support?view=critical" active={params.view === "critical"}>Críticos</QuickView>
+        <QuickView href="/support?view=done" active={params.view === "done"}>Terminados</QuickView>
+        <QuickView href="/support?view=all" active={params.view === "all"}>Todos</QuickView>
         {hasFilters && (
           <Link href="/support" className="ml-auto text-xs font-medium text-accent hover:underline">
             Limpiar filtros
@@ -104,7 +112,8 @@ export default async function SupportPage({
         )}
       </nav>
 
-      <Card className="p-4">
+      <details open={Boolean(params.client || params.status || params.category || params.priority || params.q)} className="rounded-xl border border-border bg-surface p-4">
+        <summary className="min-h-8 cursor-pointer text-sm font-medium">Buscar y filtrar consultas</summary>
         <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6" method="get">
           {params.view && <input type="hidden" name="view" value={params.view} />}
           <div className="lg:col-span-2">
@@ -155,7 +164,7 @@ export default async function SupportPage({
             Filtrar
           </Button>
         </form>
-      </Card>
+      </details>
 
       {sortedTickets.length === 0 ? (
         <EmptyState
@@ -171,12 +180,12 @@ export default async function SupportPage({
             const hoursSince = (Date.now() - new Date(t.updated_at).getTime()) / 36e5;
             const isStale = needsReply && hoursSince >= 24;
             return (
-              <Link key={t.id} href={`/support/${t.id}`}>
+              <Link key={t.id} href={`/support/${t.id}`} className="block">
                 <Card className={`p-4 transition-colors hover:border-muted-2 ${isStale ? "border-danger/30" : ""}`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-mono text-xs text-muted-2">#{t.number}</p>
-                      <p className="truncate font-medium">{t.subject}</p>
+                      <p className="break-words font-medium">{t.subject}</p>
                       <p className="text-xs text-muted-2">
                         {(t.clients as { business_name?: string } | null)?.business_name} ·{" "}
                         {(t.projects as { name?: string } | null)?.name} · {formatDate(t.created_at)}
@@ -211,7 +220,7 @@ function QuickView({ href, active, children }: { href: string; active: boolean; 
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+      className={`inline-flex min-h-11 items-center rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
         active ? "border-accent bg-accent-soft text-foreground" : "border-border text-muted hover:border-border-strong hover:text-foreground"
       }`}
     >

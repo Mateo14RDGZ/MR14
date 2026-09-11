@@ -11,6 +11,7 @@ type TicketListItem = Pick<Ticket, "id" | "number" | "subject" | "category" | "s
 import { formatDate } from "@/lib/utils";
 import { LifeBuoy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TicketLiveUpdates } from "@/components/shared/TicketLiveUpdates";
 
 const STATUS_TONE: Record<string, "muted" | "warning" | "accent" | "success" | "danger"> = {
   received: "muted",
@@ -44,17 +45,19 @@ export function TicketList({
 
   return (
     <div>
+      <TicketLiveUpdates />
       <div className="mb-4 flex gap-1 border-b border-border">
         {(["open", "resolved"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
+            aria-pressed={tab === t}
             className={cn(
               "min-h-12 flex-1 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors sm:flex-none",
               tab === t ? "border-accent text-accent" : "border-transparent text-muted hover:text-foreground"
             )}
           >
-            {t === "open" ? "Esperando respuesta" : "Terminadas"}
+            {t === "open" ? "En curso" : "Terminadas"} ({tickets.filter(ticket => t === "open" ? OPEN_STATUSES.includes(ticket.status) : !OPEN_STATUSES.includes(ticket.status)).length})
           </button>
         ))}
       </div>
@@ -68,11 +71,11 @@ export function TicketList({
       ) : (
         <div className="space-y-2">
           {filtered.map((t) => (
-            <Link key={t.id} href={`${basePath}/${t.id}`}>
+            <Link key={t.id} href={`${basePath}/${t.id}`} className="block">
               <Card className="p-4 transition-colors hover:border-muted-2">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate text-base font-medium">{t.subject}</p>
+                    <p className="break-words text-base font-medium">{t.subject}</p>
                     <p className="mt-1 text-sm text-muted">
                       Enviada el {formatDate(t.created_at)}
                     </p>

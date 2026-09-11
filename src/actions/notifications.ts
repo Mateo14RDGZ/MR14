@@ -22,3 +22,11 @@ export async function markAllNotificationsReadAction() {
     .is("read_at", null);
   revalidatePath("/", "layout");
 }
+
+export async function markTicketNotificationsReadAction(ticketId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase.from("notifications").update({ read_at: new Date().toISOString() })
+    .eq("user_id", user.id).eq("ticket_id", ticketId).is("read_at", null);
+}

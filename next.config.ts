@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     "/api/pdf": ["./node_modules/pdfkit/js/standard-fonts/**"],
   },
   experimental: {
+    serverActions: { bodySizeLimit: "4mb" },
     // Por defecto Next no reutiliza nada de una ruta dinámica ya visitada
     // (dynamic: 0), así que volver a una pestaña de la barra inferior paga
     // otra vez el middleware (auth.getUser() contra Supabase) + las queries

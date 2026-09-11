@@ -50,7 +50,7 @@ export default async function SettingsPage() {
           <h2 className="text-card-title">Notificaciones</h2>
         </CardHeader>
         <CardBody>
-          <NotificationsToggle />
+          <NotificationsToggle audience="admin" />
         </CardBody>
       </Card>
 

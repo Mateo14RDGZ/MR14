@@ -4,8 +4,9 @@ import { getTicketDetail, getQuickReplies } from "@/lib/queries";
 import { TicketDetail } from "@/components/shared/TicketDetail";
 import { ArrowLeft } from "lucide-react";
 
-export default async function SupportTicketPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function SupportTicketPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ created?: string; attachmentWarning?: string }> }) {
   const { id } = await params;
+  const receipt = await searchParams;
   const [data, quickReplies] = await Promise.all([getTicketDetail(id), getQuickReplies()]);
   if (!data) notFound();
 
@@ -18,6 +19,8 @@ export default async function SupportTicketPage({ params }: { params: Promise<{ 
       <Link href="/support" className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
         <ArrowLeft size={14} /> Tickets
       </Link>
+      {receipt.created && <p role="status" className="mb-4 rounded-xl bg-accent-soft p-4 text-sm text-accent">Consulta creada. El cliente ya puede verla.</p>}
+      {receipt.attachmentWarning && <p role="alert" className="mb-4 rounded-xl border border-border p-4 text-sm">La consulta se guardó, pero faltó un adjunto. Podés agregarlo con un mensaje abajo.</p>}
       <TicketDetail
         role="admin"
         ticket={ticket}

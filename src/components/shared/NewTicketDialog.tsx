@@ -8,6 +8,7 @@ import { Input, Textarea, Select, Label, Field } from "@/components/ui/Input";
 import { createTicketAction } from "@/actions/tickets";
 import { TICKET_CATEGORIES, TICKET_PRIORITIES } from "@/lib/types";
 import { LifeBuoy } from "lucide-react";
+import { TicketAttachments } from "./TicketAttachments";
 
 interface ClientOption {
   id: string;
@@ -81,7 +82,7 @@ export function NewTicketDialog({
           </Field>
           <Field className="mb-0">
             <Label>Proyecto</Label>
-            <Select name="project_id" required defaultValue={defaultProjectId ?? clientProjects[0]?.id ?? ""}>
+            <Select key={clientId} name="project_id" required defaultValue={clientProjects.some(project => project.id === defaultProjectId) ? defaultProjectId : clientProjects[0]?.id ?? ""}>
               {clientProjects.length === 0 && <option value="">Sin proyectos para este cliente</option>}
               {clientProjects.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -91,23 +92,19 @@ export function NewTicketDialog({
             </Select>
           </Field>
           <Field className="mb-0">
-            <Label>Categoría</Label>
-            <Select name="category" defaultValue="other">
-              {TICKET_CATEGORIES.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field className="mb-0">
             <Label>Asunto</Label>
-            <Input name="subject" required placeholder="Ej: Cambiar horario del sábado" />
+            <Input name="subject" maxLength={160} required placeholder="Ej: Cambiar horario del sábado" />
           </Field>
           <Field className="mb-0">
-            <Label>Descripción</Label>
-            <Textarea name="description" required rows={4} placeholder="Detalle de lo que pidió o necesita el cliente" />
+            <Label>Mensaje para el cliente</Label>
+            <Textarea name="description" maxLength={10000} required rows={4} placeholder="Contale qué necesitás o qué vas a hacer" />
           </Field>
+          <details className="rounded-lg border border-border p-3">
+            <summary className="min-h-8 cursor-pointer text-sm font-medium">Categoría y prioridad (opcional)</summary>
+            <Field className="mb-3">
+              <Label>Categoría</Label>
+              <Select name="category" defaultValue="other">{TICKET_CATEGORIES.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</Select>
+            </Field>
           <Field className="mb-0">
             <Label>Prioridad</Label>
             <Select name="priority" defaultValue="normal">
@@ -118,6 +115,9 @@ export function NewTicketDialog({
               ))}
             </Select>
           </Field>
+          </details>
+          <TicketAttachments disabled={pending} />
+          <p className="text-sm text-muted">El cliente verá esta consulta y recibirá un aviso.</p>
           <Button type="submit" disabled={pending || !clientId || clientProjects.length === 0} className="w-full">
             {pending ? "Creando…" : "Crear ticket"}
           </Button>

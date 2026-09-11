@@ -6,8 +6,9 @@ import { Card, CardBody } from "@/components/ui/Card";
 import { Textarea, Select, Label, Field } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { createTicketAction } from "@/actions/tickets";
-import { FileImage, HelpCircle, Lightbulb, Paperclip, PencilLine, TriangleAlert } from "lucide-react";
+import { HelpCircle, Lightbulb, PencilLine, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TicketAttachments } from "@/components/shared/TicketAttachments";
 
 // Simplificado a 4 opciones en el idioma del cliente — las 8 categorías
 // internas (bug/content_change/new_feature/domain/hosting/email/
@@ -35,11 +36,10 @@ export function NewTicketForm({
   initialDescription?: string;
 }) {
   const [pending, startTransition] = useTransition();
-  const [category, setCategory] = useState(initialCategory ?? "content_change");
+  const [category, setCategory] = useState(initialCategory ?? "other");
   const [description, setDescription] = useState(initialDescription ?? "");
-  const [fileCount, setFileCount] = useState(0);
   const valid = Boolean(description.trim() && projects[0]?.id);
-  const subject = initialSubject || CLIENT_CATEGORY_OPTIONS.find((item) => item.value === category)?.label || "Consulta";
+  const subject = initialSubject || description.trim().split("\n")[0].slice(0, 120) || "Consulta";
 
   function onSubmit(formData: FormData) {
     startTransition(async () => {
@@ -51,10 +51,11 @@ export function NewTicketForm({
   return (
     <Card>
       <CardBody>
-        <form action={onSubmit} className="space-y-6">
+        <form action={onSubmit} className="space-y-5">
+          {projects.length === 0 && <p className="rounded-lg bg-surface-2 p-4 text-sm">Todavía no hay una web asociada a tu cuenta. Escribinos a contacto@mateordgz.dev para ayudarte.</p>}
           {projects.length > 1 ? (
             <Field className="mb-0">
-              <Label>Proyecto</Label>
+              <Label>¿Sobre qué web querés hablar?</Label>
               <Select name="project_id" required defaultValue={projects[0]?.id ?? ""}>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -66,10 +67,25 @@ export function NewTicketForm({
           ) : (
             <input type="hidden" name="project_id" value={projects[0]?.id ?? ""} />
           )}
+          <input type="hidden" name="subject" value={subject} />
+          <input type="hidden" name="category" value={category} />
           <Field className="mb-0">
-            <Label className="mb-3 text-sm text-foreground">1. Elegí una opción</Label>
-            <input type="hidden" name="category" value={category} />
-            <input type="hidden" name="subject" value={subject} />
+            <Label className="mb-2 text-sm text-foreground">Contanos qué necesitás</Label>
+            <Textarea
+              name="description"
+              required
+              rows={5}
+              maxLength={10000}
+              readOnly={pending}
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="Por ejemplo: quiero cambiar el horario que aparece en mi página…"
+              className="min-h-36 text-base leading-relaxed"
+            />
+            <p className="mt-2 text-sm text-muted">Escribí como te salga. Nosotros te ayudamos a resolverlo.</p>
+          </Field>
+          <details className="rounded-xl border border-border p-3">
+            <summary className="min-h-8 cursor-pointer text-sm font-medium">Elegir el motivo (opcional)</summary>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {CLIENT_CATEGORY_OPTIONS.map((item) => {
                 const Icon = item.icon;
@@ -96,41 +112,12 @@ export function NewTicketForm({
                 );
               })}
             </div>
-          </Field>
-          <Field className="mb-0">
-            <Label className="mb-2 text-sm text-foreground">2. Contanos qué necesitás</Label>
-            <Textarea
-              name="description"
-              required
-              rows={6}
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="Por ejemplo: quiero cambiar el horario que aparece en mi página…"
-              className="min-h-36 text-base leading-relaxed"
-            />
-            <p className="mt-2 text-sm text-muted">Escribí como te salga. Nosotros te ayudamos a resolverlo.</p>
-          </Field>
-          <Field id="ticket-files" className="mb-0">
-            <Label className="mb-2 flex items-center gap-1.5 text-sm text-foreground">
-              <Paperclip size={15} /> 3. Agregar una foto (opcional)
-            </Label>
-            <input
-              type="file"
-              id="ticket-files"
-              name="files"
-              multiple
-              accept="image/*,.pdf"
-              onChange={(event) => setFileCount(event.target.files?.length ?? 0)}
-              className="sr-only"
-            />
-            <label htmlFor="ticket-files" className="portal-press flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-surface-2 px-4 text-sm font-medium hover:border-border-strong">
-              <FileImage size={18} /> {fileCount > 0 ? `${fileCount} archivo${fileCount === 1 ? "" : "s"} elegido${fileCount === 1 ? "" : "s"}` : "Elegir foto o archivo"}
-            </label>
-          </Field>
+          </details>
+          <TicketAttachments disabled={pending} />
           <Button type="submit" size="lg" disabled={pending || !valid} className="w-full">
             {pending ? "Enviando…" : "Enviar a Mateo"}
           </Button>
-          <p className="text-center text-sm text-muted">Te avisaremos cuando Mateo responda.</p>
+          <p className="text-center text-sm text-muted">La respuesta quedará en esta conversación. Activá los avisos en Ayuda para recibirla también en tu celular.</p>
         </form>
       </CardBody>
     </Card>

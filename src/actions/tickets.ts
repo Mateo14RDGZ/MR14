@@ -6,11 +6,30 @@ import { createClient } from "@/lib/supabase/server";
 import { logHistory } from "@/lib/history";
 import { notifyUsers, getAdminUserIds, getClientMemberUserIds } from "@/lib/notifications";
 import { slugify } from "@/lib/utils";
-import { CLIENT_TICKET_STATUS_LABEL, type TicketCategory, type TicketPriority, type TicketStatus } from "@/lib/types";
+import { CLIENT_TICKET_STATUS_LABEL, TICKET_CATEGORIES, TICKET_PRIORITIES, TICKET_STATUSES, type TicketCategory, type TicketPriority, type TicketStatus } from "@/lib/types";
 
 const ATTACHMENTS_BUCKET = "ticket-attachments";
-const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_ATTACHMENT_BYTES = 3 * 1024 * 1024;
 const ALLOWED_MIME = ["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf"];
+
+function validateFiles(formData: FormData) {
+  const files = formData.getAll("files").filter((value): value is File => value instanceof File && value.size > 0);
+  if (files.length > 5) return "Podés adjuntar hasta 5 archivos.";
+  if (files.reduce((total, file) => total + file.size, 0) > MAX_ATTACHMENT_BYTES) return "Los adjuntos superan los 3 MB. Elegí menos archivos o una foto más pequeña.";
+  for (const file of files) {
+    if (file.size > MAX_ATTACHMENT_BYTES) return `"${file.name}" supera los 3 MB.`;
+    if (!ALLOWED_MIME.includes(file.type)) return "Usá fotos JPG, PNG, WEBP, GIF o documentos PDF.";
+  }
+  return null;
+}
+
+function refreshTicket(ticketId: string) {
+  revalidatePath("/support");
+  revalidatePath("/portal");
+  revalidatePath("/portal/solicitudes");
+  revalidatePath(`/support/${ticketId}`);
+  revalidatePath(`/portal/solicitudes/${ticketId}`);
+}
 
 async function getCurrentUserAndRole() {
   const supabase = await createClient();
@@ -39,7 +58,7 @@ async function uploadAttachments(
   for (const file of files) {
     if (!file || file.size === 0) continue;
     if (file.size > MAX_ATTACHMENT_BYTES) {
-      throw new Error(`"${file.name}" supera el límite de 10MB.`);
+      throw new Error(`"${file.name}" supera el límite de 3 MB.`);
     }
     if (file.type && !ALLOWED_MIME.includes(file.type)) {
       throw new Error(`Tipo de archivo no permitido: ${file.name}`);
@@ -51,7 +70,7 @@ async function uploadAttachments(
       .upload(path, buffer, { contentType: file.type || "application/octet-stream" });
     if (uploadError) throw new Error(uploadError.message);
 
-    await supabase.from("ticket_attachments").insert({
+    const { error: attachmentError } = await supabase.from("ticket_attachments").insert({
       ticket_id: ticketId,
       message_id: messageId ?? null,
       uploaded_by: userId,
@@ -60,6 +79,10 @@ async function uploadAttachments(
       mime_type: file.type || null,
       size_bytes: file.size,
     });
+    if (attachmentError) {
+      await supabase.storage.from(ATTACHMENTS_BUCKET).remove([path]);
+      throw new Error("No se pudo guardar el adjunto.");
+    }
   }
 }
 
@@ -81,6 +104,13 @@ export async function createTicketAction(clientId: string, formData: FormData) {
   if (!projectId || !subject || !description) {
     return { error: "Completá proyecto, asunto y descripción." };
   }
+  if (subject.length > 160 || description.length > 10000) return { error: "Usá un asunto de hasta 160 caracteres y un mensaje de hasta 10.000." };
+  if (!TICKET_CATEGORIES.some(item => item.value === category)) return { error: "Elegí un tipo de consulta válido." };
+  if (requestedPriority && !TICKET_PRIORITIES.some(item => item.value === requestedPriority)) return { error: "Prioridad no válida." };
+  const fileError = validateFiles(formData);
+  if (fileError) return { error: fileError };
+  const { data: project } = await supabase.from("projects").select("id").eq("id", projectId).eq("client_id", clientId).maybeSingle();
+  if (!project) return { error: "No encontramos esa web en tu cuenta." };
 
   // El cliente elige la prioridad; si no manda nada (o es admin creando sin
   // tocar el campo) se infiere de la categoría como antes.
@@ -110,11 +140,13 @@ export async function createTicketAction(clientId: string, formData: FormData) {
   });
 
   const files = formData.getAll("files") as File[];
+  let attachmentWarning = false;
   try {
     await uploadAttachments(supabase, clientId, ticket.id, user.id, files);
   } catch (e) {
     // El ticket ya se creó; el adjunto fallido no debe perderlo, solo se informa.
-    return { error: e instanceof Error ? e.message : "No se pudo subir un adjunto.", ticketId: ticket.id };
+    attachmentWarning = true;
+    console.error("ticket_attachment_failed", e instanceof Error ? e.name : "upload");
   }
 
   await logHistory({
@@ -136,11 +168,18 @@ export async function createTicketAction(clientId: string, formData: FormData) {
       ticketId: ticket.id,
       url: `/support/${ticket.id}`,
     });
+  } else {
+    await notifyUsers({
+      userIds: (await getClientMemberUserIds(clientId)).filter(id => id !== user.id),
+      type: "ticket_created", title: "Mateo abrió una consulta para vos",
+      body: subject, ticketId: ticket.id, url: `/portal/solicitudes/${ticket.id}`,
+    });
   }
 
   revalidatePath("/portal/solicitudes");
   revalidatePath("/support");
-  redirect(role === "admin" ? `/support/${ticket.id}` : `/portal/solicitudes/${ticket.id}`);
+  const destination = role === "admin" ? `/support/${ticket.id}` : `/portal/solicitudes/${ticket.id}`;
+  redirect(`${destination}?created=1${attachmentWarning ? "&attachmentWarning=1" : ""}`);
 }
 
 // ---------------- MESSAGES ----------------
@@ -150,6 +189,10 @@ export async function addTicketMessageAction(ticketId: string, formData: FormDat
 
   const body = String(formData.get("body") || "").trim();
   if (!body) return { error: "Escribí un mensaje." };
+  const fileError = validateFiles(formData);
+  if (fileError) return { error: fileError };
+  if (body.length > 10000) return { error: "El mensaje puede tener hasta 10.000 caracteres." };
+  const resolve = role === "admin" && formData.get("intent") === "resolve";
 
   const { data: ticket } = await supabase
     .from("tickets")
@@ -158,29 +201,19 @@ export async function addTicketMessageAction(ticketId: string, formData: FormDat
     .single();
   if (!ticket) return { error: "Ticket no encontrado." };
 
-  const { data: message, error } = await supabase
-    .from("ticket_messages")
-    .insert({ ticket_id: ticketId, author_id: user.id, author_role: role, body })
-    .select("id")
-    .single();
-  if (error || !message) return { error: error?.message ?? "No se pudo enviar el mensaje." };
-
-  await supabase.from("ticket_events").insert({
-    ticket_id: ticketId,
-    actor_id: user.id,
-    event_type: "message",
+  if (ticket.status === "closed") return { error: "Retomá la consulta para poder responder." };
+  const { data: messageId, error } = await supabase.rpc("send_ticket_reply", {
+    p_ticket_id: ticketId, p_body: body, p_resolve: resolve,
   });
+  if (error || !messageId) return { error: error?.message ?? "No se pudo enviar el mensaje." };
 
   const files = formData.getAll("files") as File[];
+  let warning: string | undefined;
   try {
-    await uploadAttachments(supabase, ticket.client_id, ticketId, user.id, files, message.id);
+    await uploadAttachments(supabase, ticket.client_id, ticketId, user.id, files, messageId);
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "No se pudo subir un adjunto." };
-  }
-
-  // Si responde el cliente y el ticket estaba esperando su respuesta, vuelve a revisión.
-  if (role === "client" && ticket.status === "waiting_client") {
-    await supabase.from("tickets").update({ status: "reviewing" }).eq("id", ticketId);
+    warning = "El mensaje se envió, pero faltó un adjunto. Podés enviarlo en otro mensaje.";
+    console.error("reply_attachment_failed", e instanceof Error ? e.name : "upload");
   }
 
   if (role === "admin") {
@@ -188,7 +221,7 @@ export async function addTicketMessageAction(ticketId: string, formData: FormDat
     await notifyUsers({
       userIds: clientMemberIds,
       type: "ticket_message",
-      title: "Mateo te respondió",
+      title: resolve ? "Mateo resolvió tu consulta" : "Mateo te respondió",
       body,
       ticketId,
       url: `/portal/solicitudes/${ticketId}`,
@@ -205,13 +238,14 @@ export async function addTicketMessageAction(ticketId: string, formData: FormDat
     });
   }
 
-  revalidatePath(`/support/${ticketId}`);
-  revalidatePath(`/portal/solicitudes/${ticketId}`);
+  refreshTicket(ticketId);
+  return { success: true, warning };
 }
 
 // ---------------- STATUS / PRIORITY (admin) ----------------
 export async function updateTicketStatusAction(ticketId: string, status: TicketStatus) {
-  const { supabase } = await assertAdmin();
+  const { supabase, user } = await assertAdmin();
+  if (!TICKET_STATUSES.some(item => item.value === status)) throw new Error("Estado no válido.");
 
   const { data: ticket } = await supabase
     .from("tickets")
@@ -223,10 +257,16 @@ export async function updateTicketStatusAction(ticketId: string, status: TicketS
   const patch: Record<string, unknown> = { status };
   if (status === "resolved") {
     patch.resolved_at = new Date().toISOString();
-    patch.reopen_deadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    patch.reopen_deadline = null;
+    patch.closed_at = null;
   }
   if (status === "closed") {
     patch.closed_at = new Date().toISOString();
+  }
+  if (!["closed", "resolved"].includes(status)) {
+    patch.closed_at = null;
+    patch.resolved_at = null;
+    patch.reopen_deadline = null;
   }
 
   const { error } = await supabase.from("tickets").update(patch).eq("id", ticketId);
@@ -234,6 +274,7 @@ export async function updateTicketStatusAction(ticketId: string, status: TicketS
 
   await supabase.from("ticket_events").insert({
     ticket_id: ticketId,
+    actor_id: user.id,
     event_type: status === "closed" ? "closed" : "status_changed",
     meta: { status },
   });
@@ -251,7 +292,7 @@ export async function updateTicketStatusAction(ticketId: string, status: TicketS
   // necesitamos algo de él, o cuando su ticket queda resuelto. El resto de
   // los estados (reviewing, in_progress, approved, closed...) son gestión
   // interna y no ameritan una notificación.
-  if (status === "waiting_client" || status === "resolved") {
+  if (status === "waiting_client" || status === "resolved" || status === "closed") {
     const clientMemberIds = await getClientMemberUserIds(ticket.client_id);
     await notifyUsers({
       userIds: clientMemberIds,
@@ -263,13 +304,12 @@ export async function updateTicketStatusAction(ticketId: string, status: TicketS
     });
   }
 
-  revalidatePath(`/support/${ticketId}`);
-  revalidatePath("/support");
-  revalidatePath(`/portal/solicitudes/${ticketId}`);
+  refreshTicket(ticketId);
 }
 
 export async function updateTicketPriorityAction(ticketId: string, priority: TicketPriority) {
   const { supabase } = await assertAdmin();
+  if (!TICKET_PRIORITIES.some(item => item.value === priority)) throw new Error("Prioridad no válida.");
   const { error } = await supabase.from("tickets").update({ priority }).eq("id", ticketId);
   if (error) throw new Error(error.message);
   await supabase.from("ticket_events").insert({ ticket_id: ticketId, event_type: "priority_changed", meta: { priority } });
@@ -277,37 +317,38 @@ export async function updateTicketPriorityAction(ticketId: string, priority: Tic
 }
 
 // ---------------- CLIENT: CLOSE / REOPEN ----------------
+async function changeConversationState(ticketId: string, reopen: boolean) {
+  const { supabase, user, role } = await getCurrentUserAndRole();
+  if (!user) throw new Error("Iniciá sesión para continuar.");
+  const { data: ticket } = await supabase.from("tickets").select("id, client_id, status, number, subject").eq("id", ticketId).maybeSingle();
+  if (!ticket) throw new Error("Consulta no encontrada.");
+  const status = reopen ? "reviewing" : "closed";
+  if (ticket.status === status) return;
+  if (reopen && !["closed", "resolved"].includes(ticket.status)) throw new Error("La consulta ya está abierta.");
+  const { data: updated, error } = await supabase.from("tickets").update({
+    status, closed_at: reopen ? null : new Date().toISOString(),
+    ...(reopen ? { resolved_at: null, reopen_deadline: null } : {}),
+  }).eq("id", ticketId).eq("status", ticket.status).select("status").maybeSingle();
+  if (error || updated?.status !== status) throw new Error("No pudimos cambiar el estado. Actualizá la consulta e intentá de nuevo.");
+  await supabase.from("ticket_events").insert({ ticket_id: ticketId, actor_id: user.id, event_type: reopen ? "reopened" : "closed" });
+  await notifyUsers({
+    userIds: (role === "admin" ? await getClientMemberUserIds(ticket.client_id) : await getAdminUserIds()).filter(id => id !== user.id),
+    type: "ticket_status_changed",
+    title: role === "admin"
+      ? (reopen ? "Mateo retomó tu consulta" : "Mateo cerró tu consulta")
+      : `${ticket.number}: el cliente ${reopen ? "retomó" : "cerró"} la consulta`,
+    body: ticket.subject, ticketId,
+    url: role === "admin" ? `/portal/solicitudes/${ticketId}` : `/support/${ticketId}`,
+  });
+  refreshTicket(ticketId);
+}
+
 export async function closeTicketAction(ticketId: string) {
-  const { supabase, user } = await getCurrentUserAndRole();
-  if (!user) throw new Error("No autenticado.");
-  const { error } = await supabase.from("tickets").update({ status: "closed" }).eq("id", ticketId);
-  if (error) throw new Error(error.message);
-  await supabase.from("ticket_events").insert({ ticket_id: ticketId, actor_id: user.id, event_type: "closed" });
-  revalidatePath(`/portal/solicitudes/${ticketId}`);
-  revalidatePath("/support");
+  return changeConversationState(ticketId, false);
 }
 
 export async function reopenTicketAction(ticketId: string) {
-  const { supabase, user } = await getCurrentUserAndRole();
-  if (!user) throw new Error("No autenticado.");
-  const { error } = await supabase.from("tickets").update({ status: "waiting_client" }).eq("id", ticketId);
-  if (error) throw new Error(error.message);
-  await supabase.from("ticket_events").insert({ ticket_id: ticketId, actor_id: user.id, event_type: "reopened" });
-
-  const { data: ticket } = await supabase.from("tickets").select("client_id, number").eq("id", ticketId).single();
-  if (ticket) {
-    const adminIds = await getAdminUserIds();
-    await notifyUsers({
-      userIds: adminIds,
-      type: "ticket_status_changed",
-      title: `Ticket ${ticket.number} reabierto`,
-      ticketId,
-      url: `/support/${ticketId}`,
-    });
-  }
-
-  revalidatePath(`/portal/solicitudes/${ticketId}`);
-  revalidatePath("/support");
+  return changeConversationState(ticketId, true);
 }
 
 // ---------------- QUOTES (admin crea, cliente decide) ----------------
@@ -395,36 +436,11 @@ export async function decideQuoteAction(
   const { supabase, user } = await getCurrentUserAndRole();
   if (!user) throw new Error("No autenticado.");
 
-  const { error } = await supabase
-    .from("ticket_quote_versions")
-    .update({ decision })
-    .eq("id", quoteVersionId);
-  if (error) throw new Error(error.message);
-
-  const { data: version } = await supabase
-    .from("ticket_quote_versions")
-    .select("quote_id, amount, currency")
-    .eq("id", quoteVersionId)
-    .single();
-
-  if (version) {
-    await supabase
-      .from("ticket_quotes")
-      .update({ status: decision })
-      .eq("id", version.quote_id);
-  }
-
-  await supabase.from("tickets").update({ status: decision === "accepted" ? "approved" : "in_progress" }).eq("id", ticketId);
-
-  await supabase.from("ticket_events").insert({
-    ticket_id: ticketId,
-    actor_id: user.id,
-    event_type: decision === "accepted" ? "quote_accepted" : "quote_rejected",
-    meta: {
-      ...(version ? { amount: version.amount, currency: version.currency } : {}),
-      ...(reason?.trim() ? { reason: reason.trim().slice(0, 500) } : {}),
-    },
+  const { error } = await supabase.rpc("decide_ticket_quote", {
+    p_ticket_id: ticketId, p_version_id: quoteVersionId,
+    p_decision: decision, p_reason: reason?.trim().slice(0, 500) || null,
   });
+  if (error) throw new Error(error.message);
 
   const { data: ticket } = await supabase.from("tickets").select("client_id, project_id, number").eq("id", ticketId).single();
   if (ticket) {

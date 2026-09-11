@@ -1,4 +1,4 @@
-const CACHE_VERSION = "mr14-v1";
+const CACHE_VERSION = "mr14-v2";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -74,24 +74,26 @@ self.addEventListener("push", (event) => {
   }
 
   event.waitUntil(
-    self.registration.showNotification(data.title, {
+    Promise.all([self.registration.showNotification(data.title, {
       body: data.body,
       icon: "/icons/icon-192.png",
       badge: "/icons/icon-192.png",
       data: { url: data.url || "/" },
-    })
+    }), self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(windows => {
+      windows.forEach(client => client.postMessage({ type: "notification-received" }));
+    })])
   );
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || "/";
+  const destination = new URL(event.notification.data?.url || "/", self.location.origin);
+  const url = destination.origin === self.location.origin ? destination.href : self.location.origin;
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientsList) => {
       for (const client of clientsList) {
-        if (client.url.includes(self.location.origin) && "focus" in client) {
-          client.navigate(url);
-          return client.focus();
+        if (new URL(client.url).origin === self.location.origin && "focus" in client) {
+          return client.navigate(url).then(() => client.focus());
         }
       }
       return self.clients.openWindow(url);

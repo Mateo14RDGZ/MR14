@@ -24,33 +24,38 @@ export async function sendPushToUsers(
   payload: { title: string; body?: string; url?: string }
 ) {
   const uniqueIds = Array.from(new Set(userIds)).filter(Boolean);
-  if (uniqueIds.length === 0) return;
-  if (!ensureConfigured()) return;
+  if (uniqueIds.length === 0) return 0;
+  if (!ensureConfigured()) { console.error("push_not_configured"); return 0; }
 
   const admin = createAdminClient();
-  const { data: subs } = await admin.from("push_subscriptions").select("*").in("user_id", uniqueIds);
-  if (!subs || subs.length === 0) return;
+  const { data: subs, error } = await admin.from("push_subscriptions").select("*").in("user_id", uniqueIds);
+  if (error) { console.error("push_subscriptions_unavailable", error.code); return 0; }
+  if (!subs || subs.length === 0) return 0;
 
   const json = JSON.stringify({
-    title: payload.title,
-    body: payload.body ?? "",
+    title: payload.title.slice(0, 120),
+    body: (payload.body ?? "").slice(0, 180),
     url: payload.url ?? "/",
   });
 
-  await Promise.all(
+  const results = await Promise.all(
     subs.map(async (s) => {
       try {
         await webpush.sendNotification(
           { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth_key } },
-          json
+          json,
+          { TTL: 86400, urgency: "high", timeout: 5000 }
         );
+        return 1;
       } catch (err: unknown) {
         const statusCode = (err as { statusCode?: number })?.statusCode;
         if (statusCode === 404 || statusCode === 410) {
           // Suscripción vencida o el usuario desinstaló/revocó el permiso.
           await admin.from("push_subscriptions").delete().eq("id", s.id);
-        }
+        } else console.error("push_delivery_failed", statusCode ?? "network");
+        return 0;
       }
     })
   );
+  return results.reduce<number>((total, result) => total + result, 0);
 }

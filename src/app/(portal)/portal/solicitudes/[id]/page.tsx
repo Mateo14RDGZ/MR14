@@ -5,8 +5,9 @@ import { getTicketDetail } from "@/lib/queries";
 import { TicketDetail } from "@/components/shared/TicketDetail";
 import { ArrowLeft } from "lucide-react";
 
-export default async function PortalTicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PortalTicketDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ created?: string; attachmentWarning?: string }> }) {
   const { id } = await params;
+  const receipt = await searchParams;
   const { activeClient } = await getPortalContext();
   const data = await getTicketDetail(id);
   if (!data) notFound();
@@ -18,6 +19,8 @@ export default async function PortalTicketDetailPage({ params }: { params: Promi
       <Link href="/portal/solicitudes" className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground">
         <ArrowLeft size={14} /> Mis solicitudes
       </Link>
+      {receipt.created && <p role="status" className="mb-4 rounded-xl bg-accent-soft p-4 text-base text-accent">Tu consulta fue enviada a Mateo. Podés seguir la respuesta acá.</p>}
+      {receipt.attachmentWarning && <p role="alert" className="mb-4 rounded-xl border border-border p-4 text-sm">La consulta se guardó, pero faltó una foto o archivo. Podés agregarlo con un mensaje abajo.</p>}
       <TicketDetail
         role="client"
         ticket={ticket}
