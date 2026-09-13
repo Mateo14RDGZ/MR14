@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { analyzeWebsite, estimateScores } from "@/lib/website-analyzer";
 
-export async function POST(request: NextRequest) {
+async function analyze(request: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -37,4 +37,12 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ result, score, auditId });
+}
+
+export async function POST(request: NextRequest) {
+  try { return await analyze(request); }
+  catch (error) {
+    console.error("website_analysis_failed", error instanceof Error ? error.name : "unknown");
+    return NextResponse.json({ error: "No pudimos completar el análisis. Revisá la URL e intentá nuevamente." }, { status: 500 });
+  }
 }

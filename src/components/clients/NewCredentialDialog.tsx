@@ -23,12 +23,11 @@ export function NewCredentialDialog({
   function onSubmit(formData: FormData) {
     const projectId = String(formData.get("project_id") || "") || null;
     startTransition(async () => {
-      const result = await createCredentialAction(clientId, projectId, formData);
-      if (result?.error) toast.error(result.error);
-      else {
-        toast.success("Credencial agregada.");
-        setOpen(false);
-      }
+      try {
+        const result = await createCredentialAction(clientId, projectId, formData);
+        if (result?.error) toast.error(result.error);
+        else { toast.success("Credencial agregada."); setOpen(false); }
+      } catch { toast.error("No pudimos guardar la credencial. Tus datos siguen en el formulario."); }
     });
   }
 

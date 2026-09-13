@@ -31,7 +31,7 @@ async function loadInfra(supabase: Awaited<ReturnType<typeof createClient>>, pro
   };
 }
 
-export async function GET(request: NextRequest) {
+async function generatePdf(request: NextRequest) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -174,4 +174,12 @@ export async function GET(request: NextRequest) {
       "Content-Disposition": `inline; filename="${filename.replace(/[^\w.\- ]/g, "")}"`,
     },
   });
+}
+
+export async function GET(request: NextRequest) {
+  try { return await generatePdf(request); }
+  catch (error) {
+    console.error("pdf_generation_failed", error instanceof Error ? error.name : "unknown");
+    return NextResponse.json({ error: "No pudimos generar el documento. Intentá nuevamente." }, { status: 500 });
+  }
 }

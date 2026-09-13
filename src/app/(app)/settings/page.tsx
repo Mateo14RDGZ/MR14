@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { NotificationsToggle } from "@/components/shared/NotificationsToggle";
 import { QuickRepliesManager } from "@/components/shared/QuickRepliesManager";
 import { PaymentMethodsManager } from "@/components/shared/PaymentMethodsManager";
+import { credentialEncryptionReady } from "@/lib/crypto";
 
 const ENV_CHECKS = [
   "NEXT_PUBLIC_SUPABASE_URL",
@@ -85,8 +86,8 @@ export default async function SettingsPage() {
           {ENV_CHECKS.map((key) => (
             <div key={key} className="flex flex-wrap items-center justify-between gap-2">
               <span className="break-all font-mono text-xs text-muted">{key}</span>
-              <Badge tone={process.env[key] ? "success" : "danger"}>
-                {process.env[key] ? "Configurada" : "Falta"}
+              <Badge tone={(key === "CREDENTIALS_ENCRYPTION_KEY" ? credentialEncryptionReady() : Boolean(process.env[key])) ? "success" : "danger"}>
+                {(key === "CREDENTIALS_ENCRYPTION_KEY" ? credentialEncryptionReady() : Boolean(process.env[key])) ? "Configurada" : "Falta o es inválida"}
               </Badge>
             </div>
           ))}

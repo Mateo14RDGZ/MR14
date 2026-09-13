@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET(request: NextRequest) {
-  const q = request.nextUrl.searchParams.get("q")?.trim();
+async function search(request: NextRequest) {
+  const q = request.nextUrl.searchParams.get("q")?.trim().slice(0, 100).replace(/[,%()]/g, " ").trim();
   if (!q) return NextResponse.json({ results: [] });
 
   const supabase = await createClient();
@@ -67,4 +67,12 @@ export async function GET(request: NextRequest) {
   ];
 
   return NextResponse.json({ results });
+}
+
+export async function GET(request: NextRequest) {
+  try { return await search(request); }
+  catch (error) {
+    console.error("global_search_failed", error instanceof Error ? error.name : "unknown");
+    return NextResponse.json({ results: [], error: "No pudimos buscar en este momento." }, { status: 500 });
+  }
 }

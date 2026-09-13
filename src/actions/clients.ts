@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { logHistory } from "@/lib/history";
 import type { ClientStatus } from "@/lib/types";
 import { validBrandColor } from "@/lib/brand-color";
+import sharp from "sharp";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -125,18 +126,26 @@ export async function uploadClientLogoAction(clientId: string, formData: FormDat
   const supabase = await requireAdmin();
   const file = formData.get("file") as File | null;
   if (!file || file.size === 0) return { error: "Seleccioná una imagen." };
-  if (!file.type.startsWith("image/")) return { error: "El archivo debe ser una imagen." };
-  if (file.size > 5 * 1024 * 1024) return { error: "La imagen no puede pesar más de 5MB." };
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return { error: "Usá una imagen JPG, PNG o WEBP." };
+  if (file.size > 1024 * 1024) return { error: "No pudimos preparar la imagen. Volvé a seleccionarla." };
 
   // Path fijo por cliente (sin extensión, el content-type ya viaja en los
   // metadatos): un re-upload sobreescribe el mismo objeto en vez de dejar
   // archivos viejos sueltos en el bucket.
   const path = `${clientId}/logo`;
-  const arrayBuffer = await file.arrayBuffer();
+  let logo: Buffer;
+  try {
+    logo = await sharp(await file.arrayBuffer()).rotate().resize(900, 900, { fit: "inside", withoutEnlargement: true }).webp({ quality: 84 }).toBuffer();
+  } catch {
+    return { error: "No pudimos leer esa imagen. Probá con otra foto JPG, PNG o WEBP." };
+  }
   const { error: uploadError } = await supabase.storage
     .from(LOGO_BUCKET)
-    .upload(path, arrayBuffer, { contentType: file.type, upsert: true });
-  if (uploadError) return { error: uploadError.message };
+    .upload(path, logo, { contentType: "image/webp", upsert: true });
+  if (uploadError) {
+    console.error("client_logo_upload_failed", { clientId, code: uploadError.name });
+    return { error: "No pudimos guardar el logo. Revisá tu conexión e intentá nuevamente." };
+  }
 
   const { data: pub } = supabase.storage.from(LOGO_BUCKET).getPublicUrl(path);
   // Cache-bust: mismo path público, así que sin esto el navegador podría
@@ -144,7 +153,10 @@ export async function uploadClientLogoAction(clientId: string, formData: FormDat
   const logo_url = `${pub.publicUrl}?v=${Date.now()}`;
 
   const { error } = await supabase.from("clients").update({ logo_url }).eq("id", clientId);
-  if (error) return { error: error.message };
+  if (error) {
+    console.error("client_logo_update_failed", { clientId, code: error.code });
+    return { error: "El logo se subió, pero no pudimos asociarlo al cliente. Intentá nuevamente." };
+  }
 
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/portal", "layout");

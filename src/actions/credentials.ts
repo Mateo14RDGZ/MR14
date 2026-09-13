@@ -29,13 +29,16 @@ export async function createCredentialAction(
   const visibility = (str(formData, "visibility") ?? "internal") as CredentialVisibility;
   const visibleUntilRaw = str(formData, "visible_until");
 
+  let encrypted: string;
+  try { encrypted = encryptSecret(secret); }
+  catch { return { error: "El guardado seguro de contraseñas no está disponible. Revisá Configuración." }; }
   const payload = {
     client_id: clientId,
     project_id: projectId,
     service: (str(formData, "service") ?? "otro") as CredentialService,
     service_label: str(formData, "service_label"),
     username: str(formData, "username"),
-    secret_encrypted: encryptSecret(secret),
+    secret_encrypted: encrypted,
     access_url: str(formData, "access_url"),
     notes: str(formData, "notes"),
     visibility,
@@ -71,7 +74,10 @@ export async function updateCredentialAction(id: string, clientId: string, formD
     visible_until: visibility === "temporary" && visibleUntilRaw ? new Date(visibleUntilRaw).toISOString() : null,
     last_updated: new Date().toISOString(),
   };
-  if (secret) payload.secret_encrypted = encryptSecret(secret);
+  if (secret) {
+    try { payload.secret_encrypted = encryptSecret(secret); }
+    catch { return { error: "El guardado seguro de contraseñas no está disponible. Revisá Configuración." }; }
+  }
 
   const { error } = await supabase.from("credentials").update(payload).eq("id", id);
   if (error) return { error: error.message };
@@ -106,7 +112,8 @@ export async function revealCredentialAction(id: string): Promise<string> {
     .from("credential_access_log")
     .insert({ credential_id: id, user_id: user?.id ?? null, action: "view" });
 
-  return decryptSecret(data.secret_encrypted);
+  try { return decryptSecret(data.secret_encrypted); }
+  catch { throw new Error("No pudimos abrir esta credencial. Revisá la clave de cifrado en Configuración."); }
 }
 
 /** Marca la credencial como entregada al cliente: la hace visible y deja registro de quién y cuándo. */
