@@ -10,11 +10,15 @@ export function DocumentDownloadButton({ storagePath }: { storagePath: string })
   const [pending, startTransition] = useTransition();
 
   function onClick() {
+    const viewer = window.open("about:blank", "_blank");
+    if (viewer) viewer.opener = null;
     startTransition(async () => {
       try {
         const url = await getDocumentUrlAction(storagePath);
-        window.open(url, "_blank", "noopener,noreferrer");
+        if (viewer) viewer.location.replace(url);
+        else window.location.assign(url);
       } catch {
+        viewer?.close();
         toast.error("No se pudo abrir el documento.");
       }
     });

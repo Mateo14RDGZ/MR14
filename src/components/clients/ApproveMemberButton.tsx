@@ -15,9 +15,11 @@ export function ApproveMemberButton({ memberId, clientId }: { memberId: string; 
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
-          const result = await approveClientMemberAction(memberId, clientId);
-          if (result?.error) toast.error(result.error);
-          else toast.success("Acceso aprobado. Ya puede entrar al portal.");
+          try {
+            const result = await approveClientMemberAction(memberId, clientId);
+            if (result?.error) toast.error(result.error);
+            else toast.success("Acceso aprobado. Ya puede entrar al portal.");
+          } catch { toast.error("No pudimos aprobar el acceso. Intentá nuevamente."); }
         })
       }
     >

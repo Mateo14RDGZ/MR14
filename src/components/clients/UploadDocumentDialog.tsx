@@ -24,14 +24,18 @@ export function UploadDocumentDialog({
   const [pending, startTransition] = useTransition();
 
   function onSubmit(formData: FormData) {
+    const file = formData.get("file");
+    if (file instanceof File && file.size > 3 * 1024 * 1024) {
+      toast.error("El archivo no puede superar los 3 MB.");
+      return;
+    }
     const projectId = String(formData.get("project_id") || "") || null;
     startTransition(async () => {
-      const result = await uploadDocumentAction(clientId, projectId, formData);
-      if (result?.error) toast.error(result.error);
-      else {
-        toast.success("Documento subido.");
-        setOpen(false);
-      }
+      try {
+        const result = await uploadDocumentAction(clientId, projectId, formData);
+        if (result?.error) toast.error(result.error);
+        else { toast.success("Documento subido."); setOpen(false); }
+      } catch { toast.error("No pudimos subir el documento. Revisá tu conexión e intentá nuevamente."); }
     });
   }
 
@@ -45,6 +49,7 @@ export function UploadDocumentDialog({
           <Field className="mb-0">
             <Label>Archivo *</Label>
             <Input type="file" name="file" required accept=".pdf,.png,.jpg,.jpeg,.webp" />
+            <p className="mt-1 text-xs text-muted">PDF o imagen, hasta 3 MB.</p>
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field className="mb-0">

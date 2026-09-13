@@ -17,9 +17,11 @@ export function DeliverCredentialButton({ id, clientId }: { id: string; clientId
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
-          const result = await deliverCredentialAction(id, clientId);
-          if (result?.error) toast.error(result.error);
-          else toast.success("Acceso marcado como entregado.");
+          try {
+            const result = await deliverCredentialAction(id, clientId);
+            if (result?.error) toast.error(result.error);
+            else toast.success("Acceso marcado como entregado.");
+          } catch { toast.error("No pudimos entregar el acceso. Intentá nuevamente."); }
         })
       }
     >

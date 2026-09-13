@@ -41,18 +41,19 @@ export function ComprobanteButton({
   }
 
   function onSubmit(formData: FormData) {
+    const viewer = window.open("about:blank", "_blank");
+    if (viewer) viewer.opener = null;
     startTransition(async () => {
-      // Se preservan monto/fecha/notas tal cual estaban — solo se completa el método.
-      formData.set("amount", String(payment.amount));
-      formData.set("paid_at", payment.paid_at);
-      formData.set("notes", payment.notes ?? "");
-      const result = await updatePaymentAction(payment.id, clientId, payment.project_id, formData);
-      if (result?.error) {
-        toast.error(result.error);
-        return;
-      }
-      setOpen(false);
-      window.open(pdfUrl, "_blank", "noopener,noreferrer");
+      try {
+        formData.set("amount", String(payment.amount));
+        formData.set("paid_at", payment.paid_at);
+        formData.set("notes", payment.notes ?? "");
+        const result = await updatePaymentAction(payment.id, clientId, payment.project_id, formData);
+        if (result?.error) { viewer?.close(); toast.error(result.error); return; }
+        setOpen(false);
+        if (viewer) viewer.location.replace(pdfUrl);
+        else window.location.assign(pdfUrl);
+      } catch { viewer?.close(); toast.error("No pudimos generar el comprobante. Intentá nuevamente."); }
     });
   }
 

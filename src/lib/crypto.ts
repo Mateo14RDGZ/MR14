@@ -11,13 +11,17 @@ import crypto from "node:crypto";
  */
 
 function getKey(): Buffer {
-  const hex = process.env.CREDENTIALS_ENCRYPTION_KEY;
-  if (!hex || hex.length !== 64) {
+  const hex = process.env.CREDENTIALS_ENCRYPTION_KEY?.trim();
+  if (!hex || !/^[a-f0-9]{64}$/i.test(hex)) {
     throw new Error(
       "CREDENTIALS_ENCRYPTION_KEY no configurada o inválida (debe ser hex de 64 caracteres / 32 bytes)."
     );
   }
   return Buffer.from(hex, "hex");
+}
+
+export function credentialEncryptionReady(): boolean {
+  return /^[a-f0-9]{64}$/i.test(process.env.CREDENTIALS_ENCRYPTION_KEY?.trim() ?? "");
 }
 
 export function encryptSecret(plainText: string): string {

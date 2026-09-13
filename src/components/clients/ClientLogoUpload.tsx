@@ -6,6 +6,7 @@ import { uploadClientLogoAction } from "@/actions/clients";
 import { Avatar } from "@/components/ui/Avatar";
 import { Pencil } from "lucide-react";
 import { ClientLogo } from "@/components/ui/ClientLogo";
+import { prepareClientLogo } from "@/lib/client-image";
 
 /**
  * Avatar del cliente: muestra el logo si ya lo subieron, o las iniciales
@@ -30,14 +31,19 @@ export function ClientLogoUpload({
     e.target.value = "";
     if (!file) return;
 
-    const formData = new FormData();
-    formData.set("file", file);
     startTransition(async () => {
-      const result = await uploadClientLogoAction(clientId, formData);
-      if (result?.error) toast.error(result.error);
-      else {
-        toast.success("Logo actualizado.");
-        if (result?.logo_url) setPreview(result.logo_url);
+      try {
+        const prepared = await prepareClientLogo(file);
+        const formData = new FormData();
+        formData.set("file", prepared);
+        const result = await uploadClientLogoAction(clientId, formData);
+        if (result?.error) toast.error(result.error);
+        else {
+          toast.success("Logo actualizado.");
+          if (result?.logo_url) setPreview(result.logo_url);
+        }
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "No pudimos subir el logo. Intentá nuevamente.");
       }
     });
   }
@@ -47,7 +53,8 @@ export function ClientLogoUpload({
       type="button"
       onClick={() => inputRef.current?.click()}
       disabled={pending}
-      title="Cambiar logo"
+      title={pending ? "Preparando logo" : "Cambiar logo"}
+      aria-label={pending ? "Preparando logo" : `Cambiar logo de ${businessName}`}
       className="group relative shrink-0 rounded-full disabled:opacity-60"
     >
       {preview ? (
@@ -62,7 +69,7 @@ export function ClientLogoUpload({
       <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-surface-2 text-muted-2 transition-colors group-hover:text-foreground">
         <Pencil size={10} />
       </span>
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onChange} />
+      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={onChange} />
     </button>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { ClientErrorGuard } from "@/components/shared/ClientErrorGuard";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" className={`${geist.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         {children}
+        <ClientErrorGuard />
         <Toaster
           theme="light"
           position="bottom-right"

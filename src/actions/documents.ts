@@ -7,6 +7,8 @@ import { notifyUsers, getClientMemberUserIds } from "@/lib/notifications";
 import { slugify } from "@/lib/utils";
 
 const BUCKET = "documents";
+const MAX_DOCUMENT_BYTES = 3 * 1024 * 1024;
+const ALLOWED_DOCUMENT_TYPES = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
 
 export async function uploadDocumentAction(
   clientId: string,
@@ -28,6 +30,8 @@ export async function uploadDocumentAction(
     .filter(Boolean);
 
   if (!file || file.size === 0) return { error: "Seleccioná un archivo." };
+  if (file.size > MAX_DOCUMENT_BYTES) return { error: "El archivo no puede superar los 3 MB." };
+  if (!ALLOWED_DOCUMENT_TYPES.has(file.type)) return { error: "Usá un PDF o una imagen JPG, PNG o WEBP." };
 
   const path = `${clientId}/${Date.now()}-${slugify(file.name)}`;
   const arrayBuffer = await file.arrayBuffer();
@@ -36,7 +40,7 @@ export async function uploadDocumentAction(
     .from(BUCKET)
     .upload(path, arrayBuffer, { contentType: file.type || "application/octet-stream" });
 
-  if (uploadError) return { error: uploadError.message };
+  if (uploadError) return { error: "No pudimos subir el archivo. Revisá tu conexión e intentá nuevamente." };
 
   const { error } = await supabase.from("documents").insert({
     client_id: clientId,
@@ -51,7 +55,10 @@ export async function uploadDocumentAction(
     uploaded_by: user?.id ?? null,
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    await supabase.storage.from(BUCKET).remove([path]);
+    return { error: "El archivo se subió, pero no pudimos registrarlo. Intentá nuevamente." };
+  }
 
   await logHistory({ clientId, projectId, event: `Documento "${file.name}" subido` });
 

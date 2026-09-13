@@ -16,12 +16,11 @@ export function EditCredentialDialog({ clientId, credential }: { clientId: strin
 
   function onSubmit(formData: FormData) {
     startTransition(async () => {
-      const result = await updateCredentialAction(credential.id, clientId, formData);
-      if (result?.error) toast.error(result.error);
-      else {
-        toast.success("Credencial actualizada.");
-        setOpen(false);
-      }
+      try {
+        const result = await updateCredentialAction(credential.id, clientId, formData);
+        if (result?.error) toast.error(result.error);
+        else { toast.success("Credencial actualizada."); setOpen(false); }
+      } catch { toast.error("No pudimos actualizar la credencial. Tus cambios siguen en el formulario."); }
     });
   }
 

@@ -21,8 +21,8 @@ export function SecretField({ credentialId }: { credentialId: string }) {
         const secret = await revealCredentialAction(credentialId);
         setValue(secret);
         setVisible(true);
-      } catch {
-        toast.error("No se pudo descifrar la credencial.");
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "No se pudo descifrar la credencial.");
       }
     });
   }
@@ -33,14 +33,15 @@ export function SecretField({ credentialId }: { credentialId: string }) {
       try {
         secret = await revealCredentialAction(credentialId);
         setValue(secret);
-      } catch {
-        toast.error("No se pudo obtener la credencial.");
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "No se pudo obtener la credencial.");
         return;
       }
     } else {
       await logCredentialCopyAction(credentialId);
     }
-    await navigator.clipboard.writeText(secret);
+    try { await navigator.clipboard.writeText(secret); }
+    catch { toast.error("No pudimos copiar automáticamente. Mantené presionado el texto para copiarlo."); return; }
     setCopied(true);
     toast.success("Copiado al portapapeles.");
     setTimeout(() => setCopied(false), 1500);
@@ -55,7 +56,7 @@ export function SecretField({ credentialId }: { credentialId: string }) {
         type="button"
         onClick={reveal}
         disabled={pending}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border text-muted hover:bg-surface-2"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border text-muted hover:bg-surface-2"
         title={visible ? "Ocultar" : "Mostrar contraseña"}
       >
         {visible ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -63,7 +64,7 @@ export function SecretField({ credentialId }: { credentialId: string }) {
       <button
         type="button"
         onClick={copy}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border text-muted hover:bg-surface-2"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border text-muted hover:bg-surface-2"
         title="Copiar"
       >
         {copied ? <Check size={15} className="text-success" /> : <Copy size={15} />}
